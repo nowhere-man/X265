@@ -1,4 +1,12 @@
 # vim: syntax=cmake
+cmake_minimum_required (VERSION 2.8.8...3.10) # OBJECT libraries require 2.8.8
+
+project (x265)
+
+if(POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
     # default to Release build for GCC builds
     set(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -7,13 +15,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "cmake version ${CMAKE_VERSION}")
 
-if(POLICY CMP0042)
-    cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
-endif()
-
-
-project (x265)
-cmake_minimum_required (VERSION 2.8.8...3.10) # OBJECT libraries require 2.8.8
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
 include(CheckSymbolExists)
@@ -483,12 +484,12 @@ int main() { return 0; }")
         list(APPEND LINKER_OPTIONS "-static-libgcc -static-libstdc++")
     endif(STATIC_LINK_CRT)
     check_cxx_compiler_flag(-Wno-strict-overflow CC_HAS_NO_STRICT_OVERFLOW)
-    check_cxx_compiler_flag(-Wno-narrowing CC_HAS_NO_NARROWING) 
-    check_cxx_compiler_flag(-Wno-array-bounds CC_HAS_NO_ARRAY_BOUNDS) 
+    check_cxx_compiler_flag(-Wno-narrowing CC_HAS_NO_NARROWING)
+    check_cxx_compiler_flag(-Wno-array-bounds CC_HAS_NO_ARRAY_BOUNDS)
     if (CC_HAS_NO_ARRAY_BOUNDS)
         add_definitions(-Wno-array-bounds) # these are unhelpful
     endif()
-    check_cxx_compiler_flag(-ffast-math CC_HAS_FAST_MATH) 
+    check_cxx_compiler_flag(-ffast-math CC_HAS_FAST_MATH)
     if (CC_HAS_FAST_MATH)
         add_definitions(-ffast-math)
     endif()
