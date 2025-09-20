@@ -32,5 +32,4 @@
 *.app
 
 # Build directory
-cmake-build/
 .vscode/settings.json
