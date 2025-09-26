@@ -26,4 +26,4 @@
 #ifndef X265_LOOPFILTER_ARM_H
 #define X265_LOOPFILTER_ARM_H
 
-#endif // ifndef X265_LOOPFILTER_ARM_H
+#endif  // ifndef X265_LOOPFILTER_ARM_H

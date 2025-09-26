@@ -31,18 +31,15 @@
 namespace X265_NS {
 // private x265 namespace
 
-class ReconFile
-{
+class ReconFile {
 protected:
-
-    virtual ~ReconFile()  {}
+    virtual ~ReconFile() { }
 
 public:
+    ReconFile() { }
 
-    ReconFile()           {}
-
-    static ReconFile* open(const char *fname, int width, int height, uint32_t bitdepth,
-                           uint32_t fpsNum, uint32_t fpsDenom, int csp, int sourceBitDepth);
+    static ReconFile* open(const char* fname, int width, int height, uint32_t bitdepth, uint32_t fpsNum, uint32_t fpsDenom, int csp,
+                           int sourceBitDepth);
 
     virtual bool isFail() const = 0;
 
@@ -50,18 +47,15 @@ public:
 
     virtual bool writePicture(const x265_picture& pic) = 0;
 
-    virtual const char *getName() const = 0;
+    virtual const char* getName() const = 0;
 };
 
-class OutputFile
-{
+class OutputFile {
 protected:
-
-    virtual ~OutputFile() {}
+    virtual ~OutputFile() { }
 
 public:
-
-    OutputFile() {}
+    OutputFile() { }
 
     static OutputFile* open(const char* fname, InputFileInfo& inputInfo);
 
@@ -81,6 +75,6 @@ public:
 
     virtual void closeFile(int64_t largest_pts, int64_t second_largest_pts) = 0;
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_OUTPUT_H
+#endif  // ifndef X265_OUTPUT_H

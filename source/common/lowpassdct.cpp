@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (C) 2017 
+ * Copyright (C) 2017
  *
  * Authors: Humberto Ribeiro Filho <mont3z.claro5@gmail.com>
  *
@@ -37,23 +37,22 @@ static void lowPassDct8_c(const int16_t* src, int16_t* dst, intptr_t srcStride)
     ALIGN_VAR_32(int16_t, avgBlock[4 * 4]);
     int16_t totalSum = 0;
     int16_t sum = 0;
-    
-    for (int i = 0; i < 4; i++)
-        for (int j =0; j < 4; j++)
-        {
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
             // Calculate average of 2x2 cells
-            sum = src[2*i*srcStride + 2*j] + src[2*i*srcStride + 2*j + 1]
-                    + src[(2*i+1)*srcStride + 2*j] + src[(2*i+1)*srcStride + 2*j + 1];
-            avgBlock[i*4 + j] = sum >> 2;
+            sum = src[2 * i * srcStride + 2 * j] + src[2 * i * srcStride + 2 * j + 1] + src[(2 * i + 1) * srcStride + 2 * j] +
+                  src[(2 * i + 1) * srcStride + 2 * j + 1];
+            avgBlock[i * 4 + j] = sum >> 2;
 
-            totalSum += sum; // use to calculate total block average
+            totalSum += sum;  // use to calculate total block average
         }
+    }
 
-    //dct4
+    // dct4
     (*s_dct4x4)(avgBlock, coef, 4);
     memset(dst, 0, 64 * sizeof(int16_t));
-    for (int i = 0; i < 4; i++)
-    {
+    for (int i = 0; i < 4; i++) {
         memcpy(&dst[i * 8], &coef[i * 4], 4 * sizeof(int16_t));
     }
 
@@ -71,20 +70,19 @@ static void lowPassDct16_c(const int16_t* src, int16_t* dst, intptr_t srcStride)
     ALIGN_VAR_32(int16_t, avgBlock[8 * 8]);
     int32_t totalSum = 0;
     int16_t sum = 0;
-    for (int i = 0; i < 8; i++)
-        for (int j =0; j < 8; j++)
-        {
-            sum = src[2*i*srcStride + 2*j] + src[2*i*srcStride + 2*j + 1]
-                    + src[(2*i+1)*srcStride + 2*j] + src[(2*i+1)*srcStride + 2*j + 1];
-            avgBlock[i*8 + j] = sum >> 2;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            sum = src[2 * i * srcStride + 2 * j] + src[2 * i * srcStride + 2 * j + 1] + src[(2 * i + 1) * srcStride + 2 * j] +
+                  src[(2 * i + 1) * srcStride + 2 * j + 1];
+            avgBlock[i * 8 + j] = sum >> 2;
 
             totalSum += sum;
         }
+    }
 
     (*s_dct8x8)(avgBlock, coef, 8);
     memset(dst, 0, 256 * sizeof(int16_t));
-    for (int i = 0; i < 8; i++)
-    {
+    for (int i = 0; i < 8; i++) {
         memcpy(&dst[i * 16], &coef[i * 8], 8 * sizeof(int16_t));
     }
     dst[0] = static_cast<int16_t>(totalSum >> (1 + (X265_DEPTH - 8)));
@@ -96,20 +94,19 @@ static void lowPassDct32_c(const int16_t* src, int16_t* dst, intptr_t srcStride)
     ALIGN_VAR_32(int16_t, avgBlock[16 * 16]);
     int32_t totalSum = 0;
     int16_t sum = 0;
-    for (int i = 0; i < 16; i++)
-        for (int j =0; j < 16; j++)
-        {
-            sum = src[2*i*srcStride + 2*j] + src[2*i*srcStride + 2*j + 1]
-                    + src[(2*i+1)*srcStride + 2*j] + src[(2*i+1)*srcStride + 2*j + 1];
-            avgBlock[i*16 + j] = sum >> 2;
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 16; j++) {
+            sum = src[2 * i * srcStride + 2 * j] + src[2 * i * srcStride + 2 * j + 1] + src[(2 * i + 1) * srcStride + 2 * j] +
+                  src[(2 * i + 1) * srcStride + 2 * j + 1];
+            avgBlock[i * 16 + j] = sum >> 2;
 
             totalSum += sum;
         }
+    }
 
     (*s_dct16x16)(avgBlock, coef, 16);
     memset(dst, 0, 1024 * sizeof(int16_t));
-    for (int i = 0; i < 16; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         memcpy(&dst[i * 32], &coef[i * 16], 16 * sizeof(int16_t));
     }
     dst[0] = static_cast<int16_t>(totalSum >> (3 + (X265_DEPTH - 8)));
@@ -128,4 +125,4 @@ void setupLowPassPrimitives_c(EncoderPrimitives& p)
     p.cu[BLOCK_16x16].lowpass_dct = lowPassDct16_c;
     p.cu[BLOCK_32x32].lowpass_dct = lowPassDct32_c;
 }
-}
+}  // namespace X265_NS

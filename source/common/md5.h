@@ -28,10 +28,9 @@
 #include "common.h"
 
 namespace X265_NS {
-//private x265 namespace
+// private x265 namespace
 
-typedef struct MD5Context
-{
+typedef struct MD5Context {
     uint32_t buf[4];
     uint32_t bits[2];
     unsigned char in[64];
@@ -41,39 +40,27 @@ void MD5Init(MD5Context *context);
 void MD5Update(MD5Context *context, unsigned char *buf, uint32_t len);
 void MD5Final(MD5Context *ctx, uint8_t *digest);
 
-class MD5
-{
+class MD5 {
 public:
-
     /**
      * initialize digest state
      */
-    MD5()
-    {
-        MD5Init(&m_state);
-    }
+    MD5() { MD5Init(&m_state); }
 
     /**
      * compute digest over buf of length len.
      * multiple calls may extend the digest over more data.
      */
-    void update(unsigned char *buf, unsigned len)
-    {
-        MD5Update(&m_state, buf, len);
-    }
+    void update(unsigned char *buf, unsigned len) { MD5Update(&m_state, buf, len); }
 
     /**
      * flush any outstanding MD5 data, write the digest into digest.
      */
-    void finalize(unsigned char digest[16])
-    {
-        MD5Final(&m_state, digest);
-    }
+    void finalize(unsigned char digest[16]) { MD5Final(&m_state, digest); }
 
 private:
-
     MD5Context m_state;
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_MD5_H
+#endif  // ifndef X265_MD5_H

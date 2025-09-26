@@ -30,11 +30,11 @@
 #include "primitives.h"
 
 #if _MSC_VER
-#pragma warning(disable: 4324) // structure was padded due to __declspec(align())
+#pragma warning(disable : 4324)  // structure was padded due to __declspec(align())
 #endif
 
 #define PIXEL_MIN 0
-#define SHORT_MAX  32767
+#define SHORT_MAX 32767
 #define SHORT_MIN -32767
 #define UNSIGNED_SHORT_MAX 65535
 
@@ -43,24 +43,21 @@ using namespace X265_NS;
 extern const char* lumaPartStr[NUM_PU_SIZES];
 extern const char* const* chromaPartStr[X265_CSP_COUNT];
 
-class TestHarness
-{
+class TestHarness {
 public:
+    TestHarness() { }
 
-    TestHarness() {}
-
-    virtual ~TestHarness() {}
+    virtual ~TestHarness() { }
 
     virtual bool testCorrectness(const EncoderPrimitives& ref, const EncoderPrimitives& opt) = 0;
 
     virtual void measureSpeed(const EncoderPrimitives& ref, const EncoderPrimitives& opt) = 0;
 
-    virtual const char *getName() const = 0;
+    virtual const char* getName() const = 0;
 
 protected:
-
     /* Temporary variables for stack checks */
-    int      m_ok;
+    int m_ok;
 
     uint64_t m_rand;
 };
@@ -69,9 +66,9 @@ protected:
 #include <intrin.h>
 #elif HAVE_RDTSC
 #include <intrin.h>
-#elif (!defined(__APPLE__) && (defined (__GNUC__) && (defined(__x86_64__) || defined(__i386__))))
+#elif (!defined(__APPLE__) && (defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))))
 #include <x86intrin.h>
-#elif ( !defined(__APPLE__) && defined (__GNUC__) && defined(__ARM_NEON__))
+#elif (!defined(__APPLE__) && defined(__GNUC__) && defined(__ARM_NEON__))
 #include <arm_neon.h>
 #else
 /* fallback for older GCC/MinGW */
@@ -80,54 +77,62 @@ static inline uint32_t __rdtsc(void)
     uint32_t a = 0;
 
 #if X265_ARCH_X86
-    asm volatile("rdtsc" : "=a" (a) ::"edx");
+    asm volatile("rdtsc" : "=a"(a)::"edx");
 #elif X265_ARCH_ARM
     // TOD-DO: verify following inline asm to get cpu Timestamp Counter for ARM arch
     // asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(a));
 
     // TO-DO: replace clock() function with appropriate ARM cpu instructions
     a = clock();
-#elif  X265_ARCH_ARM64
+#elif X265_ARCH_ARM64
     asm volatile("isb" : : : "memory");
     asm volatile("mrs %x0, cntvct_el0" : "=r"(a));
 #endif
     return a;
 }
-#endif // ifdef _MSC_VER
+#endif  // ifdef _MSC_VER
 
 #define BENCH_RUNS 2000
 
 /* Adapted from checkasm.c, runs each optimized primitive four times, measures rdtsc
  * and discards invalid times. Repeats BENCH_RUNS times to get a good average.
  * Then measures the C reference with BENCH_RUNS / 4 runs and reports X factor and average cycles.*/
-#define REPORT_SPEEDUP(RUNOPT, RUNREF, ...) \
-    { \
-        uint32_t cycles = 0; int runs = 0; \
-        RUNOPT(__VA_ARGS__); \
-        for (int ti = 0; ti < BENCH_RUNS; ti++) { \
-            uint32_t t0 = (uint32_t)__rdtsc(); \
-            RUNOPT(__VA_ARGS__); \
-            RUNOPT(__VA_ARGS__); \
-            RUNOPT(__VA_ARGS__); \
-            RUNOPT(__VA_ARGS__); \
-            uint32_t t1 = (uint32_t)__rdtsc() - t0; \
-            if (t1 * runs <= cycles * 4 && ti > 0) { cycles += t1; runs++; } \
-        } \
-        uint32_t refcycles = 0; int refruns = 0; \
-        RUNREF(__VA_ARGS__); \
-        for (int ti = 0; ti < BENCH_RUNS / 4; ti++) { \
-            uint32_t t0 = (uint32_t)__rdtsc(); \
-            RUNREF(__VA_ARGS__); \
-            RUNREF(__VA_ARGS__); \
-            RUNREF(__VA_ARGS__); \
-            RUNREF(__VA_ARGS__); \
-            uint32_t t1 = (uint32_t)__rdtsc() - t0; \
-            if (t1 * refruns <= refcycles * 4 && ti > 0) { refcycles += t1; refruns++; } \
-        } \
-        x265_emms(); \
-        float optperf = (10.0f * cycles / runs) / 4; \
-        float refperf = (10.0f * refcycles / refruns) / 4; \
-        printf(" | \t%3.2fx | ", refperf / optperf); \
+#define REPORT_SPEEDUP(RUNOPT, RUNREF, ...)                    \
+    {                                                          \
+        uint32_t cycles = 0;                                   \
+        int runs = 0;                                          \
+        RUNOPT(__VA_ARGS__);                                   \
+        for (int ti = 0; ti < BENCH_RUNS; ti++) {              \
+            uint32_t t0 = (uint32_t)__rdtsc();                 \
+            RUNOPT(__VA_ARGS__);                               \
+            RUNOPT(__VA_ARGS__);                               \
+            RUNOPT(__VA_ARGS__);                               \
+            RUNOPT(__VA_ARGS__);                               \
+            uint32_t t1 = (uint32_t)__rdtsc() - t0;            \
+            if (t1 * runs <= cycles * 4 && ti > 0) {           \
+                cycles += t1;                                  \
+                runs++;                                        \
+            }                                                  \
+        }                                                      \
+        uint32_t refcycles = 0;                                \
+        int refruns = 0;                                       \
+        RUNREF(__VA_ARGS__);                                   \
+        for (int ti = 0; ti < BENCH_RUNS / 4; ti++) {          \
+            uint32_t t0 = (uint32_t)__rdtsc();                 \
+            RUNREF(__VA_ARGS__);                               \
+            RUNREF(__VA_ARGS__);                               \
+            RUNREF(__VA_ARGS__);                               \
+            RUNREF(__VA_ARGS__);                               \
+            uint32_t t1 = (uint32_t)__rdtsc() - t0;            \
+            if (t1 * refruns <= refcycles * 4 && ti > 0) {     \
+                refcycles += t1;                               \
+                refruns++;                                     \
+            }                                                  \
+        }                                                      \
+        x265_emms();                                           \
+        float optperf = (10.0f * cycles / runs) / 4;           \
+        float refperf = (10.0f * refcycles / refruns) / 4;     \
+        printf(" | \t%3.2fx | ", refperf / optperf);           \
         printf("\t %-8.2lf | \t %-8.2lf\n", optperf, refperf); \
     }
 
@@ -137,10 +142,10 @@ int PFX(stack_pagealign)(int (*func)(), int align);
 
 /* detect when callee-saved regs aren't saved
  * needs an explicit asm check because it only sometimes crashes in normal use. */
-intptr_t PFX(checkasm_call)(intptr_t (*func)(), int *ok, ...);
-float PFX(checkasm_call_float)(float (*func)(), int *ok, ...);
+intptr_t PFX(checkasm_call)(intptr_t (*func)(), int* ok, ...);
+float PFX(checkasm_call_float)(float (*func)(), int* ok, ...);
 #elif (X265_ARCH_ARM == 0 && X265_ARCH_ARM64 == 0)
-#define PFX(stack_pagealign)(func, align) func()
+#define PFX(stack_pagealign) (func, align) func()
 #endif
 
 #if X86_64
@@ -155,29 +160,32 @@ float PFX(checkasm_call_float)(float (*func)(), int *ok, ...);
  * detect all functions that assumes zero-extension.
  */
 void PFX(checkasm_stack_clobber)(uint64_t clobber, ...);
-#define checked(func, ...) ( \
-        m_ok = 1, m_rand = (rand() & 0xffff) * 0x0001000100010001ULL, \
-        PFX(checkasm_stack_clobber)(m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, \
-                                    m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, \
-                                    m_rand, m_rand, m_rand, m_rand, m_rand), /* max_args+6 */ \
-        PFX(checkasm_call)((intptr_t(*)())reinterpret_cast<void*>(func), &m_ok, 0, 0, 0, 0, __VA_ARGS__))
+#define checked(func, ...)                                                                                                                       \
+    (m_ok = 1, m_rand = (rand() & 0xffff) * 0x0001000100010001ULL,                                                                               \
+     PFX(checkasm_stack_clobber)(m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, \
+                                 m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand), /* max_args+6 */                                       \
+     PFX(checkasm_call)((intptr_t(*)()) reinterpret_cast<void*>(func), &m_ok, 0, 0, 0, 0, __VA_ARGS__))
 
-#define checked_float(func, ...) ( \
-        m_ok = 1, m_rand = (rand() & 0xffff) * 0x0001000100010001ULL, \
-        PFX(checkasm_stack_clobber)(m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, \
-                                    m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, \
-                                    m_rand, m_rand, m_rand, m_rand, m_rand), /* max_args+6 */ \
-        PFX(checkasm_call_float)((float(*)())reinterpret_cast<void*>(func), &m_ok, 0, 0, 0, 0, __VA_ARGS__))
-#define reportfail() if (!m_ok) { fflush(stdout); fprintf(stderr, "stack clobber check failed at %s:%d", __FILE__, __LINE__); abort(); }
+#define checked_float(func, ...)                                                                                                                 \
+    (m_ok = 1, m_rand = (rand() & 0xffff) * 0x0001000100010001ULL,                                                                               \
+     PFX(checkasm_stack_clobber)(m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, \
+                                 m_rand, m_rand, m_rand, m_rand, m_rand, m_rand, m_rand), /* max_args+6 */                                       \
+     PFX(checkasm_call_float)((float (*)()) reinterpret_cast<void*>(func), &m_ok, 0, 0, 0, 0, __VA_ARGS__))
+#define reportfail()                                                                \
+    if (!m_ok) {                                                                    \
+        fflush(stdout);                                                             \
+        fprintf(stderr, "stack clobber check failed at %s:%d", __FILE__, __LINE__); \
+        abort();                                                                    \
+    }
 #elif ARCH_X86
 #define checked(func, ...) PFX(checkasm_call)((intptr_t(*)())func, &m_ok, __VA_ARGS__);
-#define checked_float(func, ...) PFX(checkasm_call_float)((float(*)())func, &m_ok, __VA_ARGS__);
+#define checked_float(func, ...) PFX(checkasm_call_float)((float (*)())func, &m_ok, __VA_ARGS__);
 
-#else // if X86_64
+#else  // if X86_64
 #define checked(func, ...) func(__VA_ARGS__)
 #define checked_float(func, ...) func(__VA_ARGS__)
 #define reportfail()
-#endif // if X86_64
+#endif  // if X86_64
 }
 
-#endif // ifndef _TESTHARNESS_H_
+#endif  // ifndef _TESTHARNESS_H_

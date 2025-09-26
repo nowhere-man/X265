@@ -30,7 +30,7 @@
 using namespace X265_NS;
 
 #if _WIN32
-#define popen  _popen
+#define popen _popen
 #define pclose _pclose
 #define pipemode "wb"
 #else
@@ -42,8 +42,9 @@ bool ReconPlay::pipeValid;
 #ifndef _WIN32
 static void sigpipe_handler(int)
 {
-    if (ReconPlay::pipeValid)
+    if (ReconPlay::pipeValid) {
         general_log(NULL, "exec", X265_LOG_ERROR, "pipe closed\n");
+    }
     ReconPlay::pipeValid = false;
 }
 #endif
@@ -51,8 +52,9 @@ static void sigpipe_handler(int)
 ReconPlay::ReconPlay(const char* commandLine, x265_param& param)
 {
 #ifndef _WIN32
-    if (signal(SIGPIPE, sigpipe_handler) == SIG_ERR)
+    if (signal(SIGPIPE, sigpipe_handler) == SIG_ERR) {
         general_log(&param, "exec", X265_LOG_ERROR, "Unable to register SIGPIPE handler: %s\n", strerror(errno));
+    }
 #endif
 
     width = param.sourceWidth;
@@ -60,18 +62,17 @@ ReconPlay::ReconPlay(const char* commandLine, x265_param& param)
     colorSpace = param.internalCsp;
 
     frameSize = 0;
-    for (int i = 0; i < x265_cli_csps[colorSpace].planes; i++)
+    for (int i = 0; i < x265_cli_csps[colorSpace].planes; i++) {
         frameSize += (uint32_t)((width >> x265_cli_csps[colorSpace].width[i]) * (height >> x265_cli_csps[colorSpace].height[i]));
+    }
 
-    for (int i = 0; i < RECON_BUF_SIZE; i++)
-    {
+    for (int i = 0; i < RECON_BUF_SIZE; i++) {
         poc[i] = -1;
         CHECKED_MALLOC(frameData[i], pixel, frameSize);
     }
 
     outputPipe = popen(commandLine, pipemode);
-    if (outputPipe)
-    {
+    if (outputPipe) {
         const char* csp = (colorSpace >= X265_CSP_I444) ? "444" : (colorSpace >= X265_CSP_I422) ? "422" : "420";
         const char* depth = (param.internalBitDepth == 10) ? "p10" : (param.internalBitDepth == 12) ? "p12" : "";
 
@@ -81,9 +82,9 @@ ReconPlay::ReconPlay(const char* commandLine, x265_param& param)
         threadActive = true;
         start();
         return;
-    }
-    else
+    } else {
         general_log(&param, "exec", X265_LOG_ERROR, "popen(%s) failed\n", commandLine);
+    }
 
 fail:
     threadActive = false;
@@ -91,24 +92,26 @@ fail:
 
 ReconPlay::~ReconPlay()
 {
-    if (threadActive)
-    {
+    if (threadActive) {
         threadActive = false;
         writeCount.poke();
         stop();
     }
 
-    if (outputPipe) 
+    if (outputPipe) {
         pclose(outputPipe);
+    }
 
-    for (int i = 0; i < RECON_BUF_SIZE; i++)
+    for (int i = 0; i < RECON_BUF_SIZE; i++) {
         X265_FREE(frameData[i]);
+    }
 }
 
 bool ReconPlay::writePicture(const x265_picture& pic)
 {
-    if (!threadActive || !pipeValid)
+    if (!threadActive || !pipeValid) {
         return false;
+    }
 
     int written = writeCount.get();
     int read = readCount.get();
@@ -116,24 +119,22 @@ bool ReconPlay::writePicture(const x265_picture& pic)
 
     /* TODO: it's probably better to drop recon pictures when the ring buffer is
      * backed up on the display app */
-    while (written - read > RECON_BUF_SIZE - 2 || poc[currentCursor] != -1)
-    {
+    while (written - read > RECON_BUF_SIZE - 2 || poc[currentCursor] != -1) {
         read = readCount.waitForChange(read);
-        if (!threadActive)
+        if (!threadActive) {
             return false;
+        }
     }
 
     X265_CHECK(pic.colorSpace == colorSpace, "invalid color space\n");
-    X265_CHECK(pic.bitDepth == X265_DEPTH,   "invalid bit depth\n");
+    X265_CHECK(pic.bitDepth == X265_DEPTH, "invalid bit depth\n");
 
     pixel* buf = frameData[currentCursor];
-    for (int i = 0; i < x265_cli_csps[colorSpace].planes; i++)
-    {
+    for (int i = 0; i < x265_cli_csps[colorSpace].planes; i++) {
         char* src = (char*)pic.planes[i];
         int pwidth = width >> x265_cli_csps[colorSpace].width[i];
 
-        for (int h = 0; h < height >> x265_cli_csps[colorSpace].height[i]; h++)
-        {
+        for (int h = 0; h < height >> x265_cli_csps[colorSpace].height[i]; h++) {
             memcpy(buf, src, pwidth * sizeof(pixel));
             src += pic.stride[i];
             buf += pwidth;
@@ -150,13 +151,12 @@ void ReconPlay::threadMain()
 {
     THREAD_NAME("ReconPlayOutput", 0);
 
-    do
-    {
+    do {
         /* extract the next output picture in display order and write to pipe */
-        if (!outputFrame())
+        if (!outputFrame()) {
             break;
-    }
-    while (threadActive);
+        }
+    } while (threadActive);
 
     threadActive = false;
     readCount.poke();
@@ -168,25 +168,25 @@ bool ReconPlay::outputFrame()
     int read = readCount.get();
     int currentCursor = read % RECON_BUF_SIZE;
 
-    while (poc[currentCursor] != read)
-    {
+    while (poc[currentCursor] != read) {
         written = writeCount.waitForChange(written);
-        if (!threadActive)
+        if (!threadActive) {
             return false;
+        }
     }
 
     char* buf = (char*)frameData[currentCursor];
     intptr_t remainSize = frameSize * sizeof(pixel);
 
     fprintf(outputPipe, "FRAME\n");
-    while (remainSize > 0)
-    {
+    while (remainSize > 0) {
         intptr_t retCount = (intptr_t)fwrite(buf, sizeof(char), remainSize, outputPipe);
 
-        if (retCount < 0 || !pipeValid)
+        if (retCount < 0 || !pipeValid) {
             /* pipe failure, stop writing and start dropping recon pictures */
             return false;
-    
+        }
+
         buf += retCount;
         remainSize -= retCount;
     }

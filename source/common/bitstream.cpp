@@ -5,7 +5,7 @@
 using namespace X265_NS;
 
 #if defined(_MSC_VER)
-#pragma warning(disable: 4244)
+#pragma warning(disable : 4244)
 #endif
 
 #define MIN_FIFO_SIZE 1000
@@ -19,22 +19,19 @@ Bitstream::Bitstream()
 
 void Bitstream::push_back(uint8_t val)
 {
-    if (!m_fifo)
+    if (!m_fifo) {
         return;
+    }
 
-    if (m_byteOccupancy >= m_byteAlloc)
-    {
+    if (m_byteOccupancy >= m_byteAlloc) {
         /** reallocate buffer with doubled size */
         uint8_t *temp = X265_MALLOC(uint8_t, m_byteAlloc * 2);
-        if (temp)
-        {
+        if (temp) {
             memcpy(temp, m_fifo, m_byteOccupancy);
             X265_FREE(m_fifo);
             m_fifo = temp;
             m_byteAlloc *= 2;
-        }
-        else
-        {
+        } else {
             x265_log(NULL, X265_LOG_ERROR, "Unable to realloc bitstream buffer");
             return;
         }
@@ -49,11 +46,10 @@ void Bitstream::write(uint32_t val, uint32_t numBits)
 
     uint32_t totalPartialBits = m_partialByteBits + numBits;
     uint32_t nextPartialBits = totalPartialBits & 7;
-    uint8_t  nextHeldByte = val << (8 - nextPartialBits);
+    uint8_t nextHeldByte = val << (8 - nextPartialBits);
     uint32_t writeBytes = totalPartialBits >> 3;
 
-    if (writeBytes)
-    {
+    if (writeBytes) {
         /* topword aligns m_partialByte with the msb of val */
         uint32_t topword = (numBits - nextPartialBits) & ~7;
 #if USING_FTRAPV
@@ -62,19 +58,20 @@ void Bitstream::write(uint32_t val, uint32_t numBits)
         uint32_t write_bits = (m_partialByte << topword) | (val >> nextPartialBits);
 #endif
 
-        switch (writeBytes)
-        {
-        case 4: push_back(write_bits >> 24);  // fall-through
-        case 3: push_back(write_bits >> 16);  // fall-through
-        case 2: push_back(write_bits >> 8);   // fall-through
-        case 1: push_back(write_bits);
+        switch (writeBytes) {
+        case 4:
+            push_back(write_bits >> 24);  // fall-through
+        case 3:
+            push_back(write_bits >> 16);  // fall-through
+        case 2:
+            push_back(write_bits >> 8);  // fall-through
+        case 1:
+            push_back(write_bits);
         }
 
         m_partialByte = nextHeldByte;
         m_partialByteBits = nextPartialBits;
-    }
-    else
-    {
+    } else {
         m_partialByte |= nextHeldByte;
         m_partialByteBits = nextPartialBits;
     }
@@ -97,8 +94,7 @@ void Bitstream::writeAlignOne()
 
 void Bitstream::writeAlignZero()
 {
-    if (m_partialByteBits)
-    {
+    if (m_partialByteBits) {
         push_back(m_partialByte);
         m_partialByte = 0;
         m_partialByteBits = 0;

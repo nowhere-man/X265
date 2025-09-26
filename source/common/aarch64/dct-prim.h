@@ -1,34 +1,25 @@
 #ifndef __DCT_PRIM_NEON_H__
 #define __DCT_PRIM_NEON_H__
 
-
 #include "common.h"
 #include "primitives.h"
 #include "contexts.h"   // costCoeffNxN_c
 #include "threading.h"  // BSR
 #include <arm_neon.h>
 
-namespace X265_NS
-{
+namespace X265_NS {
 // First two columns of the 4x4 dct transform matrix, duplicated to 4x4 to allow
 // processing two lines at once.
-const int32_t t8_even[4][4] =
-{
-    { 64,  64, 64,  64 },
-    { 83,  36, 83,  36 },
-    { 64, -64, 64, -64 },
-    { 36, -83, 36, -83 },
+const int32_t t8_even[4][4] = {
+    {64,  64, 64,  64},
+    {83,  36, 83,  36},
+    {64, -64, 64, -64},
+    {36, -83, 36, -83},
 };
 
-const uint8_t rev16_tbl[16] =
-{
-    14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1
-};
+const uint8_t rev16_tbl[16] = {14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1};
 
-const uint8_t rev32_tbl[16] =
-{
-    12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3
-};
+const uint8_t rev32_tbl[16] = {12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3};
 
 static inline int16x8_t rev16(const int16x8_t a)
 {
@@ -51,9 +42,6 @@ void setupDCTPrimitives_neon(EncoderPrimitives &p);
 #if defined(HAVE_SVE) && HAVE_SVE_BRIDGE
 void setupDCTPrimitives_sve(EncoderPrimitives &p);
 #endif
-};
-
-
+};  // namespace X265_NS
 
 #endif
-

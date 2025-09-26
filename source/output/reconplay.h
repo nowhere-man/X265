@@ -32,10 +32,8 @@
 namespace X265_NS {
 // private x265 namespace
 
-class ReconPlay : public Thread
-{
+class ReconPlay : public Thread {
 public:
-
     ReconPlay(const char* commandLine, x265_param& param);
 
     virtual ~ReconPlay();
@@ -45,17 +43,16 @@ public:
     static bool pipeValid;
 
 protected:
-
     enum { RECON_BUF_SIZE = 40 };
 
-    FILE*  outputPipe;     /* The output pipe for player */
-    size_t frameSize;      /* size of one frame in pixels */
-    bool   threadActive;   /* worker thread is active */
-    int    width;          /* width of frame */
-    int    height;         /* height of frame */
-    int    colorSpace;     /* color space of frame */
+    FILE* outputPipe;  /* The output pipe for player */
+    size_t frameSize;  /* size of one frame in pixels */
+    bool threadActive; /* worker thread is active */
+    int width;         /* width of frame */
+    int height;        /* height of frame */
+    int colorSpace;    /* color space of frame */
 
-    int    poc[RECON_BUF_SIZE];
+    int poc[RECON_BUF_SIZE];
     pixel* frameData[RECON_BUF_SIZE];
 
     /* Note that the class uses read and write counters to signal that reads and
@@ -69,6 +66,6 @@ protected:
     void threadMain();
     bool outputFrame();
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_RECONPLAY_H
+#endif  // ifndef X265_RECONPLAY_H

@@ -36,12 +36,14 @@ bool WaveFront::init(int numRows)
 
     m_numWords = (numRows + 31) >> 5;
     m_internalDependencyBitmap = X265_MALLOC(uint32_t, m_numWords);
-    if (m_internalDependencyBitmap)
+    if (m_internalDependencyBitmap) {
         memset((void*)m_internalDependencyBitmap, 0, sizeof(uint32_t) * m_numWords);
+    }
 
     m_externalDependencyBitmap = X265_MALLOC(uint32_t, m_numWords);
-    if (m_externalDependencyBitmap)
+    if (m_externalDependencyBitmap) {
         memset((void*)m_externalDependencyBitmap, 0, sizeof(uint32_t) * m_numWords);
+    }
 
     m_row_to_idx = X265_MALLOC(uint32_t, m_numRows);
     m_idx_to_row = X265_MALLOC(uint32_t, m_numRows);
@@ -58,10 +60,7 @@ WaveFront::~WaveFront()
     x265_free((void*)m_externalDependencyBitmap);
 }
 
-void WaveFront::setLayerId(int layer)
-{
-    m_sLayerId = layer;
-}
+void WaveFront::setLayerId(int layer) { m_sLayerId = layer; }
 
 void WaveFront::clearEnabledRowMask()
 {
@@ -81,10 +80,7 @@ void WaveFront::enableRow(int row)
     ATOMIC_OR(&m_externalDependencyBitmap[row >> 5], bit);
 }
 
-void WaveFront::enableAllRows()
-{
-    memset((void*)m_externalDependencyBitmap, ~0, sizeof(uint32_t) * m_numWords);
-}
+void WaveFront::enableAllRows() { memset((void*)m_externalDependencyBitmap, ~0, sizeof(uint32_t) * m_numWords); }
 
 bool WaveFront::dequeueRow(int row)
 {
@@ -97,16 +93,13 @@ void WaveFront::findJob(int threadId)
     unsigned long id;
 
     /* Loop over each word until all available rows are finished */
-    for (int w = 0; w < m_numWords; w++)
-    {
+    for (int w = 0; w < m_numWords; w++) {
         uint32_t oldval = m_internalDependencyBitmap[w] & m_externalDependencyBitmap[w];
-        while (oldval)
-        {
+        while (oldval) {
             BSF(id, oldval);
 
             uint32_t bit = 1 << id;
-            if (ATOMIC_AND(&m_internalDependencyBitmap[w], ~bit) & bit)
-            {
+            if (ATOMIC_AND(&m_internalDependencyBitmap[w], ~bit) & bit) {
                 /* we cleared the bit, we get to process the row */
                 processRow(w * 32 + id, threadId, m_sLayerId);
                 m_helpWanted = true;
@@ -119,4 +112,4 @@ void WaveFront::findJob(int threadId)
 
     m_helpWanted = false;
 }
-}
+}  // namespace X265_NS

@@ -35,10 +35,8 @@ namespace X265_NS {
 // queue (higher CU rows have priority over lower rows)
 //
 // Derived classes must implement ProcessRow().
-class WaveFront : public JobProvider
-{
+class WaveFront : public JobProvider {
 private:
-
     // bitmaps of rows queued for processing, uses atomic intrinsics
 
     // Dependencies are categorized as internal and external. Internal dependencies
@@ -59,11 +57,7 @@ protected:
     uint32_t *m_idx_to_row;
 
 public:
-
-    WaveFront()
-        : m_internalDependencyBitmap(NULL)
-        , m_externalDependencyBitmap(NULL)
-    {}
+    WaveFront() : m_internalDependencyBitmap(NULL), m_externalDependencyBitmap(NULL) { }
 
     virtual ~WaveFront();
 
@@ -101,6 +95,6 @@ public:
 
     void setLayerId(int layer);
 };
-} // end namespace X265_NS
+}  // end namespace X265_NS
 
-#endif // ifndef X265_WAVEFRONT_H
+#endif  // ifndef X265_WAVEFRONT_H

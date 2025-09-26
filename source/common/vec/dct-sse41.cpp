@@ -30,12 +30,12 @@
 
 #include "common.h"
 #include "primitives.h"
-#include <xmmintrin.h> // SSE
-#include <smmintrin.h> // SSE4.1
+#include <xmmintrin.h>  // SSE
+#include <smmintrin.h>  // SSE4.1
 
 using namespace X265_NS;
 
-static void dequant_scaling(const int16_t* quantCoef, const int32_t *deQuantCoef, int16_t* coef, int num, int per, int shift)
+static void dequant_scaling(const int16_t* quantCoef, const int32_t* deQuantCoef, int16_t* coef, int num, int per, int shift)
 {
     X265_CHECK(num <= 32 * 32, "dequant num too large\n");
 
@@ -43,13 +43,11 @@ static void dequant_scaling(const int16_t* quantCoef, const int32_t *deQuantCoef
 
     shift += 4;
 
-    if (shift > per)
-    {
+    if (shift > per) {
         valueToAdd = 1 << (shift - per - 1);
         __m128i IAdd = _mm_set1_epi32(valueToAdd);
 
-        for (int n = 0; n < num; n = n + 8)
-        {
+        for (int n = 0; n < num; n = n + 8) {
             __m128i quantCoef1, quantCoef2, deQuantCoef1, deQuantCoef2, quantCoef12, sign;
 
             quantCoef12 = _mm_loadu_si128((__m128i*)(quantCoef + n));
@@ -67,11 +65,8 @@ static void dequant_scaling(const int16_t* quantCoef, const int32_t *deQuantCoef
             quantCoef12 = _mm_packs_epi32(quantCoef1, quantCoef2);
             _mm_storeu_si128((__m128i*)(coef + n), quantCoef12);
         }
-    }
-    else
-    {
-        for (int n = 0; n < num; n = n + 8)
-        {
+    } else {
+        for (int n = 0; n < num; n = n + 8) {
             __m128i quantCoef1, quantCoef2, deQuantCoef1, deQuantCoef2, quantCoef12, sign;
 
             quantCoef12 = _mm_loadu_si128((__m128i*)(quantCoef + n));
@@ -101,8 +96,5 @@ static void dequant_scaling(const int16_t* quantCoef, const int32_t *deQuantCoef
 }
 
 namespace X265_NS {
-void setupIntrinsicDCT_sse41(EncoderPrimitives &p)
-{
-    p.dequant_scaling = dequant_scaling;
-}
-}
+void setupIntrinsicDCT_sse41(EncoderPrimitives& p) { p.dequant_scaling = dequant_scaling; }
+}  // namespace X265_NS

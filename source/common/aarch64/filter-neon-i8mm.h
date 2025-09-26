@@ -32,6 +32,6 @@ namespace X265_NS {
 void setupFilterPrimitives_neon_i8mm(EncoderPrimitives &p);
 }
 
-#endif // defined(HAVE_NEON_I8MM)
+#endif  // defined(HAVE_NEON_I8MM)
 
-#endif // X265_FILTER_NEON_I8MM_H
+#endif  // X265_FILTER_NEON_I8MM_H

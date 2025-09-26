@@ -6,11 +6,9 @@
 
 #define PIXEL_MIN 0
 
-namespace X265_NS
-{
+namespace X265_NS {
 void setupLoopFilterPrimitives_neon(EncoderPrimitives &p);
 
 };
-
 
 #endif

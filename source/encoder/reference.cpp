@@ -48,15 +48,14 @@ MotionReference::~MotionReference()
     X265_FREE(weightBuffer[2]);
 }
 
-int MotionReference::init(PicYuv* recPic, WeightParam *wp, const x265_param& p)
+int MotionReference::init(PicYuv* recPic, WeightParam* wp, const x265_param& p)
 {
     reconPic = recPic;
     lumaStride = recPic->m_stride;
     chromaStride = recPic->m_strideC;
     numInterpPlanes = p.subpelRefine > 2 ? 3 : 1; /* is chroma satd possible? */
 
-    if (numSliceWeightedRows)
-    {
+    if (numSliceWeightedRows) {
         // Unnecessary, but avoid risk on parameters dynamic modify in future.
         X265_FREE(numSliceWeightedRows);
         numSliceWeightedRows = NULL;
@@ -70,8 +69,7 @@ int MotionReference::init(PicYuv* recPic, WeightParam *wp, const x265_param& p)
     fpelPlane[2] = recPic->m_picOrg[2];
     isWeighted = false;
 
-    if (wp)
-    {
+    if (wp) {
         uint32_t numCUinHeight = (reconPic->m_picHeight + p.maxCUSize - 1) / p.maxCUSize;
 
         int marginX = reconPic->m_lumaMarginX;
@@ -79,24 +77,21 @@ int MotionReference::init(PicYuv* recPic, WeightParam *wp, const x265_param& p)
         intptr_t stride = reconPic->m_stride;
         int cuHeight = p.maxCUSize;
 
-        for (int c = 0; c < (p.internalCsp != X265_CSP_I400 && recPic->m_picCsp != X265_CSP_I400 ? numInterpPlanes : 1); c++)
-        {
-            if (c == 1)
-            {
+        for (int c = 0; c < (p.internalCsp != X265_CSP_I400 && recPic->m_picCsp != X265_CSP_I400 ? numInterpPlanes : 1); c++) {
+            if (c == 1) {
                 marginX = reconPic->m_chromaMarginX;
                 marginY = reconPic->m_chromaMarginY;
-                stride  = reconPic->m_strideC;
+                stride = reconPic->m_strideC;
                 cuHeight >>= reconPic->m_vChromaShift;
             }
 
-            if (wp[c].wtPresent)
-            {
-                if (!weightBuffer[c])
-                {
+            if (wp[c].wtPresent) {
+                if (!weightBuffer[c]) {
                     size_t padheight = (numCUinHeight * cuHeight) + marginY * 2;
                     weightBuffer[c] = X265_MALLOC(pixel, stride * padheight);
-                    if (!weightBuffer[c])
+                    if (!weightBuffer[c]) {
                         return -1;
+                    }
                 }
 
                 /* use our buffer which will have weighted pixels written to it */
@@ -120,64 +115,65 @@ void MotionReference::applyWeight(uint32_t finishedRows, uint32_t maxNumRows, ui
 {
     const uint32_t numWeightedRows = numSliceWeightedRows[sliceId];
     finishedRows = X265_MIN(finishedRows, maxNumRowsInSlice);
-    if (numWeightedRows >= finishedRows)
+    if (numWeightedRows >= finishedRows) {
         return;
+    }
 
     int marginX = reconPic->m_lumaMarginX;
     int marginY = reconPic->m_lumaMarginY;
     intptr_t stride = reconPic->m_stride;
-    int width   = reconPic->m_picWidth;
-    int height  = (finishedRows - numWeightedRows) * reconPic->m_param->maxCUSize;
+    int width = reconPic->m_picWidth;
+    int height = (finishedRows - numWeightedRows) * reconPic->m_param->maxCUSize;
     /* the last row may be partial height */
-    if (finishedRows == maxNumRows - 1)
-    {
+    if (finishedRows == maxNumRows - 1) {
         const int leftRows = (reconPic->m_picHeight & (reconPic->m_param->maxCUSize - 1));
 
         height += leftRows ? leftRows : reconPic->m_param->maxCUSize;
     }
     int cuHeight = reconPic->m_param->maxCUSize;
 
-    for (int c = 0; c < numInterpPlanes; c++)
-    {
-        if (c == 1)
-        {
+    for (int c = 0; c < numInterpPlanes; c++) {
+        if (c == 1) {
             marginX = reconPic->m_chromaMarginX;
             marginY = reconPic->m_chromaMarginY;
-            stride  = reconPic->m_strideC;
-            width    >>= reconPic->m_hChromaShift;
-            height   >>= reconPic->m_vChromaShift;
+            stride = reconPic->m_strideC;
+            width >>= reconPic->m_hChromaShift;
+            height >>= reconPic->m_vChromaShift;
             cuHeight >>= reconPic->m_vChromaShift;
         }
 
         /* Do not generate weighted predictions if using original picture */
-        if (fpelPlane[c] == reconPic->m_picOrg[c])
+        if (fpelPlane[c] == reconPic->m_picOrg[c]) {
             continue;
+        }
 
         const pixel* src = reconPic->m_picOrg[c] + numWeightedRows * cuHeight * stride;
         pixel* dst = fpelPlane[c] + numWeightedRows * cuHeight * stride;
         // Computing weighted CU rows
-        int correction = IF_INTERNAL_PREC - X265_DEPTH; // intermediate interpolation depth
-        int padwidth = (width + 31) & ~31;              // weightp assembly needs even 32 byte widths
+        int correction = IF_INTERNAL_PREC - X265_DEPTH;  // intermediate interpolation depth
+        int padwidth = (width + 31) & ~31;               // weightp assembly needs even 32 byte widths
         primitives.weight_pp(src, dst, stride, padwidth, height, w[c].weight, w[c].round << correction, w[c].shift + correction, w[c].offset);
         // Extending Left & Right
         primitives.extendRowBorder(dst, stride, width, height, marginX);
 
         // Extending Above
-        if (numWeightedRows == 0)
-        {
-            pixel *pixY = fpelPlane[c] - marginX;
-            for (int y = 0; y < marginY; y++)
+        if (numWeightedRows == 0) {
+            pixel* pixY = fpelPlane[c] - marginX;
+            for (int y = 0; y < marginY; y++) {
                 memcpy(pixY - (y + 1) * stride, pixY, stride * sizeof(pixel));
+            }
         }
 
         // Extending Bottom
-        if (finishedRows == maxNumRows - 1)
-        {
+        if (finishedRows == maxNumRows - 1) {
             int picHeight = reconPic->m_picHeight;
-            if (c) picHeight >>= reconPic->m_vChromaShift;
-            pixel *pixY = fpelPlane[c] - marginX + (picHeight - 1) * stride;
-            for (int y = 0; y < marginY; y++)
+            if (c) {
+                picHeight >>= reconPic->m_vChromaShift;
+            }
+            pixel* pixY = fpelPlane[c] - marginX + (picHeight - 1) * stride;
+            for (int y = 0; y < marginY; y++) {
                 memcpy(pixY + (y + 1) * stride, pixY, stride * sizeof(pixel));
+            }
         }
     }
 

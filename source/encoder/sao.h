@@ -33,22 +33,12 @@
 namespace X265_NS {
 // private namespace
 
-enum SAOType
-{
-    SAO_EO_0 = 0,
-    SAO_EO_1,
-    SAO_EO_2,
-    SAO_EO_3,
-    SAO_BO,
-    MAX_NUM_SAO_TYPE
-};
+enum SAOType { SAO_EO_0 = 0, SAO_EO_1, SAO_EO_2, SAO_EO_3, SAO_BO, MAX_NUM_SAO_TYPE };
 
-class SAO
-{
+class SAO {
 public:
-
     enum { SAO_MAX_DEPTH = 4 };
-    enum { SAO_BO_BITS  = 5 };
+    enum { SAO_BO_BITS = 5 };
     enum { MAX_NUM_SAO_CLASS = 32 };
     enum { SAO_BIT_INC = 0 }; /* in HM12.0, it wrote as X265_MAX(X265_DEPTH - 10, 0) */
     enum { OFFSET_THRESH = 1 << X265_MIN(X265_DEPTH - 5, 5) };
@@ -58,55 +48,53 @@ public:
     static const uint32_t s_eoTable[NUM_EDGETYPE];
     typedef int32_t PerClass[MAX_NUM_SAO_TYPE][MAX_NUM_SAO_CLASS];
     typedef int32_t PerPlane[NUM_PLANE][MAX_NUM_SAO_TYPE][MAX_NUM_SAO_CLASS];
-protected:
 
+protected:
     /* allocated per part */
-    PerPlane    m_count;
-    PerPlane    m_offset;
-    PerPlane    m_offsetOrg;
+    PerPlane m_count;
+    PerPlane m_offset;
+    PerPlane m_offsetOrg;
 
     /* allocated per CTU */
-    PerPlane*   m_countPreDblk;
-    PerPlane*   m_offsetOrgPreDblk;
+    PerPlane* m_countPreDblk;
+    PerPlane* m_offsetOrgPreDblk;
 
-    double*     m_depthSaoRate;
-    int8_t      m_offsetBo[NUM_PLANE][MAX_NUM_SAO_CLASS];
-    int8_t      m_offsetEo[NUM_PLANE][NUM_EDGETYPE];
+    double* m_depthSaoRate;
+    int8_t m_offsetBo[NUM_PLANE][MAX_NUM_SAO_CLASS];
+    int8_t m_offsetEo[NUM_PLANE][NUM_EDGETYPE];
 
-    int         m_chromaFormat;
-    int         m_numCuInWidth;
-    int         m_numCuInHeight;
-    int         m_hChromaShift;
-    int         m_vChromaShift;
+    int m_chromaFormat;
+    int m_numCuInWidth;
+    int m_numCuInHeight;
+    int m_hChromaShift;
+    int m_vChromaShift;
 
-    pixel*      m_clipTable;
-    pixel*      m_clipTableBase;
+    pixel* m_clipTable;
+    pixel* m_clipTableBase;
 
-    pixel*      m_tmpU[3];
-    pixel*      m_tmpL1[3];
-    pixel*      m_tmpL2[3];
+    pixel* m_tmpU[3];
+    pixel* m_tmpL1[3];
+    pixel* m_tmpL2[3];
 
 public:
-
-    struct SAOContexts
-    {
+    struct SAOContexts {
         Entropy cur;
         Entropy next;
         Entropy temp;
     };
 
-    Frame*      m_frame;
-    Entropy     m_entropyCoder;
+    Frame* m_frame;
+    Entropy m_entropyCoder;
     SAOContexts m_rdContexts;
 
     x265_param* m_param;
-    int         m_refDepth;
-    int         m_numNoSao[2];
+    int m_refDepth;
+    int m_numNoSao[2];
 
     SAO();
 
     bool create(x265_param* param, int initCommon);
-    void createFromRootNode(SAO *root);
+    void createFromRootNode(SAO* root);
     void destroy(int destoryCommon);
 
     void allocSaoParam(SAOParam* saoParam) const;
@@ -134,6 +122,6 @@ public:
     friend class FrameFilter;
 };
 
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_SAO_H
+#endif  // ifndef X265_SAO_H

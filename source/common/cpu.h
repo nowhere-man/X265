@@ -27,9 +27,9 @@
 
 #include "common.h"
 /* All assembly functions are prefixed with X265_NS (macro expanded) */
-#define PFX3(prefix, name) prefix ## _ ## name
+#define PFX3(prefix, name) prefix##_##name
 #define PFX2(prefix, name) PFX3(prefix, name)
-#define PFX(name)          PFX2(X265_NS, name)
+#define PFX(name) PFX2(X265_NS, name)
 
 // from cpu-a.asm, if ASM primitives are compiled, else primitives.cpp
 extern "C" void PFX(cpu_emms)(void);
@@ -52,13 +52,12 @@ namespace X265_NS {
 uint32_t cpu_detect(bool);
 bool detect512();
 
-struct cpu_name_t
-{
+struct cpu_name_t {
     char name[16];
     uint32_t flags;
 };
 
 extern const cpu_name_t cpu_names[];
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_CPU_H
+#endif  // ifndef X265_CPU_H

@@ -45,8 +45,7 @@ bool ShortYuv::create(uint32_t size, int csp)
     m_vChromaShift = CHROMA_V_SHIFT(csp);
     size_t sizeL = size * size;
 
-    if (csp != X265_CSP_I400)
-    {
+    if (csp != X265_CSP_I400) {
         m_csize = size >> m_hChromaShift;
         size_t sizeC = sizeL >> (m_hChromaShift + m_vChromaShift);
         X265_CHECK((sizeC & 15) == 0, "invalid size");
@@ -54,9 +53,7 @@ bool ShortYuv::create(uint32_t size, int csp)
         CHECKED_MALLOC(m_buf[0], int16_t, sizeL + sizeC * 2);
         m_buf[1] = m_buf[0] + sizeL;
         m_buf[2] = m_buf[0] + sizeL + sizeC;
-    }
-    else
-    {
+    } else {
         CHECKED_MALLOC(m_buf[0], int16_t, sizeL);
         m_buf[1] = m_buf[2] = NULL;
     }
@@ -66,14 +63,11 @@ fail:
     return false;
 }
 
-void ShortYuv::destroy()
-{
-    X265_FREE(m_buf[0]);
-}
+void ShortYuv::destroy() { X265_FREE(m_buf[0]); }
 
 void ShortYuv::clear()
 {
-    memset(m_buf[0], 0, (m_size  * m_size) *  sizeof(int16_t));
+    memset(m_buf[0], 0, (m_size * m_size) * sizeof(int16_t));
     memset(m_buf[1], 0, (m_csize * m_csize) * sizeof(int16_t));
     memset(m_buf[2], 0, (m_csize * m_csize) * sizeof(int16_t));
 }
@@ -82,8 +76,7 @@ void ShortYuv::subtract(const Yuv& srcYuv0, const Yuv& srcYuv1, uint32_t log2Siz
 {
     const int sizeIdx = log2Size - 2;
     primitives.cu[sizeIdx].sub_ps(m_buf[0], m_size, srcYuv0.m_buf[0], srcYuv1.m_buf[0], srcYuv0.m_size, srcYuv1.m_size);
-    if (m_csp != X265_CSP_I400 && picCsp != X265_CSP_I400)
-    {
+    if (m_csp != X265_CSP_I400 && picCsp != X265_CSP_I400) {
         primitives.chroma[m_csp].cu[sizeIdx].sub_ps(m_buf[1], m_csize, srcYuv0.m_buf[1], srcYuv1.m_buf[1], srcYuv0.m_csize, srcYuv1.m_csize);
         primitives.chroma[m_csp].cu[sizeIdx].sub_ps(m_buf[2], m_csize, srcYuv0.m_buf[2], srcYuv1.m_buf[2], srcYuv0.m_csize, srcYuv1.m_csize);
     }

@@ -45,41 +45,38 @@
 #define HAVE_SSE3
 #define HAVE_SSSE3
 #define HAVE_SSE4
-#if _MSC_VER >= 1700 // VC11
+#if _MSC_VER >= 1700  // VC11
 #define HAVE_AVX2
 #endif
-#endif // compiler checks
-#endif // if X265_ARCH_X86
+#endif  // compiler checks
+#endif  // if X265_ARCH_X86
 
 namespace X265_NS {
 // private x265 namespace
 
-void setupIntrinsicDCT_sse3(EncoderPrimitives&);
-void setupIntrinsicDCT_ssse3(EncoderPrimitives&);
-void setupIntrinsicDCT_sse41(EncoderPrimitives&);
+void setupIntrinsicDCT_sse3(EncoderPrimitives &);
+void setupIntrinsicDCT_ssse3(EncoderPrimitives &);
+void setupIntrinsicDCT_sse41(EncoderPrimitives &);
 
 /* Use primitives for the best available vector architecture */
 void setupIntrinsicPrimitives(EncoderPrimitives &p, int cpuMask)
 {
 #ifdef HAVE_SSE3
-    if (cpuMask & X265_CPU_SSE3)
-    {
+    if (cpuMask & X265_CPU_SSE3) {
         setupIntrinsicDCT_sse3(p);
     }
 #endif
 #ifdef HAVE_SSSE3
-    if (cpuMask & X265_CPU_SSSE3)
-    {
+    if (cpuMask & X265_CPU_SSSE3) {
         setupIntrinsicDCT_ssse3(p);
     }
 #endif
 #ifdef HAVE_SSE4
-    if (cpuMask & X265_CPU_SSE4)
-    {
+    if (cpuMask & X265_CPU_SSE4) {
         setupIntrinsicDCT_sse41(p);
     }
 #endif
     (void)p;
     (void)cpuMask;
 }
-}
+}  // namespace X265_NS

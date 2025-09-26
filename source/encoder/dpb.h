@@ -33,32 +33,27 @@ class Frame;
 class FrameData;
 class Slice;
 
-class DPB
-{
+class DPB {
 public:
-
-    int                m_lastIDR;
-    int                m_pocCRA;
-    int                m_bOpenGOP;
-	int                m_craNal;
-    int                m_bhasLeadingPicture;
-    bool               m_bRefreshPending;
-    bool               m_bTemporalSublayer;
-    PicList            m_picList;
-    PicList            m_freeList;
-    FrameData*         m_frameDataFreeList;
+    int m_lastIDR;
+    int m_pocCRA;
+    int m_bOpenGOP;
+    int m_craNal;
+    int m_bhasLeadingPicture;
+    bool m_bRefreshPending;
+    bool m_bTemporalSublayer;
+    PicList m_picList;
+    PicList m_freeList;
+    FrameData *m_frameDataFreeList;
 
     DPB(x265_param *param)
     {
         m_lastIDR = 0;
         m_pocCRA = 0;
         m_bhasLeadingPicture = param->radl;
-        if (param->bResetZoneConfig)
-        {
-            for (int i = 0; i < param->rc.zonefileCount ; i++)
-            {
-                if (param->rc.zones[i].zoneParam->radl)
-                {
+        if (param->bResetZoneConfig) {
+            for (int i = 0; i < param->rc.zonefileCount; i++) {
+                if (param->rc.zones[i].zoneParam->radl) {
                     m_bhasLeadingPicture = param->rc.zones[i].zoneParam->radl;
                     break;
                 }
@@ -67,19 +62,18 @@ public:
         m_bRefreshPending = false;
         m_frameDataFreeList = NULL;
         m_bOpenGOP = param->bOpenGOP;
-		m_craNal = param->craNal;
+        m_craNal = param->craNal;
         m_bTemporalSublayer = (param->bEnableTemporalSubLayers > 2);
     }
 
     ~DPB();
 
-    void prepareEncode(Frame*);
+    void prepareEncode(Frame *);
 
     void recycleUnreferenced();
 
 protected:
-
-    void computeRPS(int curPoc,int tempId, bool isRAP, RPS * rps, unsigned int maxDecPicBuffer, int sLayerId);
+    void computeRPS(int curPoc, int tempId, bool isRAP, RPS *rps, unsigned int maxDecPicBuffer, int sLayerId);
 
     void applyReferencePictureSet(RPS *rps, int curPoc, int tempId, bool isTSAPicture, int sLayerId);
     bool getTemporalLayerNonReferenceFlag(int sLayerId);
@@ -89,6 +83,6 @@ protected:
 
     NalUnitType getNalUnitType(int curPoc, bool bIsKeyFrame);
 };
-}
+}  // namespace X265_NS
 
-#endif // X265_DPB_H
+#endif  // X265_DPB_H

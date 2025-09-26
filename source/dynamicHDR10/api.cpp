@@ -20,59 +20,45 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at license @ x265.com.
-**/
+ **/
 
 #include "hdr10plus.h"
 #include "metadataFromJson.h"
 
-bool hdr10plus_json_to_frame_cim(const char* path, uint32_t frameNumber, uint8_t *&cim)
-{
-      metadataFromJson meta;
-      return meta.frameMetadataFromJson(path,
-                                        frameNumber,
-                                        cim);
-}
-
-int hdr10plus_json_to_movie_cim(const char* path, uint8_t **&cim)
-{
-      metadataFromJson meta;
-      return meta.movieMetadataFromJson(path, cim);
-}
-
-bool hdr10plus_json_to_frame_eif(const char* path, uint32_t frameNumber, uint8_t *&eif)
+bool hdr10plus_json_to_frame_cim(const char* path, uint32_t frameNumber, uint8_t*& cim)
 {
     metadataFromJson meta;
-    return meta.extendedInfoFrameMetadataFromJson(path,
-                                                  frameNumber,
-                                                  eif);
+    return meta.frameMetadataFromJson(path, frameNumber, cim);
 }
 
-int hdr10plus_json_to_movie_eif(const char* path, uint8_t **&eif)
+int hdr10plus_json_to_movie_cim(const char* path, uint8_t**& cim)
+{
+    metadataFromJson meta;
+    return meta.movieMetadataFromJson(path, cim);
+}
+
+bool hdr10plus_json_to_frame_eif(const char* path, uint32_t frameNumber, uint8_t*& eif)
+{
+    metadataFromJson meta;
+    return meta.extendedInfoFrameMetadataFromJson(path, frameNumber, eif);
+}
+
+int hdr10plus_json_to_movie_eif(const char* path, uint8_t**& eif)
 {
     metadataFromJson meta;
     return meta.movieExtendedInfoFrameMetadataFromJson(path, eif);
 }
 
-
-void hdr10plus_clear_movie(uint8_t **&metadata, const int numberOfFrames)
+void hdr10plus_clear_movie(uint8_t**& metadata, const int numberOfFrames)
 {
-    if(metadata)
-    {
+    if (metadata) {
         metadataFromJson meta;
         meta.clear(metadata, numberOfFrames);
     }
 }
 
-static const hdr10plus_api libapi =
-{
-    &hdr10plus_json_to_frame_cim,
-    &hdr10plus_json_to_movie_cim,
-    &hdr10plus_json_to_frame_eif,
-    &hdr10plus_json_to_movie_eif,
-    &hdr10plus_clear_movie,
+static const hdr10plus_api libapi = {
+    &hdr10plus_json_to_frame_cim, &hdr10plus_json_to_movie_cim, &hdr10plus_json_to_frame_eif, &hdr10plus_json_to_movie_eif, &hdr10plus_clear_movie,
 };
 
-const hdr10plus_api* hdr10plus_api_get()
-{
-    return &libapi;
-}
+const hdr10plus_api* hdr10plus_api_get() { return &libapi; }

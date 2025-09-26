@@ -26,19 +26,17 @@
 #include "ppa.h"
 #include <stdlib.h>
 
-#define PPA_REGISTER_CPU_EVENT2GROUP(x, y) # x, # y,
+#define PPA_REGISTER_CPU_EVENT2GROUP(x, y) #x, #y,
 #define CPU_EVENT(x) PPA_REGISTER_CPU_EVENT2GROUP(x, NoGroup)
-const char *PPACpuAndGroup[] =
-{
+const char *PPACpuAndGroup[] = {
 #include "../cpuEvents.h"
-    ""
-};
+    ""};
 #undef CPU_EVENT
 #undef PPA_REGISTER_CPU_EVENT2GROUP
 
 extern "C" {
 typedef ppa::Base *(FUNC_PPALibInit)(const char **, int);
-typedef void (FUNC_PPALibRelease)(ppa::Base* &);
+typedef void(FUNC_PPALibRelease)(ppa::Base *&);
 }
 
 using namespace ppa;
@@ -46,49 +44,46 @@ using namespace ppa;
 static FUNC_PPALibRelease *_pfuncPpaRelease;
 ppa::Base *ppa::ppabase;
 
-static void _ppaReleaseAtExit()
-{
-    _pfuncPpaRelease(ppabase);
-}
+static void _ppaReleaseAtExit() { _pfuncPpaRelease(ppabase); }
 
 #ifdef _WIN32
 #include <windows.h>
 
 #if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
-# ifdef UNICODE
-# define PPA_DLL_NAME L"ppa64.dll"
-# else
-# define PPA_DLL_NAME "ppa64.dll"
-# endif
+#ifdef UNICODE
+#define PPA_DLL_NAME L"ppa64.dll"
 #else
-# ifdef UNICODE
-# define PPA_DLL_NAME L"ppa.dll"
-# else
-# define PPA_DLL_NAME "ppa.dll"
-# endif
-#endif // if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
+#define PPA_DLL_NAME "ppa64.dll"
+#endif
+#else
+#ifdef UNICODE
+#define PPA_DLL_NAME L"ppa.dll"
+#else
+#define PPA_DLL_NAME "ppa.dll"
+#endif
+#endif  // if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
 
 void initializePPA(void)
 {
-    if (ppabase)
+    if (ppabase) {
         return;
+    }
 
     HMODULE _ppaLibHandle = LoadLibrary(PPA_DLL_NAME);
-    if (!_ppaLibHandle)
+    if (!_ppaLibHandle) {
         return;
+    }
 
-    FUNC_PPALibInit *_pfuncPpaInit = (FUNC_PPALibInit*)GetProcAddress(_ppaLibHandle, "InitPpaUtil");
-    _pfuncPpaRelease  = (FUNC_PPALibRelease*)GetProcAddress(_ppaLibHandle, "DeletePpa");
+    FUNC_PPALibInit *_pfuncPpaInit = (FUNC_PPALibInit *)GetProcAddress(_ppaLibHandle, "InitPpaUtil");
+    _pfuncPpaRelease = (FUNC_PPALibRelease *)GetProcAddress(_ppaLibHandle, "DeletePpa");
 
-    if (!_pfuncPpaInit || !_pfuncPpaRelease)
-    {
+    if (!_pfuncPpaInit || !_pfuncPpaRelease) {
         FreeLibrary(_ppaLibHandle);
         return;
     }
 
     ppabase = _pfuncPpaInit(PPACpuAndGroup, PPACpuGroupNums);
-    if (!ppabase)
-    {
+    if (!ppabase) {
         FreeLibrary(_ppaLibHandle);
         return;
     }
@@ -101,39 +96,35 @@ void initializePPA(void)
 #include <stdio.h>
 
 #if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
-# define PPA_LIB_NAME "libppa64.so"
+#define PPA_LIB_NAME "libppa64.so"
 #else
-# define PPA_LIB_NAME "libppa.so"
+#define PPA_LIB_NAME "libppa.so"
 #endif
 
 void initializePPA(void)
 {
-    if (ppabase)
-    {
+    if (ppabase) {
         printf("PPA: already initialized\n");
         return;
     }
 
     void *_ppaDllHandle = dlopen(PPA_LIB_NAME, RTLD_LAZY);
-    if (!_ppaDllHandle)
-    {
+    if (!_ppaDllHandle) {
         printf("PPA: Unable to load %s\n", PPA_LIB_NAME);
         return;
     }
 
-    FUNC_PPALibInit *_pfuncPpaInit = (FUNC_PPALibInit*)dlsym(_ppaDllHandle, "InitPpaUtil");
-    _pfuncPpaRelease = (FUNC_PPALibRelease*)dlsym(_ppaDllHandle, "DeletePpa");
+    FUNC_PPALibInit *_pfuncPpaInit = (FUNC_PPALibInit *)dlsym(_ppaDllHandle, "InitPpaUtil");
+    _pfuncPpaRelease = (FUNC_PPALibRelease *)dlsym(_ppaDllHandle, "DeletePpa");
 
-    if (!_pfuncPpaInit || !_pfuncPpaRelease)
-    {
+    if (!_pfuncPpaInit || !_pfuncPpaRelease) {
         printf("PPA: Function bindings failed\n");
         dlclose(_ppaDllHandle);
         return;
     }
 
     ppabase = _pfuncPpaInit(PPACpuAndGroup, PPACpuGroupNums);
-    if (!ppabase)
-    {
+    if (!ppabase) {
         printf("PPA: Init failed\n");
         dlclose(_ppaDllHandle);
         return;

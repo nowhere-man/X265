@@ -33,10 +33,8 @@
 namespace X265_NS {
 // x265 private namespace
 
-class Y4MInput : public InputFile, public Thread
-{
+class Y4MInput : public InputFile, public Thread {
 protected:
-
     uint32_t rateNum;
 
     uint32_t rateDenom;
@@ -63,29 +61,28 @@ protected:
 
     ThreadSafeInteger writeCount;
     char* buf[QUEUE_SIZE];
-    FILE *ifs;
+    FILE* ifs;
     bool parseHeader();
     void threadMain();
 
     bool populateFrameQueue();
 
 public:
-
     Y4MInput(InputFileInfo& info, bool alpha, int format);
 
     virtual ~Y4MInput();
     void release();
-    bool isEof() const            { return ifs && feof(ifs); }
-    bool isFail()                 { return !(ifs && !ferror(ifs) && threadActive); }
+    bool isEof() const { return ifs && feof(ifs); }
+    bool isFail() { return !(ifs && !ferror(ifs) && threadActive); }
     void startReader();
     bool readPicture(x265_picture&);
 
-    const char *getName() const   { return "y4m"; }
+    const char* getName() const { return "y4m"; }
 
-    int getWidth() const                          { return width; }
+    int getWidth() const { return width; }
 
-    int getHeight() const                         { return height; }
+    int getHeight() const { return height; }
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_Y4M_H
+#endif  // ifndef X265_Y4M_H

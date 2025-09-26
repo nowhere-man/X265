@@ -43,14 +43,14 @@ static inline int8x16_t signOf_neon(const pixel *a, const pixel *b)
 
     int8x16_t cmp0 = vcombine_s8(vmovn_s16(cmp0_lo), vmovn_s16(cmp0_hi));
     int8x16_t cmp1 = vcombine_s8(vmovn_s16(cmp1_lo), vmovn_s16(cmp1_hi));
-#else // HIGH_BIT_DEPTH
+#else   // HIGH_BIT_DEPTH
     uint8x16_t s0 = vld1q_u8(a);
     uint8x16_t s1 = vld1q_u8(b);
 
     // signOf(a - b) = -(a > b ? -1 : 0) | (a < b ? -1 : 0)
     int8x16_t cmp0 = vreinterpretq_s8_u8(vcgtq_u8(s0, s1));
     int8x16_t cmp1 = vreinterpretq_s8_u8(vcgtq_u8(s1, s0));
-#endif // HIGH_BIT_DEPTH
+#endif  // HIGH_BIT_DEPTH
     return vorrq_s8(vnegq_s8(cmp0), cmp1);
 }
 
@@ -64,6 +64,6 @@ void setupSaoPrimitives_sve(EncoderPrimitives &p);
 #if defined(HAVE_SVE2) && HAVE_SVE_BRIDGE
 void setupSaoPrimitives_sve2(EncoderPrimitives &p);
 #endif
-}
+}  // namespace X265_NS
 
-#endif // X265_COMMON_AARCH64_SAO_PRIM_H
+#endif  // X265_COMMON_AARCH64_SAO_PRIM_H

@@ -2,16 +2,11 @@
 #define PIXEL_PRIM_NEON_H__
 
 #include "common.h"
-#include "slicetype.h"      // LOWRES_COST_MASK
+#include "slicetype.h"  // LOWRES_COST_MASK
 #include "primitives.h"
 #include "x265.h"
 
-
-
-namespace X265_NS
-{
-
-
+namespace X265_NS {
 
 void setupPixelPrimitives_neon(EncoderPrimitives &p);
 
@@ -22,8 +17,6 @@ void setupPixelPrimitives_neon_dotprod(EncoderPrimitives &p);
 #if defined(HAVE_SVE) && HAVE_SVE_BRIDGE
 void setupPixelPrimitives_sve(EncoderPrimitives &p);
 #endif
-}
-
+}  // namespace X265_NS
 
 #endif
-

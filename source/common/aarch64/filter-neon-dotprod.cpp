@@ -29,11 +29,8 @@
 #include <arm_neon.h>
 
 namespace {
-static const uint8_t dotprod_permute_tbl[48] = {
-    0, 1,  2,  3, 1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5, 6,
-    4, 5,  6,  7, 5,  6,  7,  8,  6,  7,  8,  9,  7,  8,  9, 10,
-    8, 9, 10, 11, 9, 10, 11, 12, 10, 11, 12, 13, 11, 12, 13, 14
-};
+static const uint8_t dotprod_permute_tbl[48] = {0, 1, 2, 3, 1, 2, 3, 4,  2, 3, 4,  5,  3, 4,  5,  6,  4,  5,  6,  7,  5,  6,  7,  8,
+                                                6, 7, 8, 9, 7, 8, 9, 10, 8, 9, 10, 11, 9, 10, 11, 12, 10, 11, 12, 13, 11, 12, 13, 14};
 
 static const uint8_t dot_prod_merge_block_tbl[48] = {
     // Shift left and insert new last column in transposed 4x4 block.
@@ -41,22 +38,17 @@ static const uint8_t dot_prod_merge_block_tbl[48] = {
     // Shift left and insert two new columns in transposed 4x4 block.
     2, 3, 16, 17, 6, 7, 20, 21, 10, 11, 24, 25, 14, 15, 28, 29,
     // Shift left and insert three new columns in transposed 4x4 block.
-    3, 16, 17, 18, 7, 20, 21, 22, 11, 24, 25, 26, 15, 28, 29, 30
-};
+    3, 16, 17, 18, 7, 20, 21, 22, 11, 24, 25, 26, 15, 28, 29, 30};
 
 // This is to use with vtbl2q_s32_s16.
 // Extract the middle two bytes from each 32-bit element in a vector, using these byte
 // indices.
-static const uint8_t vert_shr_tbl[16] = {
-    1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30
-};
+static const uint8_t vert_shr_tbl[16] = {1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30};
 
-uint8x8_t inline filter8_8_pp(uint8x16_t samples, const int8x8_t filter,
-                              const int32x4_t constant, const uint8x16x3_t tbl)
+uint8x8_t inline filter8_8_pp(uint8x16_t samples, const int8x8_t filter, const int32x4_t constant, const uint8x16x3_t tbl)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -72,13 +64,11 @@ uint8x8_t inline filter8_8_pp(uint8x16_t samples, const int8x8_t filter,
     dotprod_hi = vdotq_lane_s32(dotprod_hi, perm_samples_2, filter, 1);
 
     // Narrow and combine.
-    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo),
-                                     vmovn_s32(dotprod_hi));
+    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
     return vqrshrun_n_s16(dotprod, IF_FILTER_PREC);
 }
 
-void inline init_sample_permute(uint8x8_t *samples, const uint8x16x3_t tbl,
-                                int8x16_t *d)
+void inline init_sample_permute(uint8x8_t *samples, const uint8x16x3_t tbl, int8x16_t *d)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
     int8x8_t samples_s8[4];
@@ -95,14 +85,11 @@ void inline init_sample_permute(uint8x8_t *samples, const uint8x16x3_t tbl,
     d[3] = vqtbl1q_s8(vcombine_s8(samples_s8[3], vdup_n_s8(0)), tbl.val[0]);
 }
 
-uint8x8_t inline filter8_8_pp_reuse(uint8x16_t samples, const int8x8_t filter,
-                                    const int32x4_t constant,
-                                    const uint8x16x3_t tbl,
+uint8x8_t inline filter8_8_pp_reuse(uint8x16_t samples, const int8x8_t filter, const int32x4_t constant, const uint8x16x3_t tbl,
                                     int8x16_t &perm_samples_0)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -121,17 +108,14 @@ uint8x8_t inline filter8_8_pp_reuse(uint8x16_t samples, const int8x8_t filter,
     perm_samples_0 = perm_samples_2;
 
     // Narrow and combine.
-    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo),
-                                     vmovn_s32(dotprod_hi));
+    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
     return vqrshrun_n_s16(dotprod, IF_FILTER_PREC);
 }
 
-int16x4_t inline filter8_4_ps(uint8x16_t samples, const int8x8_t filter,
-                              const uint8x16x3_t tbl)
+int16x4_t inline filter8_4_ps(uint8x16_t samples, const int8x8_t filter, const uint8x16x3_t tbl)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -148,12 +132,10 @@ int16x4_t inline filter8_4_ps(uint8x16_t samples, const int8x8_t filter,
     return vmovn_s32(dotprod);
 }
 
-int16x8_t inline filter8_8_ps(uint8x16_t samples, const int8x8_t filter,
-                              const uint8x16x3_t tbl)
+int16x8_t inline filter8_8_ps(uint8x16_t samples, const int8x8_t filter, const uint8x16x3_t tbl)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -174,13 +156,10 @@ int16x8_t inline filter8_8_ps(uint8x16_t samples, const int8x8_t filter,
     return vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
 }
 
-int16x8_t inline filter8_8_ps_reuse(uint8x16_t samples, const int8x8_t filter,
-                                    const uint8x16x3_t tbl,
-                                    int8x16_t &perm_samples_0)
+int16x8_t inline filter8_8_ps_reuse(uint8x16_t samples, const int8x8_t filter, const uint8x16x3_t tbl, int8x16_t &perm_samples_0)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -204,12 +183,10 @@ int16x8_t inline filter8_8_ps_reuse(uint8x16_t samples, const int8x8_t filter,
     return vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
 }
 
-uint8x8_t inline filter4_8_pp(uint8x16_t samples, const int8x8_t filter,
-                              const int32x4_t constant, const uint8x16x2_t tbl)
+uint8x8_t inline filter4_8_pp(uint8x16_t samples, const int8x8_t filter, const int32x4_t constant, const uint8x16x2_t tbl)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // {0,  1,  2,  3 ,  1,  2,  3,  4 ,  2,  3,  4,  5 ,  3,  4,  5,  6}
@@ -221,17 +198,14 @@ uint8x8_t inline filter4_8_pp(uint8x16_t samples, const int8x8_t filter,
     int32x4_t dotprod_hi = vdotq_lane_s32(constant, perm_samples_1, filter, 0);
 
     // Narrow and combine.
-    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo),
-                                     vmovn_s32(dotprod_hi));
+    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
     return vqrshrun_n_s16(dotprod, IF_FILTER_PREC);
 }
 
-int16x8_t inline filter4_8_ps(uint8x16_t samples, const int8x8_t filter,
-                              const uint8x16x2_t tbl)
+int16x8_t inline filter4_8_ps(uint8x16_t samples, const int8x8_t filter, const uint8x16x2_t tbl)
 {
     // Transform sample range from uint8_t to int8_t for signed dot product.
-    int8x16_t samples_s8 =
-        vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
+    int8x16_t samples_s8 = vreinterpretq_s8_u8(vsubq_u8(samples, vdupq_n_u8(128)));
 
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -265,14 +239,12 @@ void inline transpose_concat_4x4(const int8x8_t *s, int8x16_t &d)
     int8x16_t s01 = vzipq_s8(s0q, s1q).val[0];
     int8x16_t s23 = vzipq_s8(s2q, s3q).val[0];
 
-    int16x8_t s0123 =
-        vzipq_s16(vreinterpretq_s16_s8(s01), vreinterpretq_s16_s8(s23)).val[0];
+    int16x8_t s0123 = vzipq_s16(vreinterpretq_s16_s8(s01), vreinterpretq_s16_s8(s23)).val[0];
 
     d = vreinterpretq_s8_s16(s0123);
 }
 
-void inline transpose_concat_8x4(const int8x8_t *s, int8x16_t &d0,
-                                 int8x16_t &d1)
+void inline transpose_concat_8x4(const int8x8_t *s, int8x16_t &d0, int8x16_t &d1)
 {
     // Transpose 8-bit elements and concatenate result rows as follows:
     // s0: 00, 01, 02, 03, 04, 05, 06, 07
@@ -290,15 +262,13 @@ void inline transpose_concat_8x4(const int8x8_t *s, int8x16_t &d0,
     int8x16_t s01 = vzipq_s8(s0q, s1q).val[0];
     int8x16_t s23 = vzipq_s8(s2q, s3q).val[0];
 
-    int16x8x2_t s0123 =
-        vzipq_s16(vreinterpretq_s16_s8(s01), vreinterpretq_s16_s8(s23));
+    int16x8x2_t s0123 = vzipq_s16(vreinterpretq_s16_s8(s01), vreinterpretq_s16_s8(s23));
 
     d0 = vreinterpretq_s8_s16(s0123.val[0]);
     d1 = vreinterpretq_s8_s16(s0123.val[1]);
 }
 
-int16x4_t inline filter8_4_ps_partial(const int8x16_t s0, const int8x16_t s1,
-                                      const int8x8_t filter)
+int16x4_t inline filter8_4_ps_partial(const int8x16_t s0, const int8x16_t s1, const int8x8_t filter)
 
 {
     int32x4_t dotprod = vdotq_lane_s32(vdupq_n_s32(0), s0, filter, 0);
@@ -306,9 +276,7 @@ int16x4_t inline filter8_4_ps_partial(const int8x16_t s0, const int8x16_t s1,
     return vmovn_s32(dotprod);
 }
 
-int16x8_t inline filter8_8_ps_partial(const int8x16_t s0, const int8x16_t s1,
-                                      const int8x16_t s2, const int8x16_t s3,
-                                      const int8x8_t filter)
+int16x8_t inline filter8_8_ps_partial(const int8x16_t s0, const int8x16_t s1, const int8x16_t s2, const int8x16_t s3, const int8x8_t filter)
 {
     int32x4_t dotprod_lo = vdotq_lane_s32(vdupq_n_s32(0), s0, filter, 0);
     dotprod_lo = vdotq_lane_s32(dotprod_lo, s2, filter, 1);
@@ -318,12 +286,10 @@ int16x8_t inline filter8_8_ps_partial(const int8x16_t s0, const int8x16_t s1,
     // Narrow and combine.
     return vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotpro_hi));
 }
-} // Unnamed namespace.
+}  // Unnamed namespace.
 
 namespace X265_NS {
-template<int width, int height>
-void interp8_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
-                              uint8_t *dst, intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp8_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 8;
 
@@ -335,19 +301,16 @@ void interp8_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
     const int32x4_t c = vdupq_n_s32(64 * 128);
 
     int row;
-    for (row = 0; row < height; row += 4)
-    {
+    for (row = 0; row < height; row += 4) {
         int col = 0;
-        if (width >= 32)
-        {
+        if (width >= 32) {
             // Peel first sample permute to enable passing between iterations.
             uint8x8_t s0[4];
             load_u8x8xn<4>(src, srcStride, s0);
             int8x16_t ps0[4];
             init_sample_permute(s0, tbl, ps0);
 
-            for (; col + 16 <= width; col += 16)
-            {
+            for (; col + 16 <= width; col += 16) {
                 uint8x16_t s_lo[4], s_hi[4];
                 load_u8x16xn<4>(src + col + 0, srcStride, s_lo);
                 load_u8x16xn<4>(src + col + 8, srcStride, s_hi);
@@ -367,11 +330,8 @@ void interp8_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
                 store_u8x8xn<4>(dst + col + 0, dstStride, d_lo);
                 store_u8x8xn<4>(dst + col + 8, dstStride, d_hi);
             }
-        }
-        else
-        {
-            for (; col + 8 <= width; col += 8)
-            {
+        } else {
+            for (; col + 8 <= width; col += 8) {
                 uint8x16_t s[4];
                 load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -384,8 +344,7 @@ void interp8_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
                 store_u8x8xn<4>(dst + col, dstStride, d);
             }
         }
-        for (; col < width; col += 4)
-        {
+        for (; col < width; col += 4) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -403,17 +362,14 @@ void interp8_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 }
 
-template<int width, int height>
-void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
-                              int16_t *dst, intptr_t dstStride, int coeffIdx,
-                              int isRowExt)
+template <int width, int height>
+void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride, int16_t *dst, intptr_t dstStride, int coeffIdx, int isRowExt)
 {
     const int N_TAPS = 8;
     int blkheight = height;
 
     src -= N_TAPS / 2 - 1;
-    if (isRowExt)
-    {
+    if (isRowExt) {
         src -= (N_TAPS / 2 - 1) * srcStride;
         blkheight += N_TAPS - 1;
     }
@@ -421,19 +377,16 @@ void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     const uint8x16x3_t tbl = vld1q_u8_x3(dotprod_permute_tbl);
     const int8x8_t filter = vmovn_s16(vld1q_s16(g_lumaFilter[coeffIdx]));
 
-    for (int row = 0; row + 4 <= blkheight; row += 4)
-    {
+    for (int row = 0; row + 4 <= blkheight; row += 4) {
         int col = 0;
-        if (width >= 32)
-        {
+        if (width >= 32) {
             // Peel first sample permute to enable passing between iterations.
             uint8x8_t s0[4];
             load_u8x8xn<4>(src, srcStride, s0);
             int8x16_t ps0[4];
             init_sample_permute(s0, tbl, ps0);
 
-            for (; col + 16 <= width; col += 16)
-            {
+            for (; col + 16 <= width; col += 16) {
                 uint8x16_t s_lo[4], s_hi[4];
                 load_u8x16xn<4>(src + col + 0, srcStride, s_lo);
                 load_u8x16xn<4>(src + col + 8, srcStride, s_hi);
@@ -453,11 +406,8 @@ void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
                 store_s16x8xn<4>(dst + col + 0, dstStride, d_lo);
                 store_s16x8xn<4>(dst + col + 8, dstStride, d_hi);
             }
-        }
-        else
-        {
-            for (; col + 8 <= width; col += 8)
-            {
+        } else {
+            for (; col + 8 <= width; col += 8) {
                 uint8x16_t s[4];
                 load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -470,8 +420,7 @@ void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
                 store_s16x8xn<4>(dst + col, dstStride, d);
             }
         }
-        for (; col < width; col += 4)
-        {
+        for (; col < width; col += 4) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -488,12 +437,10 @@ void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
         dst += 4 * dstStride;
     }
 
-    if (isRowExt)
-    {
+    if (isRowExt) {
         // Process final 3 rows.
         int col = 0;
-        for (; (col + 8) <= width; col += 8)
-        {
+        for (; (col + 8) <= width; col += 8) {
             uint8x16_t s[3];
             load_u8x16xn<3>(src + col, srcStride, s);
 
@@ -505,8 +452,7 @@ void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
             store_s16x8xn<3>(dst + col, dstStride, d);
         }
 
-        for (; col < width; col += 4)
-        {
+        for (; col < width; col += 4) {
             uint8x16_t s[3];
             load_u8x16xn<3>(src + col, srcStride, s);
 
@@ -520,19 +466,15 @@ void interp8_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 }
 
-template<int N, int width, int height>
-void interp_horiz_pp_neon(const pixel *src, intptr_t srcStride, pixel *dst,
-                          intptr_t dstStride, int coeffIdx);
+template <int N, int width, int height> void interp_horiz_pp_neon(const pixel *src, intptr_t srcStride, pixel *dst, intptr_t dstStride, int coeffIdx);
 
-template<int width, int height>
-void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
-                              uint8_t *dst, intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 4;
 
-    if (coeffIdx == 4)
-        return interp_horiz_pp_neon<N_TAPS, width, height>(src, srcStride, dst,
-                                                           dstStride, coeffIdx);
+    if (coeffIdx == 4) {
+        return interp_horiz_pp_neon<N_TAPS, width, height>(src, srcStride, dst, dstStride, coeffIdx);
+    }
 
     src -= N_TAPS / 2 - 1;
 
@@ -543,11 +485,9 @@ void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
     // Correction accounting for sample range transform from uint8_t to int8_t.
     const int32x4_t c = vdupq_n_s32(64 * 128);
 
-    for (int row = 0; row + 4 <= height; row += 4)
-    {
+    for (int row = 0; row + 4 <= height; row += 4) {
         int col = 0;
-        for (; col + 16 <= width; col += 16)
-        {
+        for (; col + 16 <= width; col += 16) {
             uint8x16_t s0[4], s1[4];
             load_u8x16xn<4>(src + col, srcStride, s0);
             load_u8x16xn<4>(src + col + 8, srcStride, s1);
@@ -573,8 +513,7 @@ void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
             store_u8x16xn<4>(dst + col, dstStride, d);
         }
 
-        for (; col + 8 <= width; col += 8)
-        {
+        for (; col + 8 <= width; col += 8) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -588,8 +527,7 @@ void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
         }
 
         // Block sizes 12xH, 6xH, 4xH, 2xH.
-        if (width % 8 != 0)
-        {
+        if (width % 8 != 0) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -608,8 +546,7 @@ void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 
     // Block sizes 8x6, 8x2, 4x2.
-    if (height & 2)
-    {
+    if (height & 2) {
         uint8x16_t s[2];
         load_u8x16xn<2>(src, srcStride, s);
 
@@ -622,17 +559,14 @@ void interp4_horiz_pp_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 }
 
-template<int width, int height>
-void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
-                              int16_t *dst, intptr_t dstStride, int coeffIdx,
-                              int isRowExt)
+template <int width, int height>
+void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride, int16_t *dst, intptr_t dstStride, int coeffIdx, int isRowExt)
 {
     const int N_TAPS = 4;
     int blkheight = height;
 
     src -= N_TAPS / 2 - 1;
-    if (isRowExt)
-    {
+    if (isRowExt) {
         src -= (N_TAPS / 2 - 1) * srcStride;
         blkheight += N_TAPS - 1;
     }
@@ -642,11 +576,9 @@ void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     const int8x8_t filter = vmovn_s16(vcombine_s16(filter_16, vdup_n_s16(0)));
 
     int row = 0;
-    for (; row + 4 <= blkheight; row += 4)
-    {
+    for (; row + 4 <= blkheight; row += 4) {
         int col = 0;
-        for (; col + 16 <= width; col += 16)
-        {
+        for (; col + 16 <= width; col += 16) {
             uint8x16_t s_lo[4], s_hi[4];
             load_u8x16xn<4>(src + col + 0, srcStride, s_lo);
             load_u8x16xn<4>(src + col + 8, srcStride, s_hi);
@@ -667,8 +599,7 @@ void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
             store_s16x8xn<4>(dst + col + 8, dstStride, d_hi);
         }
 
-        for (; col + 8 <= width; col += 8)
-        {
+        for (; col + 8 <= width; col += 8) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -682,8 +613,7 @@ void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
         }
 
         // Block sizes 12xH, 6xH, 4xH, 2xH.
-        if (width % 8 != 0)
-        {
+        if (width % 8 != 0) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -702,11 +632,9 @@ void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 
     // Process remaining rows.
-    for (; row < blkheight; ++row)
-    {
+    for (; row < blkheight; ++row) {
         int col = 0;
-        for (; (col + 8) <= width; col += 8)
-        {
+        for (; (col + 8) <= width; col += 8) {
             uint8x16_t s = vld1q_u8(src + col);
 
             int16x8_t d = filter4_8_ps(s, filter, tbl);
@@ -715,8 +643,7 @@ void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
         }
 
         // Block sizes 12xH, 6xH, 4xH, 2xH.
-        if (width % 8 != 0)
-        {
+        if (width % 8 != 0) {
             uint8x16_t s = vld1q_u8(src + col);
 
             int16x8_t d = filter4_8_ps(s, filter, tbl);
@@ -730,9 +657,7 @@ void interp4_horiz_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 }
 
-template<int width, int height>
-void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
-                             int16_t *dst, intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride, int16_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 8;
 
@@ -741,8 +666,7 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     const uint8x16x3_t merge_block_tbl = vld1q_u8_x3(dot_prod_merge_block_tbl);
     const int8x8_t filter = vmovn_s16(vld1q_s16(g_lumaFilter[coeffIdx]));
 
-    if (width % 8 != 0)
-    {
+    if (width % 8 != 0) {
         uint8x8_t s_u8[11];
         int8x8_t s_s8[11];
         int8x16x2_t samples_tbl;
@@ -751,8 +675,7 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
         const uint8_t *src_ptr = src;
         int16_t *dst_ptr = dst;
 
-        if (width == 12)
-        {
+        if (width == 12) {
             load_u8x8xn<7>(src_ptr, srcStride, s_u8);
 
             // Transform sample range from uint8_t to int8_t.
@@ -777,40 +700,34 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
 
             src_ptr += 7 * srcStride;
 
-            for (int row = 0; row < height; row += 4)
-            {
+            for (int row = 0; row < height; row += 4) {
                 load_u8x8xn<4>(src_ptr, srcStride, s_u8 + 7);
 
                 // Transform sample range from uint8_t to int8_t.
                 s_s8[7] = vreinterpret_s8_u8(vsub_u8(s_u8[7], vdup_n_u8(128)));
                 s_s8[8] = vreinterpret_s8_u8(vsub_u8(s_u8[8], vdup_n_u8(128)));
                 s_s8[9] = vreinterpret_s8_u8(vsub_u8(s_u8[9], vdup_n_u8(128)));
-                s_s8[10] = vreinterpret_s8_u8(vsub_u8(s_u8[10],
-                                                      vdup_n_u8(128)));
+                s_s8[10] = vreinterpret_s8_u8(vsub_u8(s_u8[10], vdup_n_u8(128)));
 
                 transpose_concat_8x4(s_s8 + 7, s_lo[7], s_hi[7]);
 
                 // Merge new data into block from previous iteration.
-                samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
                 s_lo[4] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[0]);
                 s_lo[5] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[1]);
                 s_lo[6] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[2]);
-                samples_tbl.val[0] = s_hi[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_hi[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_hi[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_hi[7];  // rows 7, 8, 9, 10
                 s_hi[4] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[0]);
                 s_hi[5] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[1]);
                 s_hi[6] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[2]);
 
                 int16x8_t d[4];
-                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4],
-                                            filter);
-                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5],
-                                            filter);
-                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6],
-                                            filter);
-                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7],
-                                            filter);
+                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4], filter);
+                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5], filter);
+                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6], filter);
+                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7], filter);
 
                 store_s16x8xn<4>(dst_ptr, dstStride, d);
 
@@ -855,8 +772,7 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
 
         src_ptr += 7 * srcStride;
 
-        for (int row = 0; row < height; row += 4)
-        {
+        for (int row = 0; row < height; row += 4) {
             load_u8x8xn<4>(src_ptr, srcStride, s_u8 + 7);
 
             // Transform sample range from uint8_t to int8_t.
@@ -868,8 +784,8 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
             transpose_concat_4x4(s_s8 + 7, s_lo[7]);
 
             // Merge new data into block from previous iteration.
-            samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-            samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+            samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+            samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
             s_lo[4] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[0]);
             s_lo[5] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[1]);
             s_lo[6] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[2]);
@@ -890,11 +806,8 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
             src_ptr += 4 * srcStride;
             dst_ptr += 4 * dstStride;
         }
-    }
-    else
-    {
-        for (int col = 0; col < width; col += 8)
-        {
+    } else {
+        for (int col = 0; col < width; col += 8) {
             const uint8_t *src_ptr = src + col;
             int16_t *dst_ptr = dst + col;
             uint8x8_t s_u8[11];
@@ -927,40 +840,34 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
 
             src_ptr += 7 * srcStride;
 
-            for (int row = 0; row < height; row += 4)
-            {
+            for (int row = 0; row < height; row += 4) {
                 load_u8x8xn<4>(src_ptr, srcStride, s_u8 + 7);
 
                 // Transform sample range from uint8_t to int8_t.
                 s_s8[7] = vreinterpret_s8_u8(vsub_u8(s_u8[7], vdup_n_u8(128)));
                 s_s8[8] = vreinterpret_s8_u8(vsub_u8(s_u8[8], vdup_n_u8(128)));
                 s_s8[9] = vreinterpret_s8_u8(vsub_u8(s_u8[9], vdup_n_u8(128)));
-                s_s8[10] = vreinterpret_s8_u8(vsub_u8(s_u8[10],
-                                                      vdup_n_u8(128)));
+                s_s8[10] = vreinterpret_s8_u8(vsub_u8(s_u8[10], vdup_n_u8(128)));
 
                 transpose_concat_8x4(s_s8 + 7, s_lo[7], s_hi[7]);
 
                 // Merge new data into block from previous iteration.
-                samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
                 s_lo[4] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[0]);
                 s_lo[5] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[1]);
                 s_lo[6] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[2]);
-                samples_tbl.val[0] = s_hi[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_hi[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_hi[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_hi[7];  // rows 7, 8, 9, 10
                 s_hi[4] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[0]);
                 s_hi[5] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[1]);
                 s_hi[6] = vqtbl2q_s8(samples_tbl, merge_block_tbl.val[2]);
 
                 int16x8_t d[4];
-                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4],
-                                            filter);
-                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5],
-                                            filter);
-                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6],
-                                            filter);
-                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7],
-                                            filter);
+                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4], filter);
+                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5], filter);
+                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6], filter);
+                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7], filter);
 
                 store_s16x8xn<4>(dst_ptr, dstStride, d);
 
@@ -980,16 +887,14 @@ void interp8_vert_ps_dotprod(const uint8_t *src, intptr_t srcStride,
     }
 }
 
-template<int coeffIdx, int coeffIdy, int width, int height>
-void interp8_hv_pp_dotprod(const pixel *src, intptr_t srcStride, pixel *dst,
-                           intptr_t dstStride)
+template <int coeffIdx, int coeffIdy, int width, int height>
+void interp8_hv_pp_dotprod(const pixel *src, intptr_t srcStride, pixel *dst, intptr_t dstStride)
 {
     const int v_shift = IF_FILTER_PREC + IF_INTERNAL_PREC - X265_DEPTH;
     // Subtract 8 from shift since we account for that in table lookups.
     const int v_shift_offset = v_shift - 8;
     const int16x8_t v_filter = vld1q_s16(X265_NS::g_lumaFilter[coeffIdy]);
-    const int32x4_t v_offset = vdupq_n_s32((1 << (v_shift - 1)) +
-                                           (IF_INTERNAL_OFFS << IF_FILTER_PREC));
+    const int32x4_t v_offset = vdupq_n_s32((1 << (v_shift - 1)) + (IF_INTERNAL_OFFS << IF_FILTER_PREC));
 
     src -= 3 * srcStride + 3;
 
@@ -1011,8 +916,7 @@ void interp8_hv_pp_dotprod(const pixel *src, intptr_t srcStride, pixel *dst,
 
     src += 7 * srcStride;
 
-    for (int row = 0; row < height; row += 4)
-    {
+    for (int row = 0; row < height; row += 4) {
         load_u8x16xn<4>(src, srcStride, h_s + 7);
         v_s[7] = filter8_4_ps(h_s[7], filter, tbl);
         v_s[8] = filter8_4_ps(h_s[8], filter, tbl);
@@ -1049,124 +953,92 @@ void interp8_hv_pp_dotprod(const pixel *src, intptr_t srcStride, pixel *dst,
 }
 
 // Declaration for use in interp_hv_pp_dotprod().
-template<int N, int width, int height>
-void interp_vert_sp_neon(const int16_t *src, intptr_t srcStride, uint8_t *dst,
-                         intptr_t dstStride, int coeffIdx);
+template <int N, int width, int height>
+void interp_vert_sp_neon(const int16_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx);
 
-template<int width, int height>
-void interp_hv_pp_dotprod(const pixel *src, intptr_t srcStride, pixel *dst,
-                          intptr_t dstStride, int idxX, int idxY)
+template <int width, int height> void interp_hv_pp_dotprod(const pixel *src, intptr_t srcStride, pixel *dst, intptr_t dstStride, int idxX, int idxY)
 {
 // Use the merged hv paths with Clang only as performance with GCC is worse than the
 // existing approach of doing horizontal and vertical interpolation separately.
 #ifdef __clang__
-    if (width == 4 && height <= 8)
-    {
-        switch (idxX)
-        {
-        case 1:
-        {
-            switch (idxY)
-            {
+    if (width == 4 && height <= 8) {
+        switch (idxX) {
+        case 1: {
+            switch (idxY) {
             case 1:
-                return interp8_hv_pp_dotprod<1, 1, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<1, 1, width, height>(src, srcStride, dst, dstStride);
             case 2:
-                return interp8_hv_pp_dotprod<1, 2, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<1, 2, width, height>(src, srcStride, dst, dstStride);
             case 3:
-                return interp8_hv_pp_dotprod<1, 3, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<1, 3, width, height>(src, srcStride, dst, dstStride);
             }
 
             break;
         }
-        case 2:
-        {
-            switch (idxY)
-            {
+        case 2: {
+            switch (idxY) {
             case 1:
-                return interp8_hv_pp_dotprod<2, 1, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<2, 1, width, height>(src, srcStride, dst, dstStride);
             case 2:
-                return interp8_hv_pp_dotprod<2, 2, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<2, 2, width, height>(src, srcStride, dst, dstStride);
             case 3:
-                return interp8_hv_pp_dotprod<2, 3, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<2, 3, width, height>(src, srcStride, dst, dstStride);
             }
 
             break;
         }
-        case 3:
-        {
-            switch (idxY)
-            {
+        case 3: {
+            switch (idxY) {
             case 1:
-                return interp8_hv_pp_dotprod<3, 1, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<3, 1, width, height>(src, srcStride, dst, dstStride);
             case 2:
-                return interp8_hv_pp_dotprod<3, 2, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<3, 2, width, height>(src, srcStride, dst, dstStride);
             case 3:
-                return interp8_hv_pp_dotprod<3, 3, width, height>(src, srcStride, dst,
-                                                                  dstStride);
+                return interp8_hv_pp_dotprod<3, 3, width, height>(src, srcStride, dst, dstStride);
             }
 
             break;
         }
         }
-    }
-    else
-    {
+    } else {
         // Implementation of luma_hvpp, using Neon DotProd implementation for the
         // horizontal part, and Armv8.0 Neon implementation for the vertical part.
         const int N_TAPS = 8;
 
         ALIGN_VAR_32(int16_t, immed[width * (height + N_TAPS - 1)]);
 
-        interp8_horiz_ps_dotprod<width, height>(src, srcStride, immed, width, idxX,
-                                                1);
-        interp_vert_sp_neon<N_TAPS, width, height>(immed + (N_TAPS / 2 - 1) * width,
-                                                   width, dst, dstStride, idxY);
+        interp8_horiz_ps_dotprod<width, height>(src, srcStride, immed, width, idxX, 1);
+        interp_vert_sp_neon<N_TAPS, width, height>(immed + (N_TAPS / 2 - 1) * width, width, dst, dstStride, idxY);
     }
-#else // __clang__
+#else   // __clang__
     // Implementation of luma_hvpp, using Neon DotProd implementation for the
     // horizontal part, and Armv8.0 Neon implementation for the vertical part.
     const int N_TAPS = 8;
 
     ALIGN_VAR_32(int16_t, immed[width * (height + N_TAPS - 1)]);
 
-    interp8_horiz_ps_dotprod<width, height>(src, srcStride, immed, width, idxX,
-                                            1);
-    interp_vert_sp_neon<N_TAPS, width, height>(immed + (N_TAPS / 2 - 1) * width,
-                                               width, dst, dstStride, idxY);
-#endif // __clang__
+    interp8_horiz_ps_dotprod<width, height>(src, srcStride, immed, width, idxX, 1);
+    interp_vert_sp_neon<N_TAPS, width, height>(immed + (N_TAPS / 2 - 1) * width, width, dst, dstStride, idxY);
+#endif  // __clang__
 }
 
-#define LUMA_DOTPROD(W, H) \
-        p.pu[LUMA_ ## W ## x ## H].luma_hpp = interp8_horiz_pp_dotprod<W, H>; \
-        p.pu[LUMA_ ## W ## x ## H].luma_hps = interp8_horiz_ps_dotprod<W, H>; \
-        p.pu[LUMA_ ## W ## x ## H].luma_vps = interp8_vert_ps_dotprod<W, H>;  \
-        p.pu[LUMA_ ## W ## x ## H].luma_hvpp = interp_hv_pp_dotprod<W, H>;
+#define LUMA_DOTPROD(W, H)                                          \
+    p.pu[LUMA_##W##x##H].luma_hpp = interp8_horiz_pp_dotprod<W, H>; \
+    p.pu[LUMA_##W##x##H].luma_hps = interp8_horiz_ps_dotprod<W, H>; \
+    p.pu[LUMA_##W##x##H].luma_vps = interp8_vert_ps_dotprod<W, H>;  \
+    p.pu[LUMA_##W##x##H].luma_hvpp = interp_hv_pp_dotprod<W, H>;
 
-#define CHROMA_420_DOTPROD(W, H) \
-        p.chroma[X265_CSP_I420].pu[CHROMA_420_ ## W ## x ## H].filter_hpp = \
-            interp4_horiz_pp_dotprod<W, H>; \
-        p.chroma[X265_CSP_I420].pu[CHROMA_420_ ## W ## x ## H].filter_hps = \
-            interp4_horiz_ps_dotprod<W, H>;
+#define CHROMA_420_DOTPROD(W, H)                                                                  \
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_##W##x##H].filter_hpp = interp4_horiz_pp_dotprod<W, H>; \
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_##W##x##H].filter_hps = interp4_horiz_ps_dotprod<W, H>;
 
-#define CHROMA_422_DOTPROD(W, H) \
-        p.chroma[X265_CSP_I422].pu[CHROMA_422_ ## W ## x ## H].filter_hpp = \
-            interp4_horiz_pp_dotprod<W, H>; \
-        p.chroma[X265_CSP_I422].pu[CHROMA_422_ ## W ## x ## H].filter_hps = \
-            interp4_horiz_ps_dotprod<W, H>;
+#define CHROMA_422_DOTPROD(W, H)                                                                  \
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_##W##x##H].filter_hpp = interp4_horiz_pp_dotprod<W, H>; \
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_##W##x##H].filter_hps = interp4_horiz_ps_dotprod<W, H>;
 
-#define CHROMA_444_DOTPROD(W, H) \
-        p.chroma[X265_CSP_I444].pu[LUMA_ ## W ## x ## H].filter_hpp = \
-            interp4_horiz_pp_dotprod<W, H>; \
-        p.chroma[X265_CSP_I444].pu[LUMA_ ## W ## x ## H].filter_hps = \
-            interp4_horiz_ps_dotprod<W, H>;
+#define CHROMA_444_DOTPROD(W, H)                                                            \
+    p.chroma[X265_CSP_I444].pu[LUMA_##W##x##H].filter_hpp = interp4_horiz_pp_dotprod<W, H>; \
+    p.chroma[X265_CSP_I444].pu[LUMA_##W##x##H].filter_hps = interp4_horiz_ps_dotprod<W, H>;
 
 void setupFilterPrimitives_neon_dotprod(EncoderPrimitives &p)
 {
@@ -1272,12 +1144,10 @@ void setupFilterPrimitives_neon_dotprod(EncoderPrimitives &p)
     CHROMA_444_DOTPROD(64, 48);
     CHROMA_444_DOTPROD(64, 64);
 }
-}
+}  // namespace X265_NS
 
-#else // !HIGH_BIT_DEPTH
+#else   // !HIGH_BIT_DEPTH
 namespace X265_NS {
-void setupFilterPrimitives_neon_dotprod(EncoderPrimitives &)
-{
-}
-}
-#endif // !HIGH_BIT_DEPTH
+void setupFilterPrimitives_neon_dotprod(EncoderPrimitives &) { }
+}  // namespace X265_NS
+#endif  // !HIGH_BIT_DEPTH

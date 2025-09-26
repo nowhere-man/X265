@@ -35,7 +35,7 @@ void x265_getResidual8_neon(const pixel* fenc, const pixel* pred, int16_t* resid
 void x265_getResidual16_neon(const pixel* fenc, const pixel* pred, int16_t* residual, intptr_t stride);
 void x265_getResidual32_neon(const pixel* fenc, const pixel* pred, int16_t* residual, intptr_t stride);
 
-void x265_scale1D_128to64_neon(pixel *dst, const pixel *src);
+void x265_scale1D_128to64_neon(pixel* dst, const pixel* src);
 void x265_scale2D_64to32_neon(pixel* dst, const pixel* src, intptr_t stride);
 
 int x265_pixel_satd_4x4_neon(const pixel* pix1, intptr_t stride_pix1, const pixel* pix2, intptr_t stride_pix2);
@@ -90,4 +90,4 @@ void x265_ssim_4x4x2_core_neon(const pixel* pix1, intptr_t stride1, const pixel*
 int PFX(psyCost_4x4_neon)(const pixel* source, intptr_t sstride, const pixel* recon, intptr_t rstride);
 int PFX(psyCost_8x8_neon)(const pixel* source, intptr_t sstride, const pixel* recon, intptr_t rstride);
 
-#endif // ifndef X265_PIXEL_UTIL_ARM_H
+#endif  // ifndef X265_PIXEL_UTIL_ARM_H

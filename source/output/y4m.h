@@ -30,10 +30,8 @@
 namespace X265_NS {
 // private x265 namespace
 
-class Y4MOutput : public ReconFile
-{
+class Y4MOutput : public ReconFile {
 protected:
-
     int width;
 
     int height;
@@ -55,19 +53,18 @@ protected:
     void writeHeader();
 
 public:
-
     Y4MOutput(const char *filename, int width, int height, uint32_t bitdepth, uint32_t fpsNum, uint32_t fpsDenom, int csp, int inputDepth);
 
     virtual ~Y4MOutput();
 
-    const char *getName() const                   { return "y4m"; }
+    const char *getName() const { return "y4m"; }
 
-    bool isFail() const                           { return ofs.fail(); }
+    bool isFail() const { return ofs.fail(); }
 
-    void release()                                { delete this; }
+    void release() { delete this; }
 
-    bool writePicture(const x265_picture& pic);
+    bool writePicture(const x265_picture &pic);
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_Y4M_H
+#endif  // ifndef X265_Y4M_H

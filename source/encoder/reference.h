@@ -35,23 +35,20 @@ namespace X265_NS {
 
 struct WeightParam;
 
-class MotionReference : public ReferencePlanes
-{
+class MotionReference : public ReferencePlanes {
 public:
-
     MotionReference();
     ~MotionReference();
-    int  init(PicYuv*, WeightParam* wp, const x265_param& p);
+    int init(PicYuv*, WeightParam* wp, const x265_param& p);
     void applyWeight(uint32_t finishedRows, uint32_t maxNumRows, uint32_t maxNumRowsInSlice, uint32_t sliceId);
 
-    pixel*      weightBuffer[3];
-    int         numInterpPlanes;
-    uint32_t*   numSliceWeightedRows;
+    pixel* weightBuffer[3];
+    int numInterpPlanes;
+    uint32_t* numSliceWeightedRows;
 
 protected:
-
-    MotionReference& operator =(const MotionReference&);
+    MotionReference& operator=(const MotionReference&);
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_REFERENCE_H
+#endif  // ifndef X265_REFERENCE_H

@@ -28,10 +28,8 @@
 #include "testharness.h"
 #include "primitives.h"
 
-class PixelHarness : public TestHarness
-{
+class PixelHarness : public TestHarness {
 protected:
-
     enum { INCR = 32 };
     enum { STRIDE = 64 };
     enum { ITERS = 100 };
@@ -41,33 +39,33 @@ protected:
     enum { TEST_CASES = 3 };
     enum { SMAX = 1 << 12 };
     enum { SMIN = (unsigned)-1 << 12 };
-    enum { RMAX = PIXEL_MAX - PIXEL_MIN }; //The maximum value obtained by subtracting pixel values (residual max)
-    enum { RMIN = PIXEL_MIN - PIXEL_MAX }; //The minimum value obtained by subtracting pixel values (residual min)
+    enum { RMAX = PIXEL_MAX - PIXEL_MIN };  // The maximum value obtained by subtracting pixel values (residual max)
+    enum { RMIN = PIXEL_MIN - PIXEL_MAX };  // The minimum value obtained by subtracting pixel values (residual min)
 
     ALIGN_VAR_64(pixel, pbuf1[BUFFSIZE]);
-    ALIGN_VAR_64(pixel,    pbuf2[BUFFSIZE]);
-    ALIGN_VAR_64(pixel,    pbuf3[BUFFSIZE]);
-    ALIGN_VAR_64(pixel,    pbuf4[BUFFSIZE]);
-    ALIGN_VAR_64(int,      ibuf1[BUFFSIZE]);
-    ALIGN_VAR_64(int8_t,   psbuf1[BUFFSIZE]);
-    ALIGN_VAR_64(int8_t,   psbuf2[BUFFSIZE]);
-    ALIGN_VAR_64(int8_t,   psbuf3[BUFFSIZE]);
-    ALIGN_VAR_64(int8_t,   psbuf4[BUFFSIZE]);
-    ALIGN_VAR_64(int8_t,   psbuf5[BUFFSIZE]);
+    ALIGN_VAR_64(pixel, pbuf2[BUFFSIZE]);
+    ALIGN_VAR_64(pixel, pbuf3[BUFFSIZE]);
+    ALIGN_VAR_64(pixel, pbuf4[BUFFSIZE]);
+    ALIGN_VAR_64(int, ibuf1[BUFFSIZE]);
+    ALIGN_VAR_64(int8_t, psbuf1[BUFFSIZE]);
+    ALIGN_VAR_64(int8_t, psbuf2[BUFFSIZE]);
+    ALIGN_VAR_64(int8_t, psbuf3[BUFFSIZE]);
+    ALIGN_VAR_64(int8_t, psbuf4[BUFFSIZE]);
+    ALIGN_VAR_64(int8_t, psbuf5[BUFFSIZE]);
 
-    ALIGN_VAR_64(int16_t,  sbuf1[BUFFSIZE]);
-    ALIGN_VAR_64(int16_t,  sbuf2[BUFFSIZE]);
-    ALIGN_VAR_64(int16_t,  sbuf3[BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, sbuf1[BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, sbuf2[BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, sbuf3[BUFFSIZE]);
 
-    ALIGN_VAR_64(pixel,    pixel_test_buff[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(int16_t,  short_test_buff[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(int16_t,  short_test_buff1[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(int16_t,  short_test_buff2[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(int,      int_test_buff[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(pixel, pixel_test_buff[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, short_test_buff[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, short_test_buff1[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, short_test_buff2[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(int, int_test_buff[TEST_CASES][BUFFSIZE]);
     ALIGN_VAR_64(uint16_t, ushort_test_buff[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(uint8_t,  uchar_test_buff[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(double,   double_test_buff[TEST_CASES][BUFFSIZE]);
-    ALIGN_VAR_64(int16_t,  residual_test_buff[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(uint8_t, uchar_test_buff[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(double, double_test_buff[TEST_CASES][BUFFSIZE]);
+    ALIGN_VAR_64(int16_t, residual_test_buff[TEST_CASES][BUFFSIZE]);
 
     bool check_pixelcmp(pixelcmp_t ref, pixelcmp_t opt);
     bool check_pixel_sse(pixel_sse_t ref, pixel_sse_t opt);
@@ -141,10 +139,9 @@ protected:
     bool check_downscaleluma_t(downscaleluma_t ref, downscaleluma_t opt);
 
 public:
-
     PixelHarness();
 
-    const char *getName() const { return "pixel"; }
+    const char* getName() const { return "pixel"; }
 
     bool testCorrectness(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
     bool testPU(int part, const EncoderPrimitives& ref, const EncoderPrimitives& opt);
@@ -153,4 +150,4 @@ public:
     void measurePartition(int part, const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 };
 
-#endif // ifndef _PIXELHARNESS_H_1
+#endif  // ifndef _PIXELHARNESS_H_1

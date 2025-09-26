@@ -1,5 +1,5 @@
 #include "common.h"
-#include "slicetype.h"      // LOWRES_COST_MASK
+#include "slicetype.h"  // LOWRES_COST_MASK
 #include "primitives.h"
 #include "x265.h"
 
@@ -13,11 +13,7 @@
 
 using namespace X265_NS;
 
-
-
-namespace
-{
-
+namespace {
 
 static inline void sumsubq_s16(int16x8_t *sum, int16x8_t *sub, const int16x8_t a, const int16x8_t b)
 {
@@ -25,15 +21,13 @@ static inline void sumsubq_s16(int16x8_t *sum, int16x8_t *sub, const int16x8_t a
     *sub = vsubq_s16(a, b);
 }
 
-static inline void transpose_s16_s16x2(int16x8_t *t1, int16x8_t *t2,
-                                       const int16x8_t s1, const int16x8_t s2)
+static inline void transpose_s16_s16x2(int16x8_t *t1, int16x8_t *t2, const int16x8_t s1, const int16x8_t s2)
 {
     *t1 = vtrn1q_s16(s1, s2);
     *t2 = vtrn2q_s16(s1, s2);
 }
 
-static inline void transpose_s16_s32x2(int16x8_t *t1, int16x8_t *t2,
-                                       const int16x8_t s1, const int16x8_t s2)
+static inline void transpose_s16_s32x2(int16x8_t *t1, int16x8_t *t2, const int16x8_t s1, const int16x8_t s2)
 {
     int32x4_t tmp1 = vreinterpretq_s32_s16(s1);
     int32x4_t tmp2 = vreinterpretq_s32_s16(s2);
@@ -42,8 +36,7 @@ static inline void transpose_s16_s32x2(int16x8_t *t1, int16x8_t *t2,
     *t2 = vreinterpretq_s16_s32(vtrn2q_s32(tmp1, tmp2));
 }
 
-static inline void transpose_s16_s64x2(int16x8_t *t1, int16x8_t *t2,
-                                       const int16x8_t s1, const int16x8_t s2)
+static inline void transpose_s16_s64x2(int16x8_t *t1, int16x8_t *t2, const int16x8_t s1, const int16x8_t s2)
 {
     int64x2_t tmp1 = vreinterpretq_s64_s16(s1);
     int64x2_t tmp2 = vreinterpretq_s64_s16(s2);
@@ -67,9 +60,7 @@ static inline void sumsubq_s32(int32x4_t *sum, int32x4_t *sub, const int32x4_t a
     *sub = vsubq_s32(a, b);
 }
 
-static inline void sumsublq_s16(int32x4_t *sum_lo, int32x4_t *sum_hi,
-                                int32x4_t *sub_lo, int32x4_t *sub_hi,
-                                const int16x8_t a, const int16x8_t b)
+static inline void sumsublq_s16(int32x4_t *sum_lo, int32x4_t *sum_hi, int32x4_t *sub_lo, int32x4_t *sub_hi, const int16x8_t a, const int16x8_t b)
 {
     *sum_lo = vaddl_s16(vget_low_s16(a), vget_low_s16(b));
     *sub_lo = vsubl_s16(vget_low_s16(a), vget_low_s16(b));
@@ -94,11 +85,10 @@ static inline uint32x4_t max_abs_s32(int32x4_t a, int32x4_t b)
     return vmaxq_u32(abs0, abs1);
 }
 
-#endif // X265_DEPTH == 12
+#endif  // X265_DEPTH == 12
 
 #if HIGH_BIT_DEPTH
-static inline void load_diff_u16x8x4(const uint16_t *pix1, intptr_t stride_pix1,
-                                     const uint16_t *pix2, intptr_t stride_pix2, int16x8_t diff[4])
+static inline void load_diff_u16x8x4(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2, int16x8_t diff[4])
 {
     uint16x8_t r[4], t[4];
     load_u16x8xn<4>(pix1, stride_pix1, r);
@@ -110,16 +100,13 @@ static inline void load_diff_u16x8x4(const uint16_t *pix1, intptr_t stride_pix1,
     diff[3] = vreinterpretq_s16_u16(vsubq_u16(r[3], t[3]));
 }
 
-static inline void load_diff_u16x8x4_dual(const uint16_t *pix1, intptr_t stride_pix1,
-                                          const uint16_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
+static inline void load_diff_u16x8x4_dual(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
 {
     load_diff_u16x8x4(pix1, stride_pix1, pix2, stride_pix2, diff);
-    load_diff_u16x8x4(pix1 + 4 * stride_pix1, stride_pix1,
-                      pix2 + 4 * stride_pix2, stride_pix2, diff + 4);
+    load_diff_u16x8x4(pix1 + 4 * stride_pix1, stride_pix1, pix2 + 4 * stride_pix2, stride_pix2, diff + 4);
 }
 
-static inline void load_diff_u16x8x8(const uint16_t *pix1, intptr_t stride_pix1,
-                                     const uint16_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
+static inline void load_diff_u16x8x8(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
 {
     uint16x8_t r[8], t[8];
     load_u16x8xn<8>(pix1, stride_pix1, r);
@@ -135,9 +122,8 @@ static inline void load_diff_u16x8x8(const uint16_t *pix1, intptr_t stride_pix1,
     diff[7] = vreinterpretq_s16_u16(vsubq_u16(r[7], t[7]));
 }
 
-#else // !HIGH_BIT_DEPTH
-static inline void load_diff_u8x8x4(const uint8_t *pix1, intptr_t stride_pix1,
-                                    const uint8_t *pix2, intptr_t stride_pix2, int16x8_t diff[4])
+#else  // !HIGH_BIT_DEPTH
+static inline void load_diff_u8x8x4(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2, int16x8_t diff[4])
 {
     uint8x8_t r[4], t[4];
     load_u8x8xn<4>(pix1, stride_pix1, r);
@@ -149,16 +135,13 @@ static inline void load_diff_u8x8x4(const uint8_t *pix1, intptr_t stride_pix1,
     diff[3] = vreinterpretq_s16_u16(vsubl_u8(r[3], t[3]));
 }
 
-static inline void load_diff_u8x8x8(const uint8_t *pix1, intptr_t stride_pix1,
-                                    const uint8_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
+static inline void load_diff_u8x8x8(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
 {
     load_diff_u8x8x4(pix1, stride_pix1, pix2, stride_pix2, diff);
-    load_diff_u8x8x4(pix1 + 4 * stride_pix1, stride_pix1,
-                     pix2 + 4 * stride_pix2, stride_pix2, diff + 4);
+    load_diff_u8x8x4(pix1 + 4 * stride_pix1, stride_pix1, pix2 + 4 * stride_pix2, stride_pix2, diff + 4);
 }
 
-static inline void load_diff_u8x16x4(const uint8_t *pix1, intptr_t stride_pix1,
-                                     const uint8_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
+static inline void load_diff_u8x16x4(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2, int16x8_t diff[8])
 {
     uint8x16_t s1[4], s2[4];
     load_u8x16xn<4>(pix1, stride_pix1, s1);
@@ -174,7 +157,7 @@ static inline void load_diff_u8x16x4(const uint8_t *pix1, intptr_t stride_pix1,
     diff[7] = vreinterpretq_s16_u16(vsubl_u8(vget_high_u8(s1[3]), vget_high_u8(s2[3])));
 }
 
-#endif // HIGH_BIT_DEPTH
+#endif  // HIGH_BIT_DEPTH
 
 // 4 way hadamard vertical pass.
 static inline void hadamard_4_v(const int16x8_t in_coefs[4], int16x8_t out_coefs[4])
@@ -243,7 +226,7 @@ static inline void hadamard_8_h(int16x8_t coefs[8], uint16x8_t out[4])
     out[3] = max_abs_s16(temp[6], temp[7]);
 }
 
-#else // X265_DEPTH == 12
+#else  // X265_DEPTH == 12
 static inline void hadamard_8_h(int16x8_t coefs[8], uint32x4_t out[4])
 {
     int16x8_t a[8];
@@ -295,7 +278,7 @@ static inline void hadamard_8_h(int16x8_t coefs[8], uint32x4_t out[4])
     out[3] = vaddq_u32(max3_lo, max3_hi);
 }
 
-#endif // X265_DEPTH != 12
+#endif  // X265_DEPTH != 12
 
 static inline int hadamard_4x4(int16x8_t a0, int16x8_t a1)
 {
@@ -390,11 +373,10 @@ static inline void hadamard_8x8(int16x8_t diff[8], uint32x4_t out[2])
     out[1] = vaddq_u32(sum[2], sum[3]);
 }
 
-#endif // X265_DEPTH == 8
+#endif  // X265_DEPTH == 8
 
 #if HIGH_BIT_DEPTH
-static inline int pixel_satd_4x4_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                      const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_4x4_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     uint16x4_t s[4], r[4];
     load_u16x4xn<4>(pix1, stride_pix1, s);
@@ -411,8 +393,7 @@ static inline int pixel_satd_4x4_neon(const uint16_t *pix1, intptr_t stride_pix1
     return hadamard_4x4(diff0, diff1);
 }
 
-static inline int pixel_satd_4x8_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                      const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_4x8_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[4];
 
@@ -440,8 +421,7 @@ static inline int pixel_satd_4x8_neon(const uint16_t *pix1, intptr_t stride_pix1
     return vaddlvq_u16(out);
 }
 
-static inline int pixel_satd_8x4_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                      const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_8x4_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[4];
     load_diff_u16x8x4(pix1, stride_pix1, pix2, stride_pix2, diff);
@@ -452,8 +432,7 @@ static inline int pixel_satd_8x4_neon(const uint16_t *pix1, intptr_t stride_pix1
     return vaddlvq_u16(out);
 }
 
-static inline int pixel_satd_8x8_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                      const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_8x8_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
     uint16x8_t out[2];
@@ -467,15 +446,13 @@ static inline int pixel_satd_8x8_neon(const uint16_t *pix1, intptr_t stride_pix1
     return vaddvq_u32(res);
 }
 
-static inline int pixel_satd_8x16_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                       const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_8x16_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[16];
     uint16x8_t out[4];
 
     load_diff_u16x8x4_dual(pix1, stride_pix1, pix2, stride_pix2, diff);
-    load_diff_u16x8x4_dual(pix1 + 8 * stride_pix1, stride_pix1,
-                           pix2 + 8 * stride_pix2, stride_pix2, diff + 8);
+    load_diff_u16x8x4_dual(pix1 + 8 * stride_pix1, stride_pix1, pix2 + 8 * stride_pix2, stride_pix2, diff + 8);
 
     hadamard_4x4_quad(diff, out);
     hadamard_4x4_quad(diff + 8, out + 2);
@@ -489,8 +466,7 @@ static inline int pixel_satd_8x16_neon(const uint16_t *pix1, intptr_t stride_pix
     return vaddvq_u32(res);
 }
 
-static inline int pixel_satd_16x4_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                       const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_16x4_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
 
@@ -506,14 +482,13 @@ static inline int pixel_satd_16x4_neon(const uint16_t *pix1, intptr_t stride_pix
     return vaddlvq_u16(sum0);
 }
 
-static inline int pixel_satd_16x8_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                       const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_16x8_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[16];
     uint16x8_t out[4];
 
     load_diff_u16x8x4_dual(pix1, stride_pix1, pix2, stride_pix2, diff);
-    load_diff_u16x8x4_dual(pix1 + 8, stride_pix1,  pix2 + 8, stride_pix2, diff + 8);
+    load_diff_u16x8x4_dual(pix1 + 8, stride_pix1, pix2 + 8, stride_pix2, diff + 8);
 
     hadamard_4x4_quad(diff, out);
     hadamard_4x4_quad(diff + 8, out + 2);
@@ -525,7 +500,7 @@ static inline int pixel_satd_16x8_neon(const uint16_t *pix1, intptr_t stride_pix
     sum0 = vaddq_u16(sum0, sum1);
 
     return vaddlvq_u16(sum0);
-#else // X265_DEPTH == 12
+#else   // X265_DEPTH == 12
     uint32x4_t sum0 = vpaddlq_u16(out[0]);
     uint32x4_t sum1 = vpaddlq_u16(out[1]);
     sum0 = vpadalq_u16(sum0, out[2]);
@@ -534,18 +509,16 @@ static inline int pixel_satd_16x8_neon(const uint16_t *pix1, intptr_t stride_pix
     sum0 = vaddq_u32(sum0, sum1);
 
     return vaddvq_u32(sum0);
-#endif // X265_DEPTH == 10
+#endif  // X265_DEPTH == 10
 }
 
-static inline int pixel_satd_16x16_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                        const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_16x16_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
-    uint32x4_t sum[2]= { vdupq_n_u32(0), vdupq_n_u32(0) };
+    uint32x4_t sum[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
     int16x8_t diff[8];
     uint16x8_t out[2];
 
-    for (int i = 0; i < 4; ++i)
-    {
+    for (int i = 0; i < 4; ++i) {
         load_diff_u16x8x4(pix1, stride_pix1, pix2, stride_pix2, diff);
         load_diff_u16x8x4(pix1 + 8, stride_pix1, pix2 + 8, stride_pix2, diff + 4);
 
@@ -561,8 +534,7 @@ static inline int pixel_satd_16x16_neon(const uint16_t *pix1, intptr_t stride_pi
     return vaddvq_u32(vaddq_u32(sum[0], sum[1]));
 }
 
-static inline int pixel_sa8d_8x8_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                      const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_sa8d_8x8_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
     uint32x4_t res[2];
@@ -575,8 +547,7 @@ static inline int pixel_sa8d_8x8_neon(const uint16_t *pix1, intptr_t stride_pix1
     return (vaddvq_u32(s) + 1) >> 1;
 }
 
-static inline int pixel_sa8d_16x16_neon(const uint16_t *pix1, intptr_t stride_pix1,
-                                        const uint16_t *pix2, intptr_t stride_pix2)
+static inline int pixel_sa8d_16x16_neon(const uint16_t *pix1, intptr_t stride_pix1, const uint16_t *pix2, intptr_t stride_pix2)
 {
     uint32x4_t sum0, sum1;
 
@@ -591,14 +562,12 @@ static inline int pixel_sa8d_16x16_neon(const uint16_t *pix1, intptr_t stride_pi
     hadamard_8x8(diff, res);
     sum1 = vaddq_u32(res[0], res[1]);
 
-    load_diff_u16x8x8(pix1 + 8 * stride_pix1, stride_pix1,
-                      pix2 + 8 * stride_pix2, stride_pix2, diff);
+    load_diff_u16x8x8(pix1 + 8 * stride_pix1, stride_pix1, pix2 + 8 * stride_pix2, stride_pix2, diff);
     hadamard_8x8(diff, res);
     sum0 = vaddq_u32(sum0, res[0]);
     sum1 = vaddq_u32(sum1, res[1]);
 
-    load_diff_u16x8x8(pix1 + 8 * stride_pix1 + 8, stride_pix1,
-                      pix2 + 8 * stride_pix2 + 8, stride_pix2, diff);
+    load_diff_u16x8x8(pix1 + 8 * stride_pix1 + 8, stride_pix1, pix2 + 8 * stride_pix2 + 8, stride_pix2, diff);
     hadamard_8x8(diff, res);
     sum0 = vaddq_u32(sum0, res[0]);
     sum1 = vaddq_u32(sum1, res[1]);
@@ -608,9 +577,8 @@ static inline int pixel_sa8d_16x16_neon(const uint16_t *pix1, intptr_t stride_pi
     return (vaddvq_u32(sum0) + 1) >> 1;
 }
 
-#else // !HIGH_BIT_DEPTH
-static inline int pixel_satd_4x4_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                      const uint8_t *pix2, intptr_t stride_pix2)
+#else  // !HIGH_BIT_DEPTH
+static inline int pixel_satd_4x4_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     uint8x8_t s0 = load_u8x4x2(pix1, 2 * stride_pix1);
     uint8x8_t s1 = load_u8x4x2(pix1 + stride_pix1, 2 * stride_pix1);
@@ -624,8 +592,7 @@ static inline int pixel_satd_4x4_neon(const uint8_t *pix1, intptr_t stride_pix1,
     return hadamard_4x4(diff0, diff1);
 }
 
-static inline int pixel_satd_4x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                      const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_4x8_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[4];
 
@@ -649,8 +616,7 @@ static inline int pixel_satd_4x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
     return vaddlvq_u16(out);
 }
 
-static inline int pixel_satd_8x4_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                      const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_8x4_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[4];
 
@@ -662,8 +628,7 @@ static inline int pixel_satd_8x4_neon(const uint8_t *pix1, intptr_t stride_pix1,
     return vaddlvq_u16(out);
 }
 
-static inline int pixel_satd_8x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                      const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_8x8_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
     uint16x8_t out[2];
@@ -676,15 +641,13 @@ static inline int pixel_satd_8x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
     return vaddlvq_u16(out[0]);
 }
 
-static inline int pixel_satd_8x16_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                       const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_8x16_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[16];
     uint16x8_t out[4];
 
     load_diff_u8x8x8(pix1, stride_pix1, pix2, stride_pix2, diff);
-    load_diff_u8x8x8(pix1 + 8 * stride_pix1, stride_pix1,
-                     pix2 + 8 * stride_pix2, stride_pix2, diff + 8);
+    load_diff_u8x8x8(pix1 + 8 * stride_pix1, stride_pix1, pix2 + 8 * stride_pix2, stride_pix2, diff + 8);
 
     hadamard_4x4_quad(diff, out);
     hadamard_4x4_quad(diff + 8, out + 2);
@@ -697,8 +660,7 @@ static inline int pixel_satd_8x16_neon(const uint8_t *pix1, intptr_t stride_pix1
     return vaddlvq_u16(sum0);
 }
 
-static inline int pixel_satd_16x4_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                       const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_16x4_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
 
@@ -714,14 +676,13 @@ static inline int pixel_satd_16x4_neon(const uint8_t *pix1, intptr_t stride_pix1
     return vaddlvq_u16(out[0]);
 }
 
-static inline int pixel_satd_16x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                       const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_16x8_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[16];
     uint16x8_t out[4];
 
     load_diff_u8x8x8(pix1, stride_pix1, pix2, stride_pix2, diff);
-    load_diff_u8x8x8(pix1 + 8, stride_pix1,  pix2 + 8, stride_pix2, diff + 8);
+    load_diff_u8x8x8(pix1 + 8, stride_pix1, pix2 + 8, stride_pix2, diff + 8);
 
     hadamard_4x4_quad(diff, out);
     hadamard_4x4_quad(diff + 8, out + 2);
@@ -734,8 +695,7 @@ static inline int pixel_satd_16x8_neon(const uint8_t *pix1, intptr_t stride_pix1
     return vaddlvq_u16(sum0);
 }
 
-static inline int pixel_satd_16x16_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                        const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_satd_16x16_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     uint16x8_t sum[2], out[2];
     int16x8_t diff[8];
@@ -745,20 +705,17 @@ static inline int pixel_satd_16x16_neon(const uint8_t *pix1, intptr_t stride_pix
     sum[0] = out[0];
     sum[1] = out[1];
 
-    load_diff_u8x16x4(pix1 + 4 * stride_pix1, stride_pix1,
-                      pix2 + 4 * stride_pix2, stride_pix2, diff);
+    load_diff_u8x16x4(pix1 + 4 * stride_pix1, stride_pix1, pix2 + 4 * stride_pix2, stride_pix2, diff);
     hadamard_4x4_quad(diff, out);
     sum[0] = vaddq_u16(sum[0], out[0]);
     sum[1] = vaddq_u16(sum[1], out[1]);
 
-    load_diff_u8x16x4(pix1 + 8 * stride_pix1, stride_pix1,
-                      pix2 + 8 * stride_pix2, stride_pix2, diff);
+    load_diff_u8x16x4(pix1 + 8 * stride_pix1, stride_pix1, pix2 + 8 * stride_pix2, stride_pix2, diff);
     hadamard_4x4_quad(diff, out);
     sum[0] = vaddq_u16(sum[0], out[0]);
     sum[1] = vaddq_u16(sum[1], out[1]);
 
-    load_diff_u8x16x4(pix1 + 12 * stride_pix1, stride_pix1,
-                      pix2 + 12 * stride_pix2, stride_pix2, diff);
+    load_diff_u8x16x4(pix1 + 12 * stride_pix1, stride_pix1, pix2 + 12 * stride_pix2, stride_pix2, diff);
     hadamard_4x4_quad(diff, out);
     sum[0] = vaddq_u16(sum[0], out[0]);
     sum[1] = vaddq_u16(sum[1], out[1]);
@@ -771,8 +728,7 @@ static inline int pixel_satd_16x16_neon(const uint8_t *pix1, intptr_t stride_pix
     return vaddvq_u32(sum0);
 }
 
-static inline int pixel_sa8d_8x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                      const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_sa8d_8x8_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
     uint16x8_t res[2];
@@ -783,8 +739,7 @@ static inline int pixel_sa8d_8x8_neon(const uint8_t *pix1, intptr_t stride_pix1,
     return (vaddlvq_u16(vaddq_u16(res[0], res[1])) + 1) >> 1;
 }
 
-static inline int pixel_sa8d_16x16_neon(const uint8_t *pix1, intptr_t stride_pix1,
-                                        const uint8_t *pix2, intptr_t stride_pix2)
+static inline int pixel_sa8d_16x16_neon(const uint8_t *pix1, intptr_t stride_pix1, const uint8_t *pix2, intptr_t stride_pix2)
 {
     int16x8_t diff[8];
     uint16x8_t res[2];
@@ -800,14 +755,12 @@ static inline int pixel_sa8d_16x16_neon(const uint8_t *pix1, intptr_t stride_pix
     sum0 = vpadalq_u16(sum0, res[0]);
     sum1 = vpadalq_u16(sum1, res[1]);
 
-    load_diff_u8x8x8(pix1 + 8 * stride_pix1, stride_pix1,
-                     pix2 + 8 * stride_pix2, stride_pix2, diff);
+    load_diff_u8x8x8(pix1 + 8 * stride_pix1, stride_pix1, pix2 + 8 * stride_pix2, stride_pix2, diff);
     hadamard_8x8(diff, res);
     sum0 = vpadalq_u16(sum0, res[0]);
     sum1 = vpadalq_u16(sum1, res[1]);
 
-    load_diff_u8x8x8(pix1 + 8 * stride_pix1 + 8, stride_pix1,
-                     pix2 + 8 * stride_pix2 + 8, stride_pix2, diff);
+    load_diff_u8x8x8(pix1 + 8 * stride_pix1 + 8, stride_pix1, pix2 + 8 * stride_pix2 + 8, stride_pix2, diff);
     hadamard_8x8(diff, res);
     sum0 = vpadalq_u16(sum0, res[0]);
     sum1 = vpadalq_u16(sum1, res[1]);
@@ -817,34 +770,28 @@ static inline int pixel_sa8d_16x16_neon(const uint8_t *pix1, intptr_t stride_pix
     return (vaddvq_u32(sum0) + 1) >> 1;
 }
 
-#endif // HIGH_BIT_DEPTH
+#endif  // HIGH_BIT_DEPTH
 
-template<int lx, int ly>
-int sad_pp_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intptr_t stride_pix2)
+template <int lx, int ly> int sad_pp_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intptr_t stride_pix2)
 {
     int sum = 0;
 
-
-    for (int y = 0; y < ly; y++)
-    {
+    for (int y = 0; y < ly; y++) {
 #if HIGH_BIT_DEPTH
         int x = 0;
         uint16x8_t vsum16_1 = vdupq_n_u16(0);
-        for (; (x + 8) <= lx; x += 8)
-        {
+        for (; (x + 8) <= lx; x += 8) {
             uint16x8_t p1 = vld1q_u16(pix1 + x);
             uint16x8_t p2 = vld1q_u16(pix2 + x);
             vsum16_1 = vabaq_u16(vsum16_1, p1, p2);
         }
-        if (lx & 4)
-        {
+        if (lx & 4) {
             uint16x4_t p1 = vld1_u16(pix1 + x);
             uint16x4_t p2 = vld1_u16(pix2 + x);
             sum += vaddlv_u16(vaba_u16(vdup_n_u16(0), p1, p2));
             x += 4;
         }
-        if (lx >= 4)
-        {
+        if (lx >= 4) {
             sum += vaddlvq_u16(vsum16_1);
         }
 
@@ -854,41 +801,37 @@ int sad_pp_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intp
         uint16x8_t vsum16_1 = vdupq_n_u16(0);
         uint16x8_t vsum16_2 = vdupq_n_u16(0);
 
-        for (; (x + 16) <= lx; x += 16)
-        {
+        for (; (x + 16) <= lx; x += 16) {
             uint8x16_t p1 = vld1q_u8(pix1 + x);
             uint8x16_t p2 = vld1q_u8(pix2 + x);
             vsum16_1 = vabal_u8(vsum16_1, vget_low_u8(p1), vget_low_u8(p2));
             vsum16_2 = vabal_high_u8(vsum16_2, p1, p2);
         }
-        if (lx & 8)
-        {
+        if (lx & 8) {
             uint8x8_t p1 = vld1_u8(pix1 + x);
             uint8x8_t p2 = vld1_u8(pix2 + x);
             vsum16_1 = vabal_u8(vsum16_1, p1, p2);
             x += 8;
         }
-        if (lx & 4)
-        {
+        if (lx & 4) {
             uint8x8_t p1 = load_u8x4x1(pix1 + x);
             uint8x8_t p2 = load_u8x4x1(pix2 + x);
             vsum16_1 = vabal_u8(vsum16_1, p1, p2);
             x += 4;
         }
-        if (lx >= 16)
-        {
+        if (lx >= 16) {
             vsum16_1 = vaddq_u16(vsum16_1, vsum16_2);
         }
-        if (lx >= 4)
-        {
+        if (lx >= 4) {
             sum += vaddvq_u16(vsum16_1);
         }
 
 #endif
-        if (lx & 3) for (; x < lx; x++)
-            {
+        if (lx & 3) {
+            for (; x < lx; x++) {
                 sum += abs(pix1[x] - pix2[x]);
             }
+        }
 
         pix1 += stride_pix1;
         pix2 += stride_pix2;
@@ -897,37 +840,28 @@ int sad_pp_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intp
     return sum;
 }
 
-template<int size>
-void blockfill_s_neon(int16_t *dst, intptr_t dstride, int16_t val)
+template <int size> void blockfill_s_neon(int16_t *dst, intptr_t dstride, int16_t val)
 {
-    for (int h = 0; h < size; h++)
-    {
-        for (int w = 0; w + 16 <= size; w += 16)
-        {
+    for (int h = 0; h < size; h++) {
+        for (int w = 0; w + 16 <= size; w += 16) {
             vst1q_s16(dst + h * dstride + w, vdupq_n_s16(val));
             vst1q_s16(dst + h * dstride + w + 8, vdupq_n_s16(val));
         }
-        if (size == 8)
-        {
+        if (size == 8) {
             vst1q_s16(dst + h * dstride, vdupq_n_s16(val));
         }
-        if (size == 4)
-        {
+        if (size == 4) {
             vst1_s16(dst + h * dstride, vdup_n_s16(val));
         }
     }
 }
 
 #if !HIGH_BIT_DEPTH
-template<int width, int height>
-void blockcopy_ps_neon(int16_t *dst, intptr_t dst_stride, const pixel *src,
-                       intptr_t src_stride)
+template <int width, int height> void blockcopy_ps_neon(int16_t *dst, intptr_t dst_stride, const pixel *src, intptr_t src_stride)
 {
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
         int w = 0;
-        for (; w + 16 <= width; w += 16)
-        {
+        for (; w + 16 <= width; w += 16) {
             uint8x16_t s = vld1q_u8(src + w);
             uint8x16x2_t t = vzipq_u8(s, vdupq_n_u8(0));
             int16x8x2_t s_s16;
@@ -935,15 +869,13 @@ void blockcopy_ps_neon(int16_t *dst, intptr_t dst_stride, const pixel *src,
             s_s16.val[1] = vreinterpretq_s16_u8(t.val[1]);
             vst1q_s16_x2(dst + w, s_s16);
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             uint8x8_t s = vld1_u8(src + w);
             uint16x8_t s_u16 = vmovl_u8(s);
             vst1q_s16(dst + w, vreinterpretq_s16_u16(s_u16));
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             uint8x8_t s = load_u8x4x1(src + w);
             uint16x4_t s_u16 = vget_low_u16(vmovl_u8(s));
             vst1_s16(dst + w, vreinterpret_s16_u16(s_u16));
@@ -953,64 +885,53 @@ void blockcopy_ps_neon(int16_t *dst, intptr_t dst_stride, const pixel *src,
         src += src_stride;
     }
 }
-#endif // !HIGH_BIT_DEPTH
+#endif  // !HIGH_BIT_DEPTH
 
-template<int width, int height>
-void blockcopy_pp_neon(pixel *dst, intptr_t dst_stride, const pixel *src,
-                       intptr_t src_stride)
+template <int width, int height> void blockcopy_pp_neon(pixel *dst, intptr_t dst_stride, const pixel *src, intptr_t src_stride)
 {
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
         int w = 0;
 #if HIGH_BIT_DEPTH
-        for (; w + 16 <= width; w += 16)
-        {
+        for (; w + 16 <= width; w += 16) {
             uint16x8_t s0_lo = vld1q_u16(src + w);
             uint16x8_t s0_hi = vld1q_u16(src + w + 8);
             vst1q_u16(dst + w, s0_lo);
             vst1q_u16(dst + w + 8, s0_hi);
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             uint16x8_t s0 = vld1q_u16(src + w);
             vst1q_u16(dst + w, s0);
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             uint16x4_t s0 = vld1_u16(src + w);
             vst1_u16(dst + w, s0);
             w += 4;
         }
 #else
-        for (; w + 32 <= width; w += 32)
-        {
+        for (; w + 32 <= width; w += 32) {
             uint8x16_t s0_lo = vld1q_u8(src + w);
             uint8x16_t s0_hi = vld1q_u8(src + w + 16);
             vst1q_u8(dst + w, s0_lo);
             vst1q_u8(dst + w + 16, s0_hi);
         }
-        if (width & 16)
-        {
+        if (width & 16) {
             uint8x16_t s0 = vld1q_u8(src + w);
             vst1q_u8(dst + w, s0);
             w += 16;
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             uint8x8_t s0 = vld1_u8(src + w);
             vst1_u8(dst + w, s0);
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             uint8x8_t s0 = load_u8x4x1(src + w);
             store_u8x4x1(dst + w, s0);
             w += 4;
         }
 #endif
-        for (; w < width; w++)
-        {
+        for (; w < width; w++) {
             dst[w] = src[w];
         }
 
@@ -1019,27 +940,21 @@ void blockcopy_pp_neon(pixel *dst, intptr_t dst_stride, const pixel *src,
     }
 }
 
-template<int width, int height>
-void blockcopy_ss_neon(int16_t *dst, intptr_t dst_stride, const int16_t *src,
-                       intptr_t src_stride)
+template <int width, int height> void blockcopy_ss_neon(int16_t *dst, intptr_t dst_stride, const int16_t *src, intptr_t src_stride)
 {
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
         int w = 0;
-        for (; w + 16 <= width; w += 16)
-        {
+        for (; w + 16 <= width; w += 16) {
             int16x8_t a0 = vld1q_s16(src + w + 0);
             int16x8_t a1 = vld1q_s16(src + w + 8);
             vst1q_s16(dst + w + 0, a0);
             vst1q_s16(dst + w + 8, a1);
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             vst1q_s16(dst + w, vld1q_s16(src + w));
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             vst1_s16(dst + w, vld1_s16(src + w));
         }
 
@@ -1049,12 +964,9 @@ void blockcopy_ss_neon(int16_t *dst, intptr_t dst_stride, const int16_t *src,
 }
 
 #if !HIGH_BIT_DEPTH
-template<int width, int height>
-void blockcopy_sp_neon(pixel *dst, intptr_t dst_stride, const int16_t *src,
-                       intptr_t src_stride)
+template <int width, int height> void blockcopy_sp_neon(pixel *dst, intptr_t dst_stride, const int16_t *src, intptr_t src_stride)
 {
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
         int w = 0;
         for (; w + 16 <= width; w += 16) {
             int16x8_t s0 = vld1q_s16(src + w + 0);
@@ -1062,15 +974,13 @@ void blockcopy_sp_neon(pixel *dst, intptr_t dst_stride, const int16_t *src,
             int8x16_t s01 = vcombine_s8(vmovn_s16(s0), vmovn_s16(s1));
             vst1q_u8(dst + w, vreinterpretq_u8_s8(s01));
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             int16x8_t s0 = vld1q_s16(src + w);
             int8x8_t s0_s8 = vmovn_s16(s0);
             vst1_u8(dst + w, vreinterpret_u8_s8(s0_s8));
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             int16x4_t s0 = vld1_s16(src + w);
             int8x8_t s0_s8 = vmovn_s16(vcombine_s16(s0, vdup_n_s16(0)));
             store_u8x4x1(dst + w, vreinterpret_u8_s8(s0_s8));
@@ -1080,17 +990,13 @@ void blockcopy_sp_neon(pixel *dst, intptr_t dst_stride, const int16_t *src,
         src += src_stride;
     }
 }
-#endif // !HIGH_BIT_DEPTH
+#endif  // !HIGH_BIT_DEPTH
 
-template<int bx, int by>
-void pixel_sub_ps_neon(int16_t *a, intptr_t dstride, const pixel *b0, const pixel *b1, intptr_t sstride0,
-                       intptr_t sstride1)
+template <int bx, int by> void pixel_sub_ps_neon(int16_t *a, intptr_t dstride, const pixel *b0, const pixel *b1, intptr_t sstride0, intptr_t sstride1)
 {
-    for (int y = 0; y < by; y++)
-    {
+    for (int y = 0; y < by; y++) {
         int x = 0;
-        for (; (x + 8) <= bx; x += 8)
-        {
+        for (; (x + 8) <= bx; x += 8) {
 #if HIGH_BIT_DEPTH
             uint16x8_t diff = vsubq_u16(vld1q_u16(b0 + x), vld1q_u16(b1 + x));
             vst1q_s16(a + x, vreinterpretq_s16_u16(diff));
@@ -1099,8 +1005,7 @@ void pixel_sub_ps_neon(int16_t *a, intptr_t dstride, const pixel *b0, const pixe
             vst1q_s16(a + x, vreinterpretq_s16_u16(diff));
 #endif
         }
-        for (; x < bx; x++)
-        {
+        for (; x < bx; x++) {
             a[x] = (int16_t)(b0[x] - b1[x]);
         }
 
@@ -1110,15 +1015,12 @@ void pixel_sub_ps_neon(int16_t *a, intptr_t dstride, const pixel *b0, const pixe
     }
 }
 
-template<int width, int height>
-void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
-                       const int16_t *src1, intptr_t sstride0, intptr_t sstride1)
+template <int width, int height>
+void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0, const int16_t *src1, intptr_t sstride0, intptr_t sstride1)
 {
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
 #if HIGH_BIT_DEPTH
-        for (int w = 0; w + 16 <= width; w += 16)
-        {
+        for (int w = 0; w + 16 <= width; w += 16) {
             uint16x8_t s0_lo = vld1q_u16(src0 + w);
             uint16x8_t s0_hi = vld1q_u16(src0 + w + 8);
             int16x8_t s1_lo = vld1q_s16(src1 + w);
@@ -1133,8 +1035,7 @@ void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
             vst1q_u16(dst + w, sum_lo);
             vst1q_u16(dst + w + 8, sum_hi);
         }
-        if (width == 8)
-        {
+        if (width == 8) {
             uint16x8_t s0 = vld1q_u16(src0);
             int16x8_t s1 = vld1q_s16(src1);
 
@@ -1143,8 +1044,7 @@ void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
 
             vst1q_u16(dst, sum);
         }
-        if (width == 4)
-        {
+        if (width == 4) {
             int16x4_t s1 = vld1_s16(src1);
             uint16x4_t s0 = vld1_u16(src0);
 
@@ -1153,9 +1053,8 @@ void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
 
             vst1_u16(dst, sum);
         }
-#else // !HIGH_BIT_DEPTH
-        for (int w = 0; w + 16 <= width; w += 16)
-        {
+#else  // !HIGH_BIT_DEPTH
+        for (int w = 0; w + 16 <= width; w += 16) {
             uint8x16_t s0 = vld1q_u8(src0 + w);
             int16x8_t s1_lo = vld1q_s16(src1 + w);
             int16x8_t s1_hi = vld1q_s16(src1 + w + 8);
@@ -1168,8 +1067,7 @@ void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
             vst1_u8(dst + w, d0_lo);
             vst1_u8(dst + w + 8, d0_hi);
         }
-        if (width == 8)
-        {
+        if (width == 8) {
             uint8x8_t s0 = vld1_u8(src0);
             int16x8_t s1 = vld1q_s16(src1);
 
@@ -1178,8 +1076,7 @@ void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
 
             vst1_u8(dst, d0);
         }
-        if (width == 4)
-        {
+        if (width == 4) {
             uint8x8_t s0 = load_u8x4x1(src0);
             int16x8_t s1 = vcombine_s16(vld1_s16(src1), vdup_n_s16(0));
 
@@ -1196,9 +1093,8 @@ void pixel_add_ps_neon(pixel *dst, intptr_t dstride, const pixel *src0,
     }
 }
 
-template<int width, int height>
-void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
-                 intptr_t src0Stride, intptr_t src1Stride, intptr_t dstStride)
+template <int width, int height>
+void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst, intptr_t src0Stride, intptr_t src1Stride, intptr_t dstStride)
 {
     const int shiftNum = IF_INTERNAL_PREC + 1 - X265_DEPTH;
     const int offset = 2 * IF_INTERNAL_OFFS;
@@ -1206,11 +1102,9 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 #if HIGH_BIT_DEPTH
     const int16x8_t addon = vdupq_n_s16(offset >> shiftNum);
 
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
         int w = 0;
-        for (; w + 16 <= width; w += 16)
-        {
+        for (; w + 16 <= width; w += 16) {
             int16x8_t s0[2], s1[2];
             load_s16x8xn<2>(src0 + w, 8, s0);
             load_s16x8xn<2>(src1 + w, 8, s1);
@@ -1226,8 +1120,7 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
             vst1q_u16(dst + w, vreinterpretq_u16_s16(d0_lo));
             vst1q_u16(dst + w + 8, vreinterpretq_u16_s16(d0_hi));
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             int16x8_t s0 = vld1q_s16(src0 + w);
             int16x8_t s1 = vld1q_s16(src1 + w);
 
@@ -1239,8 +1132,7 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             int16x4_t s0 = vld1_s16(src0 + w);
             int16x4_t s1 = vld1_s16(src1 + w);
 
@@ -1252,8 +1144,7 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 
             w += 4;
         }
-        if (width & 2)
-        {
+        if (width & 2) {
             int16x8_t s0 = load_s16x2x1(src0 + w);
             int16x8_t s1 = load_s16x2x1(src1 + w);
 
@@ -1266,16 +1157,14 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 
         src0 += src0Stride;
         src1 += src1Stride;
-        dst  += dstStride;
+        dst += dstStride;
     }
-#else // !HIGH_BIT_DEPTH
+#else  // !HIGH_BIT_DEPTH
     const uint8x8_t addon = vdup_n_u8(offset >> shiftNum);
 
-    for (int h = 0; h < height; h++)
-    {
+    for (int h = 0; h < height; h++) {
         int w = 0;
-        for (; w + 16 <= width; w += 16)
-        {
+        for (; w + 16 <= width; w += 16) {
             int16x8_t s0[2], s1[2];
             load_s16x8xn<2>(src0 + w, 8, s0);
             load_s16x8xn<2>(src1 + w, 8, s1);
@@ -1288,8 +1177,7 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
             vst1_u8(dst + w, d0_lo);
             vst1_u8(dst + w + 8, d0_hi);
         }
-        if (width & 8)
-        {
+        if (width & 8) {
             int16x8_t s0 = vld1q_s16(src0 + w);
             int16x8_t s1 = vld1q_s16(src1 + w);
 
@@ -1300,8 +1188,7 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 
             w += 8;
         }
-        if (width & 4)
-        {
+        if (width & 4) {
             int16x8_t s0 = vcombine_s16(vld1_s16(src0 + w), vdup_n_s16(0));
             int16x8_t s1 = vcombine_s16(vld1_s16(src1 + w), vdup_n_s16(0));
 
@@ -1312,8 +1199,7 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 
             w += 4;
         }
-        if (width & 2)
-        {
+        if (width & 2) {
             int16x8_t s0 = load_s16x2x1(src0 + w);
             int16x8_t s1 = load_s16x2x1(src1 + w);
 
@@ -1325,13 +1211,12 @@ void addAvg_neon(const int16_t *src0, const int16_t *src1, pixel *dst,
 
         src0 += src0Stride;
         src1 += src1Stride;
-        dst  += dstStride;
+        dst += dstStride;
     }
 #endif
 }
 
-void planecopy_cp_neon(const uint8_t *src, intptr_t srcStride, pixel *dst,
-                       intptr_t dstStride, int width, int height, int shift)
+void planecopy_cp_neon(const uint8_t *src, intptr_t srcStride, pixel *dst, intptr_t dstStride, int width, int height, int shift)
 {
     X265_CHECK(width >= 16, "width length error\n");
     X265_CHECK(height >= 1, "height length error\n");
@@ -1339,11 +1224,9 @@ void planecopy_cp_neon(const uint8_t *src, intptr_t srcStride, pixel *dst,
 
     (void)shift;
 
-    do
-    {
+    do {
 #if HIGH_BIT_DEPTH
-        for (int w = 0; w < width - 16; w += 16)
-        {
+        for (int w = 0; w < width - 16; w += 16) {
             uint8x16_t in = vld1q_u8(src + w);
             uint16x8_t t0 = vshll_n_u8(vget_low_u8(in), X265_DEPTH - 8);
             uint16x8_t t1 = vshll_n_u8(vget_high_u8(in), X265_DEPTH - 8);
@@ -1360,15 +1243,13 @@ void planecopy_cp_neon(const uint8_t *src, intptr_t srcStride, pixel *dst,
         }
 #else
         int w;
-        for (w = 0; w < width - 32; w += 32)
-        {
+        for (w = 0; w < width - 32; w += 32) {
             uint8x16_t in0 = vld1q_u8(src + w + 0);
             uint8x16_t in1 = vld1q_u8(src + w + 16);
             vst1q_u8(dst + w + 0, in0);
             vst1q_u8(dst + w + 16, in1);
         }
-        if (w < width - 16)
-        {
+        if (w < width - 16) {
             uint8x16_t in = vld1q_u8(src + w);
             vst1q_u8(dst + w, in);
         }
@@ -1380,12 +1261,10 @@ void planecopy_cp_neon(const uint8_t *src, intptr_t srcStride, pixel *dst,
 #endif
         dst += dstStride;
         src += srcStride;
-    }
-    while (--height != 0);
+    } while (--height != 0);
 }
 
-void weight_pp_neon(const pixel *src, pixel *dst, intptr_t stride, int width, int height,
-                    int w0, int round, int shift, int offset)
+void weight_pp_neon(const pixel *src, pixel *dst, intptr_t stride, int width, int height, int w0, int round, int shift, int offset)
 {
     const int correction = IF_INTERNAL_PREC - X265_DEPTH;
 
@@ -1395,19 +1274,16 @@ void weight_pp_neon(const pixel *src, pixel *dst, intptr_t stride, int width, in
     X265_CHECK(w0 >= 0, "w0 should be min 0\n");
     X265_CHECK(w0 < 128, "w0 should be max 127\n");
     X265_CHECK(shift >= correction, "shift must include factor correction\n");
-    X265_CHECK((round & ((1 << correction) - 1)) == 0,
-               "round must include factor correction\n");
+    X265_CHECK((round & ((1 << correction) - 1)) == 0, "round must include factor correction\n");
 
     (void)round;
 
 #if HIGH_BIT_DEPTH
     int32x4_t corrected_shift = vdupq_n_s32(correction - shift);
 
-    do
-    {
+    do {
         int w = 0;
-        do
-        {
+        do {
             int16x8_t s0 = vreinterpretq_s16_u16(vld1q_u16(src + w + 0));
             int16x8_t s1 = vreinterpretq_s16_u16(vld1q_u16(src + w + 8));
             int32x4_t weighted_s0_lo = vmull_n_s16(vget_low_s16(s0), w0);
@@ -1432,13 +1308,11 @@ void weight_pp_neon(const pixel *src, pixel *dst, intptr_t stride, int width, in
             vst1q_u16(dst + w + 0, d0);
             vst1q_u16(dst + w + 8, d1);
             w += 16;
-        }
-        while (w != width);
+        } while (w != width);
 
         src += stride;
         dst += stride;
-    }
-    while (--height != 0);
+    } while (--height != 0);
 
 #else
     // Re-arrange the shift operations.
@@ -1450,47 +1324,35 @@ void weight_pp_neon(const pixel *src, pixel *dst, intptr_t stride, int width, in
     unsigned long id;
     BSF(id, w0);
 
-    if ((int)id >= shift - correction)
-    {
+    if ((int)id >= shift - correction) {
         w0 >>= shift - correction;
 
-        do
-        {
+        do {
             int w = 0;
-            do
-            {
+            do {
                 uint8x16_t s = vld1q_u8(src + w);
-                int16x8_t weighted_s0 = vreinterpretq_s16_u16(
-                    vmlal_u8(vdupq_n_u16(offset), vget_low_u8(s), vdup_n_u8(w0)));
-                int16x8_t weighted_s1 = vreinterpretq_s16_u16(
-                    vmlal_u8(vdupq_n_u16(offset), vget_high_u8(s), vdup_n_u8(w0)));
+                int16x8_t weighted_s0 = vreinterpretq_s16_u16(vmlal_u8(vdupq_n_u16(offset), vget_low_u8(s), vdup_n_u8(w0)));
+                int16x8_t weighted_s1 = vreinterpretq_s16_u16(vmlal_u8(vdupq_n_u16(offset), vget_high_u8(s), vdup_n_u8(w0)));
                 uint8x8_t d0 = vqmovun_s16(weighted_s0);
                 uint8x8_t d1 = vqmovun_s16(weighted_s1);
 
                 vst1q_u8(dst + w, vcombine_u8(d0, d1));
                 w += 16;
-            }
-            while (w != width);
+            } while (w != width);
 
             src += stride;
             dst += stride;
-        }
-        while (--height != 0);
-    }
-    else // Keep rounding shifts within the loop.
+        } while (--height != 0);
+    } else  // Keep rounding shifts within the loop.
     {
         int16x8_t corrected_shift = vdupq_n_s16(correction - shift);
 
-        do
-        {
+        do {
             int w = 0;
-            do
-            {
+            do {
                 uint8x16_t s = vld1q_u8(src + w);
-                int16x8_t weighted_s0 =
-                    vreinterpretq_s16_u16(vmull_u8(vget_low_u8(s), vdup_n_u8(w0)));
-                int16x8_t weighted_s1 =
-                    vreinterpretq_s16_u16(vmull_u8(vget_high_u8(s), vdup_n_u8(w0)));
+                int16x8_t weighted_s0 = vreinterpretq_s16_u16(vmull_u8(vget_low_u8(s), vdup_n_u8(w0)));
+                int16x8_t weighted_s1 = vreinterpretq_s16_u16(vmull_u8(vget_high_u8(s), vdup_n_u8(w0)));
                 weighted_s0 = vrshlq_s16(weighted_s0, corrected_shift);
                 weighted_s1 = vrshlq_s16(weighted_s1, corrected_shift);
                 weighted_s0 = vaddq_s16(weighted_s0, vdupq_n_s16(offset));
@@ -1500,26 +1362,21 @@ void weight_pp_neon(const pixel *src, pixel *dst, intptr_t stride, int width, in
 
                 vst1q_u8(dst + w, vcombine_u8(d0, d1));
                 w += 16;
-            }
-            while (w != width);
+            } while (w != width);
 
             src += stride;
             dst += stride;
-        }
-        while (--height != 0);
+        } while (--height != 0);
     }
 #endif
 }
 
-template<int lx, int ly>
-void pixelavg_pp_neon(pixel *dst, intptr_t dstride, const pixel *src0, intptr_t sstride0, const pixel *src1,
-                      intptr_t sstride1, int)
+template <int lx, int ly>
+void pixelavg_pp_neon(pixel *dst, intptr_t dstride, const pixel *src0, intptr_t sstride0, const pixel *src1, intptr_t sstride1, int)
 {
-    for (int y = 0; y < ly; y++)
-    {
+    for (int y = 0; y < ly; y++) {
         int x = 0;
-        for (; (x + 8) <= lx; x += 8)
-        {
+        for (; (x + 8) <= lx; x += 8) {
 #if HIGH_BIT_DEPTH
             uint16x8_t in0 = vld1q_u16(src0 + x);
             uint16x8_t in1 = vld1q_u16(src1 + x);
@@ -1532,8 +1389,7 @@ void pixelavg_pp_neon(pixel *dst, intptr_t dstride, const pixel *src0, intptr_t 
             vst1_u8(dst + x, vmovn_u16(t));
 #endif
         }
-        for (; x < lx; x++)
-        {
+        for (; x < lx; x++) {
             dst[x] = (src0[x] + src1[x] + 1) >> 1;
         }
 
@@ -1543,18 +1399,14 @@ void pixelavg_pp_neon(pixel *dst, intptr_t dstride, const pixel *src0, intptr_t 
     }
 }
 
-
-template<int size>
-void cpy1Dto2D_shl_neon(int16_t *dst, const int16_t *src, intptr_t dstStride, int shift)
+template <int size> void cpy1Dto2D_shl_neon(int16_t *dst, const int16_t *src, intptr_t dstStride, int shift)
 {
     X265_CHECK((((intptr_t)dst | (dstStride * sizeof(*dst))) & 15) == 0 || size == 4, "dst alignment error\n");
     X265_CHECK(((intptr_t)src & 15) == 0, "src alignment error\n");
     X265_CHECK(shift >= 0, "invalid shift\n");
 
-    for (int h = 0; h < size; h++)
-    {
-        for (int w = 0; w + 16 <= size; w += 16)
-        {
+    for (int h = 0; h < size; h++) {
+        for (int w = 0; w + 16 <= size; w += 16) {
             int16x8_t s0_lo = vld1q_s16(src + w);
             int16x8_t s0_hi = vld1q_s16(src + w + 8);
             int16x8_t d0_lo = vshlq_s16(s0_lo, vdupq_n_s16(shift));
@@ -1562,14 +1414,12 @@ void cpy1Dto2D_shl_neon(int16_t *dst, const int16_t *src, intptr_t dstStride, in
             vst1q_s16(dst + w, d0_lo);
             vst1q_s16(dst + w + 8, d0_hi);
         }
-        if (size == 8)
-        {
+        if (size == 8) {
             int16x8_t s0 = vld1q_s16(src);
             int16x8_t d0 = vshlq_s16(s0, vdupq_n_s16(shift));
             vst1q_s16(dst, d0);
         }
-        if (size == 4)
-        {
+        if (size == 4) {
             int16x4_t s0 = vld1_s16(src);
             int16x4_t d0 = vshl_s16(s0, vdup_n_s16(shift));
             vst1_s16(dst, d0);
@@ -1580,17 +1430,14 @@ void cpy1Dto2D_shl_neon(int16_t *dst, const int16_t *src, intptr_t dstStride, in
     }
 }
 
-template<int size>
-void cpy1Dto2D_shr_neon(int16_t* dst, const int16_t* src, intptr_t dstStride, int shift)
+template <int size> void cpy1Dto2D_shr_neon(int16_t *dst, const int16_t *src, intptr_t dstStride, int shift)
 {
     X265_CHECK((((intptr_t)dst | (dstStride * sizeof(*dst))) & 15) == 0 || size == 4, "dst alignment error\n");
     X265_CHECK(((intptr_t)src & 15) == 0, "src alignment error\n");
     X265_CHECK(shift > 0, "invalid shift\n");
 
-    for (int h = 0; h < size; h++)
-    {
-        for (int w = 0; w + 16 <= size; w += 16)
-        {
+    for (int h = 0; h < size; h++) {
+        for (int w = 0; w + 16 <= size; w += 16) {
             int16x8_t s0_lo = vld1q_s16(src + w);
             int16x8_t s0_hi = vld1q_s16(src + w + 8);
             int16x8_t d0_lo = vrshlq_s16(s0_lo, vdupq_n_s16(-shift));
@@ -1598,14 +1445,12 @@ void cpy1Dto2D_shr_neon(int16_t* dst, const int16_t* src, intptr_t dstStride, in
             vst1q_s16(dst + w, d0_lo);
             vst1q_s16(dst + w + 8, d0_hi);
         }
-        if (size == 8)
-        {
+        if (size == 8) {
             int16x8_t s0 = vld1q_s16(src);
             int16x8_t d0 = vrshlq_s16(s0, vdupq_n_s16(-shift));
             vst1q_s16(dst, d0);
         }
-        if (size == 4)
-        {
+        if (size == 4) {
             int16x4_t s0 = vld1_s16(src);
             int16x4_t d0 = vrshl_s16(s0, vdup_n_s16(-shift));
             vst1_s16(dst, d0);
@@ -1617,8 +1462,7 @@ void cpy1Dto2D_shr_neon(int16_t* dst, const int16_t* src, intptr_t dstStride, in
 }
 
 #if HIGH_BIT_DEPTH
-template<int size>
-uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
+template <int size> uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
 {
     // w * h * (2^BIT_DEPTH) <= (2^ACC_DEPTH) * (no. of ACC) * ACC_WIDTH
     // w * h * (2^BIT_DEPTH) * (2^BIT_DEPTH) <= (2^ACC_DEPTH) * (no. of ACC) * ACC_WIDTH
@@ -1627,15 +1471,12 @@ uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
     // 1 uint32x4_t sum acc, 1 uint32x4_t sqr acc for 10/12-bit 32x32 and 10-bit 64x64.
     // 2 uint16x8_t sum acc, 1 uint32x4_t sqr acc for 10/12-bit 16x16 block sizes.
     // 1 uint16x8_t sum acc, 1 uint32x4_t sqr acc for 10/12-bit 4x4, 8x8 block sizes.
-    if (size > 16)
-    {
-        uint32x4_t sum[2] = { vdupq_n_u32(0), vdupq_n_u32(0) };
-        uint32x4_t sqr[2] = { vdupq_n_u32(0), vdupq_n_u32(0) };
+    if (size > 16) {
+        uint32x4_t sum[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
+        uint32x4_t sqr[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
 
-        for (int h = 0; h < size; ++h)
-        {
-            for (int w = 0; w + 16 <= size; w += 16)
-            {
+        for (int h = 0; h < size; ++h) {
+            for (int w = 0; w + 16 <= size; w += 16) {
                 uint16x8_t s[2];
                 load_u16x8xn<2>(pix + w, 8, s);
 
@@ -1656,13 +1497,11 @@ uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
 
         return vaddvq_u32(sum[0]) + (vaddlvq_u32(sqr[0]) << 32);
     }
-    if (size == 16)
-    {
-        uint16x8_t sum[2] = { vdupq_n_u16(0), vdupq_n_u16(0) };
-        uint32x4_t sqr[2] = { vdupq_n_u32(0), vdupq_n_u32(0) };
+    if (size == 16) {
+        uint16x8_t sum[2] = {vdupq_n_u16(0), vdupq_n_u16(0)};
+        uint32x4_t sqr[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint16x8_t s[2];
             load_u16x8xn<2>(pix, 8, s);
 
@@ -1683,13 +1522,11 @@ uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
 
         return vaddvq_u32(sum_u32) + (vaddlvq_u32(sqr[0]) << 32);
     }
-    if (size == 8)
-    {
+    if (size == 8) {
         uint16x8_t sum = vdupq_n_u16(0);
         uint32x4_t sqr = vdupq_n_u32(0);
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint16x8_t s = vld1q_u16(pix);
 
             sum = vaddq_u16(sum, s);
@@ -1705,8 +1542,7 @@ uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
         uint16x4_t sum = vdup_n_u16(0);
         uint32x4_t sqr = vdupq_n_u32(0);
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint16x4_t s = vld1_u16(pix);
 
             sum = vadd_u16(sum, s);
@@ -1719,19 +1555,15 @@ uint64_t pixel_var_neon(const uint16_t *pix, intptr_t i_stride)
     }
 }
 
-#else // !HIGH_BIT_DEPTH
-template<int size>
-uint64_t pixel_var_neon(const uint8_t *pix, intptr_t i_stride)
+#else   // !HIGH_BIT_DEPTH
+template <int size> uint64_t pixel_var_neon(const uint8_t *pix, intptr_t i_stride)
 {
-    if (size >= 16)
-    {
-        uint16x8_t sum[2] = { vdupq_n_u16(0), vdupq_n_u16(0) };
-        uint32x4_t sqr[2] = { vdupq_n_u32(0), vdupq_n_u32(0) };
+    if (size >= 16) {
+        uint16x8_t sum[2] = {vdupq_n_u16(0), vdupq_n_u16(0)};
+        uint32x4_t sqr[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
 
-        for (int h = 0; h < size; h += 2)
-        {
-            for (int w = 0; w + 16 <= size; w += 16)
-            {
+        for (int h = 0; h < size; h += 2) {
+            for (int w = 0; w + 16 <= size; w += 16) {
                 uint8x16_t s[2];
                 load_u8x16xn<2>(pix + w, i_stride, s);
 
@@ -1758,13 +1590,11 @@ uint64_t pixel_var_neon(const uint8_t *pix, intptr_t i_stride)
 
         return vaddvq_u32(sum_u32) + (vaddlvq_u32(sqr[0]) << 32);
     }
-    if (size == 8)
-    {
+    if (size == 8) {
         uint16x8_t sum = vdupq_n_u16(0);
         uint32x4_t sqr = vdupq_n_u32(0);
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint8x8_t s = vld1_u8(pix);
 
             sum = vaddw_u8(sum, s);
@@ -1775,13 +1605,11 @@ uint64_t pixel_var_neon(const uint8_t *pix, intptr_t i_stride)
 
         return vaddvq_u16(sum) + (vaddlvq_u32(sqr) << 32);
     }
-    if (size == 4)
-    {
+    if (size == 4) {
         uint16x8_t sum = vdupq_n_u16(0);
         uint32x4_t sqr = vdupq_n_u32(0);
 
-        for (int h = 0; h < size; h += 2)
-        {
+        for (int h = 0; h < size; h += 2) {
             uint8x8_t s = load_u8x4x2(pix, i_stride);
 
             sum = vaddw_u8(sum, s);
@@ -1793,16 +1621,13 @@ uint64_t pixel_var_neon(const uint8_t *pix, intptr_t i_stride)
         return vaddvq_u16(sum) + (vaddlvq_u32(sqr) << 32);
     }
 }
-#endif // HIGH_BIT_DEPTH
+#endif  // HIGH_BIT_DEPTH
 
-template<int blockSize>
-void getResidual_neon(const pixel *fenc, const pixel *pred, int16_t *residual, intptr_t stride)
+template <int blockSize> void getResidual_neon(const pixel *fenc, const pixel *pred, int16_t *residual, intptr_t stride)
 {
-    for (int y = 0; y < blockSize; y++)
-    {
+    for (int y = 0; y < blockSize; y++) {
         int x = 0;
-        for (; (x + 8) < blockSize; x += 8)
-        {
+        for (; (x + 8) < blockSize; x += 8) {
             uint16x8_t vfenc, vpred;
 #if HIGH_BIT_DEPTH
             vfenc = vld1q_u16(fenc + x);
@@ -1814,8 +1639,7 @@ void getResidual_neon(const pixel *fenc, const pixel *pred, int16_t *residual, i
             int16x8_t res = vreinterpretq_s16_u16(vsubq_u16(vfenc, vpred));
             vst1q_s16(residual + x, res);
         }
-        for (; x < blockSize; x++)
-        {
+        for (; x < blockSize; x++) {
             residual[x] = static_cast<int16_t>(fenc[x]) - static_cast<int16_t>(pred[x]);
         }
         fenc += stride;
@@ -1856,7 +1680,7 @@ static inline int calc_energy_8x8(const uint16_t *source, intptr_t sstride)
     res = vpadalq_u16(res, sa8_out[1]);
     res = vpadalq_u16(res, sa8_out[2]);
     res = vpadalq_u16(res, sa8_out[3]);
-#else // X265_DEPTH == 12
+#else   // X265_DEPTH == 12
     uint32x4_t sa8_out[4];
 
     hadamard_8_h(temp, sa8_out);
@@ -1864,14 +1688,14 @@ static inline int calc_energy_8x8(const uint16_t *source, intptr_t sstride)
     sa8_out[0] = vaddq_u32(sa8_out[0], sa8_out[1]);
     sa8_out[2] = vaddq_u32(sa8_out[2], sa8_out[3]);
     uint32x4_t res = vaddq_u32(sa8_out[0], sa8_out[2]);
-#endif // X265_DEPTH == 10
+#endif  // X265_DEPTH == 10
 
     int sa8 = (vaddvq_u32(res) + 1) >> 1;
 
     return sa8 - sum;
 }
 
-#else // !HIGH_BIT_DEPTH
+#else  // !HIGH_BIT_DEPTH
 static inline int calc_energy_8x8(const uint8_t *source, intptr_t sstride)
 {
     uint8x8_t s[8];
@@ -1906,7 +1730,7 @@ static inline int calc_energy_8x8(const uint8_t *source, intptr_t sstride)
     return sa8 - sum;
 }
 
-#endif // HIGH_BIT_DEPTH
+#endif  // HIGH_BIT_DEPTH
 
 static inline int calc_energy_4x4(const pixel *source, intptr_t sstride)
 {
@@ -1946,17 +1770,13 @@ static inline int calc_energy_4x4(const pixel *source, intptr_t sstride)
     return sat - sum;
 }
 
-template<int size>
-int psyCost_pp_neon(const pixel *source, intptr_t sstride, const pixel *recon, intptr_t rstride)
+template <int size> int psyCost_pp_neon(const pixel *source, intptr_t sstride, const pixel *recon, intptr_t rstride)
 {
-    if (size)
-    {
+    if (size) {
         int dim = 1 << (size + 2);
         uint32_t totEnergy = 0;
-        for (int i = 0; i < dim; i += 8)
-        {
-            for (int j = 0; j < dim; j += 8)
-            {
+        for (int i = 0; i < dim; i += 8) {
+            for (int j = 0; j < dim; j += 8) {
                 int sourceEnergy = calc_energy_8x8(source + i * sstride + j, sstride);
                 int reconEnergy = calc_energy_8x8(recon + i * rstride + j, rstride);
 
@@ -1964,9 +1784,7 @@ int psyCost_pp_neon(const pixel *source, intptr_t sstride, const pixel *recon, i
             }
         }
         return totEnergy;
-    }
-    else
-    {
+    } else {
         int sourceEnergy = calc_energy_4x4(source, sstride);
         int reconEnergy = calc_energy_4x4(recon, rstride);
 
@@ -1974,49 +1792,45 @@ int psyCost_pp_neon(const pixel *source, intptr_t sstride, const pixel *recon, i
     }
 }
 
-
-template<int w, int h>
+template <int w, int h>
 // Calculate sa8d in blocks of 8x8
 int sa8d8_neon(const pixel *pix1, intptr_t i_pix1, const pixel *pix2, intptr_t i_pix2)
 {
     int cost = 0;
 
-    for (int y = 0; y < h; y += 8)
-        for (int x = 0; x < w; x += 8)
-        {
+    for (int y = 0; y < h; y += 8) {
+        for (int x = 0; x < w; x += 8) {
             cost += pixel_sa8d_8x8_neon(pix1 + i_pix1 * y + x, i_pix1, pix2 + i_pix2 * y + x, i_pix2);
         }
+    }
 
     return cost;
 }
 
-template<int w, int h>
+template <int w, int h>
 // Calculate sa8d in blocks of 16x16
 int sa8d16_neon(const pixel *pix1, intptr_t i_pix1, const pixel *pix2, intptr_t i_pix2)
 {
     int cost = 0;
 
-    for (int y = 0; y < h; y += 16)
-        for (int x = 0; x < w; x += 16)
-        {
+    for (int y = 0; y < h; y += 16) {
+        for (int x = 0; x < w; x += 16) {
             cost += pixel_sa8d_16x16_neon(pix1 + i_pix1 * y + x, i_pix1, pix2 + i_pix2 * y + x, i_pix2);
         }
+    }
 
     return cost;
 }
 
-template<int size>
-void cpy2Dto1D_shl_neon(int16_t *dst, const int16_t *src, intptr_t srcStride, int shift)
+template <int size> void cpy2Dto1D_shl_neon(int16_t *dst, const int16_t *src, intptr_t srcStride, int shift)
 {
     X265_CHECK(((intptr_t)dst & 15) == 0, "dst alignment error\n");
     X265_CHECK((((intptr_t)src | (srcStride * sizeof(*src))) & 15) == 0 || size == 4, "src alignment error\n");
     X265_CHECK(shift >= 0, "invalid shift\n");
 
-    for (int h = 0; h < size; h++)
-    {
+    for (int h = 0; h < size; h++) {
         int w = 0;
-        for (; w + 16 <= size; w += 16)
-        {
+        for (; w + 16 <= size; w += 16) {
             int16x8_t a0_lo = vld1q_s16(src + w);
             int16x8_t a0_hi = vld1q_s16(src + w + 8);
             int16x8_t d0_lo = vshlq_s16(a0_lo, vdupq_n_s16(shift));
@@ -2024,14 +1838,12 @@ void cpy2Dto1D_shl_neon(int16_t *dst, const int16_t *src, intptr_t srcStride, in
             vst1q_s16(dst + w, d0_lo);
             vst1q_s16(dst + w + 8, d0_hi);
         }
-        if (size == 8)
-        {
+        if (size == 8) {
             int16x8_t a0 = vld1q_s16(src + w);
             int16x8_t d0 = vshlq_s16(a0, vdupq_n_s16(shift));
             vst1q_s16(dst + w, d0);
         }
-        if (size == 4)
-        {
+        if (size == 4) {
             int16x4_t a0 = vld1_s16(src + w);
             int16x4_t d0 = vshl_s16(a0, vdup_n_s16(shift));
             vst1_s16(dst + w, d0);
@@ -2042,17 +1854,14 @@ void cpy2Dto1D_shl_neon(int16_t *dst, const int16_t *src, intptr_t srcStride, in
     }
 }
 
-template<int size>
-void cpy2Dto1D_shr_neon(int16_t* dst, const int16_t* src, intptr_t srcStride, int shift)
+template <int size> void cpy2Dto1D_shr_neon(int16_t *dst, const int16_t *src, intptr_t srcStride, int shift)
 {
     X265_CHECK(((intptr_t)dst & 15) == 0, "dst alignment error\n");
     X265_CHECK((((intptr_t)src | (srcStride * sizeof(*src))) & 15) == 0 || size == 4, "src alignment error\n");
     X265_CHECK(shift > 0, "invalid shift\n");
 
-    for (int h = 0; h < size; h++)
-    {
-        for (int w = 0; w + 16 <= size; w += 16)
-        {
+    for (int h = 0; h < size; h++) {
+        for (int w = 0; w + 16 <= size; w += 16) {
             int16x8_t s0_lo = vld1q_s16(src + w);
             int16x8_t s0_hi = vld1q_s16(src + w + 8);
             int16x8_t d0_lo = vrshlq_s16(s0_lo, vdupq_n_s16(-shift));
@@ -2060,14 +1869,12 @@ void cpy2Dto1D_shr_neon(int16_t* dst, const int16_t* src, intptr_t srcStride, in
             vst1q_s16(dst + w, d0_lo);
             vst1q_s16(dst + w + 8, d0_hi);
         }
-        if (size == 8)
-        {
+        if (size == 8) {
             int16x8_t s0 = vld1q_s16(src);
             int16x8_t d0 = vrshlq_s16(s0, vdupq_n_s16(-shift));
             vst1q_s16(dst, d0);
         }
-        if (size == 4)
-        {
+        if (size == 4) {
             int16x4_t s0 = vld1_s16(src);
             int16x4_t d0 = vrshl_s16(s0, vdup_n_s16(-shift));
             vst1_s16(dst, d0);
@@ -2078,107 +1885,85 @@ void cpy2Dto1D_shr_neon(int16_t* dst, const int16_t* src, intptr_t srcStride, in
     }
 }
 
-template<int w, int h>
-int satd4_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intptr_t stride_pix2)
+template <int w, int h> int satd4_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intptr_t stride_pix2)
 {
     int satd = 0;
 
     if (w == 4 && h == 4) {
         satd = pixel_satd_4x4_neon(pix1, stride_pix1, pix2, stride_pix2);
     } else {
-        for (int row = 0; row < h; row += 8)
-            for (int col = 0; col < w; col += 4)
-                satd += pixel_satd_4x8_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                            pix2 + row * stride_pix2 + col, stride_pix2);
+        for (int row = 0; row < h; row += 8) {
+            for (int col = 0; col < w; col += 4) {
+                satd += pixel_satd_4x8_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
     }
 
     return satd;
 }
 
-template<int w, int h>
-int satd8_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intptr_t stride_pix2)
+template <int w, int h> int satd8_neon(const pixel *pix1, intptr_t stride_pix1, const pixel *pix2, intptr_t stride_pix2)
 {
     int satd = 0;
 
-    if (w % 16 == 0 && h % 16 == 0)
+    if (w % 16 == 0 && h % 16 == 0) {
+        for (int row = 0; row < h; row += 16) {
+            for (int col = 0; col < w; col += 16) {
+                satd += pixel_satd_16x16_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
+    } else if (w % 8 == 0 && h % 16 == 0) {
+        for (int row = 0; row < h; row += 16) {
+            for (int col = 0; col < w; col += 8) {
+                satd += pixel_satd_8x16_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
+    } else if (w % 16 == 0 && h % 8 == 0) {
+        for (int row = 0; row < h; row += 8) {
+            for (int col = 0; col < w; col += 16) {
+                satd += pixel_satd_16x8_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
+    } else if (w % 16 == 0 && h % 4 == 0) {
+        for (int row = 0; row < h; row += 4) {
+            for (int col = 0; col < w; col += 16) {
+                satd += pixel_satd_16x4_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
+    } else if (w % 8 == 0 && h % 8 == 0) {
+        for (int row = 0; row < h; row += 8) {
+            for (int col = 0; col < w; col += 8) {
+                satd += pixel_satd_8x8_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
+    } else  // w multiple of 8, h multiple of 4
     {
-        for (int row = 0; row < h; row += 16)
-            for (int col = 0; col < w; col += 16)
-                satd += pixel_satd_16x16_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                              pix2 + row * stride_pix2 + col, stride_pix2);
-    }
-    else if (w % 8 == 0 && h % 16 == 0)
-    {
-        for (int row = 0; row < h; row += 16)
-            for (int col = 0; col < w; col += 8)
-                satd += pixel_satd_8x16_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                             pix2 + row * stride_pix2 + col, stride_pix2);
-    }
-    else if (w % 16 == 0 && h % 8 == 0)
-    {
-        for (int row = 0; row < h; row += 8)
-            for (int col = 0; col < w; col += 16)
-                satd += pixel_satd_16x8_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                             pix2 + row * stride_pix2 + col, stride_pix2);
-    }
-    else if (w % 16 == 0 && h % 4 == 0)
-    {
-        for (int row = 0; row < h; row += 4)
-            for (int col = 0; col < w; col += 16)
-                satd += pixel_satd_16x4_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                             pix2 + row * stride_pix2 + col, stride_pix2);
-    }
-    else if (w % 8 == 0 && h % 8 == 0)
-    {
-        for (int row = 0; row < h; row += 8)
-            for (int col = 0; col < w; col += 8)
-                satd += pixel_satd_8x8_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                            pix2 + row * stride_pix2 + col, stride_pix2);
-    }
-    else // w multiple of 8, h multiple of 4
-    {
-        for (int row = 0; row < h; row += 4)
-            for (int col = 0; col < w; col += 8)
-                satd += pixel_satd_8x4_neon(pix1 + row * stride_pix1 + col, stride_pix1,
-                                            pix2 + row * stride_pix2 + col, stride_pix2);
+        for (int row = 0; row < h; row += 4) {
+            for (int col = 0; col < w; col += 8) {
+                satd += pixel_satd_8x4_neon(pix1 + row * stride_pix1 + col, stride_pix1, pix2 + row * stride_pix2 + col, stride_pix2);
+            }
+        }
     }
 
     return satd;
 }
 
-
-template<int blockSize>
-void transpose_neon(pixel *dst, const pixel *src, intptr_t stride)
+template <int blockSize> void transpose_neon(pixel *dst, const pixel *src, intptr_t stride)
 {
-    for (int k = 0; k < blockSize; k++)
-        for (int l = 0; l < blockSize; l++)
-        {
+    for (int k = 0; k < blockSize; k++) {
+        for (int l = 0; l < blockSize; l++) {
             dst[k * blockSize + l] = src[l * stride + k];
         }
+    }
 }
 
+template <> void transpose_neon<8>(pixel *dst, const pixel *src, intptr_t stride) { transpose8x8(dst, src, 8, stride); }
 
-template<>
-void transpose_neon<8>(pixel *dst, const pixel *src, intptr_t stride)
-{
-    transpose8x8(dst, src, 8, stride);
-}
+template <> void transpose_neon<16>(pixel *dst, const pixel *src, intptr_t stride) { transpose16x16(dst, src, 16, stride); }
 
-template<>
-void transpose_neon<16>(pixel *dst, const pixel *src, intptr_t stride)
-{
-    transpose16x16(dst, src, 16, stride);
-}
+template <> void transpose_neon<32>(pixel *dst, const pixel *src, intptr_t stride) { transpose32x32(dst, src, 32, stride); }
 
-template<>
-void transpose_neon<32>(pixel *dst, const pixel *src, intptr_t stride)
-{
-    transpose32x32(dst, src, 32, stride);
-}
-
-
-template<>
-void transpose_neon<64>(pixel *dst, const pixel *src, intptr_t stride)
+template <> void transpose_neon<64>(pixel *dst, const pixel *src, intptr_t stride)
 {
     transpose32x32(dst, src, 64, stride);
     transpose32x32(dst + 32 * 64 + 32, src + 32 * stride + 32, 64, stride);
@@ -2186,75 +1971,68 @@ void transpose_neon<64>(pixel *dst, const pixel *src, intptr_t stride)
     transpose32x32(dst + 32, src + 32 * stride, 64, stride);
 }
 
+};  // namespace
 
-
-};
-
-
-
-
-namespace X265_NS
-{
-
+namespace X265_NS {
 
 void setupPixelPrimitives_neon(EncoderPrimitives &p)
 {
-#define LUMA_PU(W, H) \
-    p.pu[LUMA_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].addAvg[NONALIGNED] = addAvg_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].addAvg[ALIGNED] = addAvg_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].pixelavg_pp[NONALIGNED] = pixelavg_pp_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].pixelavg_pp[ALIGNED] = pixelavg_pp_neon<W, H>;
+#define LUMA_PU(W, H)                                                      \
+    p.pu[LUMA_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;                \
+    p.pu[LUMA_##W##x##H].addAvg[NONALIGNED] = addAvg_neon<W, H>;           \
+    p.pu[LUMA_##W##x##H].addAvg[ALIGNED] = addAvg_neon<W, H>;              \
+    p.pu[LUMA_##W##x##H].pixelavg_pp[NONALIGNED] = pixelavg_pp_neon<W, H>; \
+    p.pu[LUMA_##W##x##H].pixelavg_pp[ALIGNED] = pixelavg_pp_neon<W, H>;
 
 #if !(HIGH_BIT_DEPTH)
-#define LUMA_PU_S(W, H) \
-    p.pu[LUMA_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].addAvg[NONALIGNED] = addAvg_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].addAvg[ALIGNED] = addAvg_neon<W, H>;
-#else // !(HIGH_BIT_DEPTH)
-#define LUMA_PU_S(W, H) \
-    p.pu[LUMA_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].addAvg[NONALIGNED] = addAvg_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].addAvg[ALIGNED] = addAvg_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].pixelavg_pp[NONALIGNED] = pixelavg_pp_neon<W, H>; \
-    p.pu[LUMA_ ## W ## x ## H].pixelavg_pp[ALIGNED] = pixelavg_pp_neon<W, H>;
-#endif // !(HIGH_BIT_DEPTH)
+#define LUMA_PU_S(W, H)                                          \
+    p.pu[LUMA_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;      \
+    p.pu[LUMA_##W##x##H].addAvg[NONALIGNED] = addAvg_neon<W, H>; \
+    p.pu[LUMA_##W##x##H].addAvg[ALIGNED] = addAvg_neon<W, H>;
+#else  // !(HIGH_BIT_DEPTH)
+#define LUMA_PU_S(W, H)                                                    \
+    p.pu[LUMA_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;                \
+    p.pu[LUMA_##W##x##H].addAvg[NONALIGNED] = addAvg_neon<W, H>;           \
+    p.pu[LUMA_##W##x##H].addAvg[ALIGNED] = addAvg_neon<W, H>;              \
+    p.pu[LUMA_##W##x##H].pixelavg_pp[NONALIGNED] = pixelavg_pp_neon<W, H>; \
+    p.pu[LUMA_##W##x##H].pixelavg_pp[ALIGNED] = pixelavg_pp_neon<W, H>;
+#endif  // !(HIGH_BIT_DEPTH)
 
 #if HIGH_BIT_DEPTH
-#define LUMA_CU(W, H) \
-    p.cu[BLOCK_ ## W ## x ## H].sub_ps        = pixel_sub_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].add_ps[NONALIGNED]    = pixel_add_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].blockfill_s[NONALIGNED] = blockfill_s_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].blockfill_s[ALIGNED]    = blockfill_s_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].copy_pp       = blockcopy_pp_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].copy_ss       = blockcopy_ss_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy2Dto1D_shl = cpy2Dto1D_shl_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy1Dto2D_shl[NONALIGNED] = cpy1Dto2D_shl_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy1Dto2D_shl[ALIGNED] = cpy1Dto2D_shl_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].psy_cost_pp   = psyCost_pp_neon<BLOCK_ ## W ## x ## H>; \
-    p.cu[BLOCK_ ## W ## x ## H].transpose     = transpose_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].var           = pixel_var_neon<W>;
+#define LUMA_CU(W, H)                                                        \
+    p.cu[BLOCK_##W##x##H].sub_ps = pixel_sub_ps_neon<W, H>;                  \
+    p.cu[BLOCK_##W##x##H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>;      \
+    p.cu[BLOCK_##W##x##H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;         \
+    p.cu[BLOCK_##W##x##H].blockfill_s[NONALIGNED] = blockfill_s_neon<W>;     \
+    p.cu[BLOCK_##W##x##H].blockfill_s[ALIGNED] = blockfill_s_neon<W>;        \
+    p.cu[BLOCK_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;                 \
+    p.cu[BLOCK_##W##x##H].copy_ss = blockcopy_ss_neon<W, H>;                 \
+    p.cu[BLOCK_##W##x##H].cpy2Dto1D_shl = cpy2Dto1D_shl_neon<W>;             \
+    p.cu[BLOCK_##W##x##H].cpy1Dto2D_shl[NONALIGNED] = cpy1Dto2D_shl_neon<W>; \
+    p.cu[BLOCK_##W##x##H].cpy1Dto2D_shl[ALIGNED] = cpy1Dto2D_shl_neon<W>;    \
+    p.cu[BLOCK_##W##x##H].psy_cost_pp = psyCost_pp_neon<BLOCK_##W##x##H>;    \
+    p.cu[BLOCK_##W##x##H].transpose = transpose_neon<W>;                     \
+    p.cu[BLOCK_##W##x##H].var = pixel_var_neon<W>;
 #else  // !HIGH_BIT_DEPTH
-#define LUMA_CU(W, H) \
-    p.cu[BLOCK_ ## W ## x ## H].sub_ps        = pixel_sub_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].add_ps[NONALIGNED]    = pixel_add_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].blockfill_s[NONALIGNED] = blockfill_s_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].blockfill_s[ALIGNED]    = blockfill_s_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].copy_pp       = blockcopy_pp_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].copy_ps       = blockcopy_ps_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].copy_ss       = blockcopy_ss_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].copy_sp       = blockcopy_sp_neon<W, H>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy2Dto1D_shl = cpy2Dto1D_shl_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy2Dto1D_shr = cpy2Dto1D_shr_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy1Dto2D_shl[NONALIGNED] = cpy1Dto2D_shl_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy1Dto2D_shl[ALIGNED] = cpy1Dto2D_shl_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].cpy1Dto2D_shr = cpy1Dto2D_shr_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].psy_cost_pp   = psyCost_pp_neon<BLOCK_ ## W ## x ## H>; \
-    p.cu[BLOCK_ ## W ## x ## H].transpose     = transpose_neon<W>; \
-    p.cu[BLOCK_ ## W ## x ## H].var           = pixel_var_neon<W>;
-#endif // HIGH_BIT_DEPTH
+#define LUMA_CU(W, H)                                                        \
+    p.cu[BLOCK_##W##x##H].sub_ps = pixel_sub_ps_neon<W, H>;                  \
+    p.cu[BLOCK_##W##x##H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>;      \
+    p.cu[BLOCK_##W##x##H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;         \
+    p.cu[BLOCK_##W##x##H].blockfill_s[NONALIGNED] = blockfill_s_neon<W>;     \
+    p.cu[BLOCK_##W##x##H].blockfill_s[ALIGNED] = blockfill_s_neon<W>;        \
+    p.cu[BLOCK_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;                 \
+    p.cu[BLOCK_##W##x##H].copy_ps = blockcopy_ps_neon<W, H>;                 \
+    p.cu[BLOCK_##W##x##H].copy_ss = blockcopy_ss_neon<W, H>;                 \
+    p.cu[BLOCK_##W##x##H].copy_sp = blockcopy_sp_neon<W, H>;                 \
+    p.cu[BLOCK_##W##x##H].cpy2Dto1D_shl = cpy2Dto1D_shl_neon<W>;             \
+    p.cu[BLOCK_##W##x##H].cpy2Dto1D_shr = cpy2Dto1D_shr_neon<W>;             \
+    p.cu[BLOCK_##W##x##H].cpy1Dto2D_shl[NONALIGNED] = cpy1Dto2D_shl_neon<W>; \
+    p.cu[BLOCK_##W##x##H].cpy1Dto2D_shl[ALIGNED] = cpy1Dto2D_shl_neon<W>;    \
+    p.cu[BLOCK_##W##x##H].cpy1Dto2D_shr = cpy1Dto2D_shr_neon<W>;             \
+    p.cu[BLOCK_##W##x##H].psy_cost_pp = psyCost_pp_neon<BLOCK_##W##x##H>;    \
+    p.cu[BLOCK_##W##x##H].transpose = transpose_neon<W>;                     \
+    p.cu[BLOCK_##W##x##H].var = pixel_var_neon<W>;
+#endif  // HIGH_BIT_DEPTH
 
     LUMA_PU_S(4, 4);
     LUMA_PU_S(8, 8);
@@ -2263,17 +2041,17 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     LUMA_PU(64, 64);
     LUMA_PU_S(4, 8);
     LUMA_PU_S(8, 4);
-    LUMA_PU(16,  8);
+    LUMA_PU(16, 8);
     LUMA_PU_S(8, 16);
     LUMA_PU(16, 12);
     LUMA_PU(12, 16);
-    LUMA_PU(16,  4);
+    LUMA_PU(16, 4);
     LUMA_PU_S(4, 16);
     LUMA_PU(32, 16);
     LUMA_PU(16, 32);
     LUMA_PU(32, 24);
     LUMA_PU(24, 32);
-    LUMA_PU(32,  8);
+    LUMA_PU(32, 8);
     LUMA_PU_S(8, 32);
     LUMA_PU(64, 32);
     LUMA_PU(32, 64);
@@ -2282,22 +2060,22 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     LUMA_PU(64, 16);
     LUMA_PU(16, 64);
 
-    p.pu[LUMA_4x4].satd   = satd4_neon<4, 4>;
-    p.pu[LUMA_4x8].satd   = satd4_neon<4, 8>;
-    p.pu[LUMA_4x16].satd  = satd4_neon<4, 16>;
-    p.pu[LUMA_8x4].satd   = satd8_neon<8, 4>;
-    p.pu[LUMA_8x8].satd   = satd8_neon<8, 8>;
-    p.pu[LUMA_8x16].satd  = satd8_neon<8, 16>;
-    p.pu[LUMA_8x32].satd  = satd8_neon<8, 32>;
+    p.pu[LUMA_4x4].satd = satd4_neon<4, 4>;
+    p.pu[LUMA_4x8].satd = satd4_neon<4, 8>;
+    p.pu[LUMA_4x16].satd = satd4_neon<4, 16>;
+    p.pu[LUMA_8x4].satd = satd8_neon<8, 4>;
+    p.pu[LUMA_8x8].satd = satd8_neon<8, 8>;
+    p.pu[LUMA_8x16].satd = satd8_neon<8, 16>;
+    p.pu[LUMA_8x32].satd = satd8_neon<8, 32>;
     p.pu[LUMA_12x16].satd = satd4_neon<12, 16>;
-    p.pu[LUMA_16x4].satd  = satd8_neon<16, 4>;
-    p.pu[LUMA_16x8].satd  = satd8_neon<16, 8>;
+    p.pu[LUMA_16x4].satd = satd8_neon<16, 4>;
+    p.pu[LUMA_16x8].satd = satd8_neon<16, 8>;
     p.pu[LUMA_16x12].satd = satd8_neon<16, 12>;
     p.pu[LUMA_16x16].satd = satd8_neon<16, 16>;
     p.pu[LUMA_16x32].satd = satd8_neon<16, 32>;
     p.pu[LUMA_16x64].satd = satd8_neon<16, 64>;
     p.pu[LUMA_24x32].satd = satd8_neon<24, 32>;
-    p.pu[LUMA_32x8].satd  = satd8_neon<32, 8>;
+    p.pu[LUMA_32x8].satd = satd8_neon<32, 8>;
     p.pu[LUMA_32x16].satd = satd8_neon<32, 16>;
     p.pu[LUMA_32x24].satd = satd8_neon<32, 24>;
     p.pu[LUMA_32x32].satd = satd8_neon<32, 32>;
@@ -2308,35 +2086,31 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     p.pu[LUMA_64x48].satd = satd8_neon<64, 48>;
     p.pu[LUMA_64x64].satd = satd8_neon<64, 64>;
 
-
     LUMA_CU(4, 4);
     LUMA_CU(8, 8);
     LUMA_CU(16, 16);
     LUMA_CU(32, 32);
     LUMA_CU(64, 64);
 
+    p.cu[BLOCK_4x4].calcresidual[NONALIGNED] = getResidual_neon<4>;
+    p.cu[BLOCK_4x4].calcresidual[ALIGNED] = getResidual_neon<4>;
+    p.cu[BLOCK_8x8].calcresidual[NONALIGNED] = getResidual_neon<8>;
+    p.cu[BLOCK_8x8].calcresidual[ALIGNED] = getResidual_neon<8>;
+    p.cu[BLOCK_16x16].calcresidual[NONALIGNED] = getResidual_neon<16>;
+    p.cu[BLOCK_16x16].calcresidual[ALIGNED] = getResidual_neon<16>;
+    p.cu[BLOCK_32x32].calcresidual[NONALIGNED] = getResidual_neon<32>;
+    p.cu[BLOCK_32x32].calcresidual[ALIGNED] = getResidual_neon<32>;
 
-    p.cu[BLOCK_4x4].calcresidual[NONALIGNED]    = getResidual_neon<4>;
-    p.cu[BLOCK_4x4].calcresidual[ALIGNED]       = getResidual_neon<4>;
-    p.cu[BLOCK_8x8].calcresidual[NONALIGNED]    = getResidual_neon<8>;
-    p.cu[BLOCK_8x8].calcresidual[ALIGNED]       = getResidual_neon<8>;
-    p.cu[BLOCK_16x16].calcresidual[NONALIGNED]  = getResidual_neon<16>;
-    p.cu[BLOCK_16x16].calcresidual[ALIGNED]     = getResidual_neon<16>;
-    p.cu[BLOCK_32x32].calcresidual[NONALIGNED]  = getResidual_neon<32>;
-    p.cu[BLOCK_32x32].calcresidual[ALIGNED]     = getResidual_neon<32>;
-
-    p.cu[BLOCK_4x4].sa8d   = satd4_neon<4, 4>;
-    p.cu[BLOCK_8x8].sa8d   = sa8d8_neon<8, 8>;
+    p.cu[BLOCK_4x4].sa8d = satd4_neon<4, 4>;
+    p.cu[BLOCK_8x8].sa8d = sa8d8_neon<8, 8>;
     p.cu[BLOCK_16x16].sa8d = sa8d16_neon<16, 16>;
     p.cu[BLOCK_32x32].sa8d = sa8d16_neon<32, 32>;
     p.cu[BLOCK_64x64].sa8d = sa8d16_neon<64, 64>;
 
-
-#define CHROMA_PU_420(W, H) \
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_ ## W ## x ## H].addAvg[NONALIGNED]  = addAvg_neon<W, H>;         \
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_ ## W ## x ## H].addAvg[ALIGNED]  = addAvg_neon<W, H>;         \
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-
+#define CHROMA_PU_420(W, H)                                                                  \
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_##W##x##H].addAvg[NONALIGNED] = addAvg_neon<W, H>; \
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_##W##x##H].addAvg[ALIGNED] = addAvg_neon<W, H>;    \
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;
 
     CHROMA_PU_420(2, 4);
     CHROMA_PU_420(2, 8);
@@ -2363,69 +2137,64 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     CHROMA_PU_420(32, 24);
     CHROMA_PU_420(32, 32);
 
-
-
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_2x2].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_2x4].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_2x8].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x2].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x4].satd   = satd4_neon<4, 4>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x8].satd   = satd4_neon<4, 8>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x16].satd  = satd4_neon<4, 16>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_6x8].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x2].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x4].satd   = satd8_neon<8, 4>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x6].satd   = NULL;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x8].satd   = satd8_neon<8, 8>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x16].satd  = satd8_neon<8, 16>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x32].satd  = satd8_neon<8, 32>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_2x2].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_2x4].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_2x8].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x2].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x4].satd = satd4_neon<4, 4>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x8].satd = satd4_neon<4, 8>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_4x16].satd = satd4_neon<4, 16>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_6x8].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x2].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x4].satd = satd8_neon<8, 4>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x6].satd = NULL;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x8].satd = satd8_neon<8, 8>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x16].satd = satd8_neon<8, 16>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_8x32].satd = satd8_neon<8, 32>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_12x16].satd = satd4_neon<12, 16>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_16x4].satd  = satd8_neon<16, 4>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_16x8].satd  = satd8_neon<16, 8>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_16x4].satd = satd8_neon<16, 4>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_16x8].satd = satd8_neon<16, 8>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_16x12].satd = satd8_neon<16, 12>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_16x16].satd = satd8_neon<16, 16>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_16x32].satd = satd8_neon<16, 32>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_24x32].satd = satd8_neon<24, 32>;
-    p.chroma[X265_CSP_I420].pu[CHROMA_420_32x8].satd  = satd8_neon<32, 8>;
+    p.chroma[X265_CSP_I420].pu[CHROMA_420_32x8].satd = satd8_neon<32, 8>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_32x16].satd = satd8_neon<32, 16>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_32x24].satd = satd8_neon<32, 24>;
     p.chroma[X265_CSP_I420].pu[CHROMA_420_32x32].satd = satd8_neon<32, 32>;
 
 #if HIGH_BIT_DEPTH
-#define CHROMA_CU_420(W, H) \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].copy_ss = blockcopy_ss_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].sub_ps = pixel_sub_ps_neon<W, H>;  \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
-#else // !HIGH_BIT_DEPTH
-#define CHROMA_CU_420(W, H) \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].copy_ps = blockcopy_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].copy_ss = blockcopy_ss_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].copy_sp = blockcopy_sp_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].sub_ps = pixel_sub_ps_neon<W, H>;  \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I420].cu[BLOCK_420_ ## W ## x ## H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
-#endif // HIGH_BIT_DEPTH
+#define CHROMA_CU_420(W, H)                                                                       \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;            \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].copy_ss = blockcopy_ss_neon<W, H>;            \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].sub_ps = pixel_sub_ps_neon<W, H>;             \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
+#else  // !HIGH_BIT_DEPTH
+#define CHROMA_CU_420(W, H)                                                                       \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;            \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].copy_ps = blockcopy_ps_neon<W, H>;            \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].copy_ss = blockcopy_ss_neon<W, H>;            \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].copy_sp = blockcopy_sp_neon<W, H>;            \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].sub_ps = pixel_sub_ps_neon<W, H>;             \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
+    p.chroma[X265_CSP_I420].cu[BLOCK_420_##W##x##H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
+#endif  // HIGH_BIT_DEPTH
 
     CHROMA_CU_420(4, 4)
     CHROMA_CU_420(8, 8)
     CHROMA_CU_420(16, 16)
     CHROMA_CU_420(32, 32)
 
-
-    p.chroma[X265_CSP_I420].cu[BLOCK_8x8].sa8d   = p.chroma[X265_CSP_I420].pu[CHROMA_420_4x4].satd;
+    p.chroma[X265_CSP_I420].cu[BLOCK_8x8].sa8d = p.chroma[X265_CSP_I420].pu[CHROMA_420_4x4].satd;
     p.chroma[X265_CSP_I420].cu[BLOCK_16x16].sa8d = sa8d8_neon<8, 8>;
     p.chroma[X265_CSP_I420].cu[BLOCK_32x32].sa8d = sa8d16_neon<16, 16>;
     p.chroma[X265_CSP_I420].cu[BLOCK_64x64].sa8d = sa8d16_neon<32, 32>;
 
-
-#define CHROMA_PU_422(W, H) \
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_ ## W ## x ## H].addAvg[NONALIGNED]  = addAvg_neon<W, H>;         \
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_ ## W ## x ## H].addAvg[ALIGNED]  = addAvg_neon<W, H>;         \
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-
+#define CHROMA_PU_422(W, H)                                                                  \
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_##W##x##H].addAvg[NONALIGNED] = addAvg_neon<W, H>; \
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_##W##x##H].addAvg[ALIGNED] = addAvg_neon<W, H>;    \
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;
 
     CHROMA_PU_422(2, 4);
     CHROMA_PU_422(2, 8);
@@ -2453,23 +2222,22 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     CHROMA_PU_422(32, 48);
     CHROMA_PU_422(32, 64);
 
-
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_2x4].satd   = NULL;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_2x8].satd   = NULL;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_2x16].satd  = NULL;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x4].satd   = satd4_neon<4, 4>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x8].satd   = satd4_neon<4, 8>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x16].satd  = satd4_neon<4, 16>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x32].satd  = satd4_neon<4, 32>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_6x16].satd  = NULL;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x4].satd   = satd8_neon<8, 4>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x8].satd   = satd8_neon<8, 8>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x12].satd  = satd8_neon<8, 12>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x16].satd  = satd8_neon<8, 16>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x32].satd  = satd8_neon<8, 32>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x64].satd  = satd8_neon<8, 64>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_2x4].satd = NULL;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_2x8].satd = NULL;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_2x16].satd = NULL;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x4].satd = satd4_neon<4, 4>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x8].satd = satd4_neon<4, 8>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x16].satd = satd4_neon<4, 16>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_4x32].satd = satd4_neon<4, 32>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_6x16].satd = NULL;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x4].satd = satd8_neon<8, 4>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x8].satd = satd8_neon<8, 8>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x12].satd = satd8_neon<8, 12>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x16].satd = satd8_neon<8, 16>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x32].satd = satd8_neon<8, 32>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_8x64].satd = satd8_neon<8, 64>;
     p.chroma[X265_CSP_I422].pu[CHROMA_422_12x32].satd = satd4_neon<12, 32>;
-    p.chroma[X265_CSP_I422].pu[CHROMA_422_16x8].satd  = satd8_neon<16, 8>;
+    p.chroma[X265_CSP_I422].pu[CHROMA_422_16x8].satd = satd8_neon<16, 8>;
     p.chroma[X265_CSP_I422].pu[CHROMA_422_16x16].satd = satd8_neon<16, 16>;
     p.chroma[X265_CSP_I422].pu[CHROMA_422_16x24].satd = satd8_neon<16, 24>;
     p.chroma[X265_CSP_I422].pu[CHROMA_422_16x32].satd = satd8_neon<16, 32>;
@@ -2481,37 +2249,35 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     p.chroma[X265_CSP_I422].pu[CHROMA_422_32x64].satd = satd8_neon<32, 64>;
     p.chroma[X265_CSP_I422].pu[CHROMA_422_12x32].satd = satd4_neon<12, 32>;
 
-
 #if HIGH_BIT_DEPTH
-#define CHROMA_CU_422(W, H) \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].copy_ss = blockcopy_ss_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].sub_ps = pixel_sub_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
-#else // !HIGH_BIT_DEPTH
-#define CHROMA_CU_422(W, H) \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].copy_pp = blockcopy_pp_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].copy_ps = blockcopy_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].copy_ss = blockcopy_ss_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].copy_sp = blockcopy_sp_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].sub_ps = pixel_sub_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_ ## W ## x ## H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
-#endif // HIGH_BIT_DEPTH
-
+#define CHROMA_CU_422(W, H)                                                                       \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;            \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].copy_ss = blockcopy_ss_neon<W, H>;            \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].sub_ps = pixel_sub_ps_neon<W, H>;             \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
+#else  // !HIGH_BIT_DEPTH
+#define CHROMA_CU_422(W, H)                                                                       \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].copy_pp = blockcopy_pp_neon<W, H>;            \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].copy_ps = blockcopy_ps_neon<W, H>;            \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].copy_ss = blockcopy_ss_neon<W, H>;            \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].copy_sp = blockcopy_sp_neon<W, H>;            \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].sub_ps = pixel_sub_ps_neon<W, H>;             \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].add_ps[NONALIGNED] = pixel_add_ps_neon<W, H>; \
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_##W##x##H].add_ps[ALIGNED] = pixel_add_ps_neon<W, H>;
+#endif  // HIGH_BIT_DEPTH
 
     CHROMA_CU_422(4, 8)
     CHROMA_CU_422(8, 16)
     CHROMA_CU_422(16, 32)
     CHROMA_CU_422(32, 64)
 
-    p.chroma[X265_CSP_I422].cu[BLOCK_8x8].sa8d       = p.chroma[X265_CSP_I422].pu[CHROMA_422_4x8].satd;
-    p.chroma[X265_CSP_I422].cu[BLOCK_16x16].sa8d     = sa8d8_neon<8, 16>;
-    p.chroma[X265_CSP_I422].cu[BLOCK_32x32].sa8d     = sa8d16_neon<16, 32>;
-    p.chroma[X265_CSP_I422].cu[BLOCK_64x64].sa8d     = sa8d16_neon<32, 64>;
+    p.chroma[X265_CSP_I422].cu[BLOCK_8x8].sa8d = p.chroma[X265_CSP_I422].pu[CHROMA_422_4x8].satd;
+    p.chroma[X265_CSP_I422].cu[BLOCK_16x16].sa8d = sa8d8_neon<8, 16>;
+    p.chroma[X265_CSP_I422].cu[BLOCK_32x32].sa8d = sa8d16_neon<16, 32>;
+    p.chroma[X265_CSP_I422].cu[BLOCK_64x64].sa8d = sa8d16_neon<32, 64>;
 
-    p.chroma[X265_CSP_I422].cu[BLOCK_422_8x16].sa8d  = sa8d8_neon<8, 16>;
+    p.chroma[X265_CSP_I422].cu[BLOCK_422_8x16].sa8d = sa8d8_neon<8, 16>;
     p.chroma[X265_CSP_I422].cu[BLOCK_422_16x32].sa8d = sa8d16_neon<16, 32>;
     p.chroma[X265_CSP_I422].cu[BLOCK_422_32x64].sa8d = sa8d16_neon<32, 64>;
 
@@ -2520,9 +2286,6 @@ void setupPixelPrimitives_neon(EncoderPrimitives &p)
     p.planecopy_cp = planecopy_cp_neon;
 }
 
-
-}
-
+}  // namespace X265_NS
 
 #endif
-

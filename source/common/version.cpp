@@ -30,26 +30,26 @@
 #define STR(x) #x
 
 #if defined(__clang__)
-#define COMPILEDBY  "[clang " XSTR(__clang_major__) "." XSTR(__clang_minor__) "." XSTR(__clang_patchlevel__) "]"
+#define COMPILEDBY "[clang " XSTR(__clang_major__) "." XSTR(__clang_minor__) "." XSTR(__clang_patchlevel__) "]"
 #ifdef __IA64__
-#define ONARCH    "[on 64-bit] "
+#define ONARCH "[on 64-bit] "
 #else
-#define ONARCH    "[on 32-bit] "
+#define ONARCH "[on 32-bit] "
 #endif
 #endif
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__clang__)
-#define COMPILEDBY  "[GCC " XSTR(__GNUC__) "." XSTR(__GNUC_MINOR__) "." XSTR(__GNUC_PATCHLEVEL__) "]"
+#define COMPILEDBY "[GCC " XSTR(__GNUC__) "." XSTR(__GNUC_MINOR__) "." XSTR(__GNUC_PATCHLEVEL__) "]"
 #ifdef __IA64__
-#define ONARCH    "[on 64-bit] "
+#define ONARCH "[on 64-bit] "
 #else
-#define ONARCH    "[on 32-bit] "
+#define ONARCH "[on 32-bit] "
 #endif
 #endif
 
 #ifdef __INTEL_COMPILER
 #define COMPILEDBY "[ICC " XSTR(__INTEL_COMPILER) "]"
-#elif  _MSC_VER
+#elif _MSC_VER
 #define COMPILEDBY "[MSVC " XSTR(_MSC_VER) "]"
 #endif
 
@@ -58,31 +58,31 @@
 #endif
 
 #ifdef _WIN32
-#define ONOS    "[Windows]"
-#elif  __linux
-#define ONOS    "[Linux]"
+#define ONOS "[Windows]"
+#elif __linux
+#define ONOS "[Linux]"
 #elif __OpenBSD__
-#define ONOS    "[OpenBSD]"
-#elif  __CYGWIN__
-#define ONOS    "[Cygwin]"
+#define ONOS "[OpenBSD]"
+#elif __CYGWIN__
+#define ONOS "[Cygwin]"
 #elif __APPLE__
-#define ONOS    "[Mac OS X]"
+#define ONOS "[Mac OS X]"
 #else
-#define ONOS    "[Unk-OS]"
+#define ONOS "[Unk-OS]"
 #endif
 
 #if defined(_LP64) || defined(_WIN64)
-#define BITS    "[64 bit]"
+#define BITS "[64 bit]"
 #else
-#define BITS    "[32 bit]"
+#define BITS "[32 bit]"
 #endif
 
 #if defined(ENABLE_ASSEMBLY) || HAVE_ALTIVEC
-#define ASM     ""
+#define ASM ""
 #else
-#define ASM     "[noasm]"
+#define ASM "[noasm]"
 #endif
- 
+
 #if NO_ATOMICS
 #define ATOMICS "[no-atomics]"
 #else

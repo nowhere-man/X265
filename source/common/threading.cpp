@@ -39,7 +39,7 @@ extern "C" intptr_t PFX(stack_align)(void (*func)(), ...);
 pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int no_atomic_or(int* ptr, int mask)
-{ 
+{
     pthread_mutex_lock(&g_mutex);
     int ret = *ptr;
     *ptr |= mask;
@@ -85,7 +85,7 @@ int no_atomic_add(int* ptr, int val)
 #endif
 
 /* C shim for forced stack alignment */
-static void stackAlignMain(Thread *instance)
+static void stackAlignMain(Thread* instance)
 {
     // defer processing to the virtual function implemented in the derived class
     instance->threadMain();
@@ -93,7 +93,7 @@ static void stackAlignMain(Thread *instance)
 
 #if _WIN32
 
-static DWORD WINAPI ThreadShim(Thread *instance)
+static DWORD WINAPI ThreadShim(Thread* instance)
 {
     STACK_ALIGN(stackAlignMain, instance);
 
@@ -111,14 +111,16 @@ bool Thread::start()
 
 void Thread::stop()
 {
-    if (thread)
+    if (thread) {
         WaitForSingleObject(thread, INFINITE);
+    }
 }
 
 Thread::~Thread()
 {
-    if (thread)
+    if (thread) {
         CloseHandle(thread);
+    }
 }
 
 #else /* POSIX / pthreads */
@@ -135,8 +137,7 @@ static void *ThreadShim(void *opaque)
 
 bool Thread::start()
 {
-    if (pthread_create(&thread, NULL, ThreadShim, this))
-    {
+    if (pthread_create(&thread, NULL, ThreadShim, this)) {
         thread = 0;
         return false;
     }
@@ -146,17 +147,15 @@ bool Thread::start()
 
 void Thread::stop()
 {
-    if (thread)
+    if (thread) {
         pthread_join(thread, NULL);
+    }
 }
 
-Thread::~Thread() {}
+Thread::~Thread() { }
 
-#endif // if _WIN32
+#endif  // if _WIN32
 
-Thread::Thread()
-{
-    thread = 0;
-}
+Thread::Thread() { thread = 0; }
 
-}
+}  // namespace X265_NS

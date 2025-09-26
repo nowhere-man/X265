@@ -34,9 +34,9 @@
 #include "svt.h"
 #include "temporalfilter.h"
 #ifdef ENABLE_HDR10_PLUS
-    #include "dynamicHDR10/hdr10plus.h"
+#include "dynamicHDR10/hdr10plus.h"
 #endif
-struct x265_encoder {};
+struct x265_encoder { };
 namespace X265_NS {
 // private namespace
 extern const char g_sliceTypeToChar[3];
@@ -44,30 +44,28 @@ extern const char g_sliceTypeToChar[3];
 class Entropy;
 
 #ifdef SVT_HEVC
-typedef struct SvtAppContext
-{
-    EB_COMPONENTTYPE*          svtEncoderHandle;
+typedef struct SvtAppContext {
+    EB_COMPONENTTYPE* svtEncoderHandle;
     EB_H265_ENC_CONFIGURATION* svtHevcParams;
 
     // Buffer Pools
-    EB_BUFFERHEADERTYPE*       inputPictureBuffer;
-    uint64_t                   byteCount;
-    uint64_t                   outFrameCount;
+    EB_BUFFERHEADERTYPE* inputPictureBuffer;
+    uint64_t byteCount;
+    uint64_t outFrameCount;
 
-}SvtAppContext;
+} SvtAppContext;
 #endif
 
-struct EncStats
-{
-    double        m_psnrSumY;
-    double        m_psnrSumU;
-    double        m_psnrSumV;
-    double        m_globalSsim;
-    double        m_totalQp;
-    double        m_maxFALL;
-    uint64_t      m_accBits;
-    uint32_t      m_numPics;
-    uint16_t      m_maxCLL;
+struct EncStats {
+    double m_psnrSumY;
+    double m_psnrSumU;
+    double m_psnrSumV;
+    double m_globalSsim;
+    double m_totalQp;
+    double m_maxFALL;
+    uint64_t m_accBits;
+    uint32_t m_numPics;
+    uint16_t m_maxCLL;
 
     EncStats()
     {
@@ -93,15 +91,13 @@ struct EncStats
 #define doubling 7
 #define tripling 8
 
-struct RefIdxLastGOP
-{
+struct RefIdxLastGOP {
     int numRefIdxDefault[2];
     int numRefIdxl0[MAX_NUM_REF_IDX];
     int numRefIdxl1[MAX_NUM_REF_IDX];
 };
 
-struct RPSListNode
-{
+struct RPSListNode {
     int idx;
     int count;
     RPS* rps;
@@ -109,8 +105,7 @@ struct RPSListNode
     RPSListNode* prior;
 };
 
-struct cuLocation
-{
+struct cuLocation {
     bool skipWidth;
     bool skipHeight;
     uint32_t heightInCU;
@@ -127,12 +122,11 @@ struct cuLocation
         widthInCU = (param->sourceWidth + param->maxCUSize - 1) >> param->maxLog2CUSize;
         evenRowIndex = 0;
         oddRowIndex = param->num4x4Partitions * widthInCU;
-        switchCondition = 0; // To switch between odd and even rows
+        switchCondition = 0;  // To switch between odd and even rows
     }
 };
 
-struct puOrientation
-{
+struct puOrientation {
     bool isVert;
     bool isRect;
     bool isAmp;
@@ -145,15 +139,14 @@ struct puOrientation
     }
 };
 
-struct AdaptiveFrameDuplication
-{
+struct AdaptiveFrameDuplication {
     x265_picture* dupPic;
     char* dupPlane;
 
-    //Flag to denote the availability of the picture buffer.
+    // Flag to denote the availability of the picture buffer.
     bool bOccupied;
 
-    //Flag to check whether the picture has duplicated.
+    // Flag to check whether the picture has duplicated.
     bool bDup;
 };
 
@@ -170,118 +163,115 @@ class FrameData;
 #define MAX_EDGE_FACTOR 1.5
 #define SCENECUT_CHROMA_FACTOR 10.0
 
-class Encoder : public x265_encoder
-{
+class Encoder : public x265_encoder {
 public:
+    uint32_t m_residualSumEmergency[MAX_NUM_TR_CATEGORIES][MAX_NUM_TR_COEFFS];
+    uint32_t m_countEmergency[MAX_NUM_TR_CATEGORIES];
+    uint16_t (*m_offsetEmergency)[MAX_NUM_TR_CATEGORIES][MAX_NUM_TR_COEFFS];
 
-    uint32_t           m_residualSumEmergency[MAX_NUM_TR_CATEGORIES][MAX_NUM_TR_COEFFS];
-    uint32_t           m_countEmergency[MAX_NUM_TR_CATEGORIES];
-    uint16_t           (*m_offsetEmergency)[MAX_NUM_TR_CATEGORIES][MAX_NUM_TR_COEFFS];
+    int64_t m_firstPts;
+    int64_t m_bframeDelayTime;
+    int64_t m_prevReorderedPts[2];
+    int64_t m_encodeStartTime;
 
-    int64_t            m_firstPts;
-    int64_t            m_bframeDelayTime;
-    int64_t            m_prevReorderedPts[2];
-    int64_t            m_encodeStartTime;
-
-    int                m_pocLast;         // time index (POC)
-    int                m_encodedFrameNum;
-    int                m_outputCount;
-    int                m_bframeDelay;
-    int                m_numPools;
-    int                m_curEncoder;
+    int m_pocLast;  // time index (POC)
+    int m_encodedFrameNum;
+    int m_outputCount;
+    int m_bframeDelay;
+    int m_numPools;
+    int m_curEncoder;
 
     // weighted prediction
-    int                m_numLumaWPFrames;    // number of P frames with weighted luma reference
-    int                m_numChromaWPFrames;  // number of P frames with weighted chroma reference
-    int                m_numLumaWPBiFrames;  // number of B frames with weighted luma reference
-    int                m_numChromaWPBiFrames; // number of B frames with weighted chroma reference
-    int                m_conformanceMode;
-    int                m_lastBPSEI;
-    uint32_t           m_numDelayedPic;
+    int m_numLumaWPFrames;      // number of P frames with weighted luma reference
+    int m_numChromaWPFrames;    // number of P frames with weighted chroma reference
+    int m_numLumaWPBiFrames;    // number of B frames with weighted luma reference
+    int m_numChromaWPBiFrames;  // number of B frames with weighted chroma reference
+    int m_conformanceMode;
+    int m_lastBPSEI;
+    uint32_t m_numDelayedPic;
 
-    ThreadPool*        m_threadPool;
-    FrameEncoder*      m_frameEncoder[X265_MAX_FRAME_THREADS];
-    DPB*               m_dpb;
-    Frame*             m_exportedPic[MAX_LAYERS];
-    FILE*              m_analysisFileIn;
-    FILE*              m_analysisFileOut;
-    FILE*              m_naluFile;
-    x265_param*        m_paramBase[3];
-    x265_param*        m_param;
-    x265_param*        m_latestParam;     // Holds latest param during a reconfigure
-    x265_param*        m_zoneParam;
-    RateControl*       m_rateControl;
-    Lookahead*         m_lookahead;
-    AdaptiveFrameDuplication* m_dupBuffer[DUP_BUFFER];      // picture buffer of size 2
+    ThreadPool* m_threadPool;
+    FrameEncoder* m_frameEncoder[X265_MAX_FRAME_THREADS];
+    DPB* m_dpb;
+    Frame* m_exportedPic[MAX_LAYERS];
+    FILE* m_analysisFileIn;
+    FILE* m_analysisFileOut;
+    FILE* m_naluFile;
+    x265_param* m_paramBase[3];
+    x265_param* m_param;
+    x265_param* m_latestParam;  // Holds latest param during a reconfigure
+    x265_param* m_zoneParam;
+    RateControl* m_rateControl;
+    Lookahead* m_lookahead;
+    AdaptiveFrameDuplication* m_dupBuffer[DUP_BUFFER];  // picture buffer of size 2
     /*Frame duplication: Two pictures used to compute PSNR */
-    pixel*             m_dupPicOne[3];
-    pixel*             m_dupPicTwo[3];
+    pixel* m_dupPicOne[3];
+    pixel* m_dupPicTwo[3];
 
-    bool               m_externalFlush;
+    bool m_externalFlush;
     /* Collect statistics globally */
-    EncStats           m_analyzeAll[MAX_LAYERS];
-    EncStats           m_analyzeI[MAX_LAYERS];
-    EncStats           m_analyzeP[MAX_LAYERS];
-    EncStats           m_analyzeB[MAX_LAYERS];
-    VPS                m_vps;
-    SPS                m_sps;
-    PPS                m_pps;
-    NALList            m_nalList;
-    ScalingList        m_scalingList;      // quantization matrix information
-    Window             m_conformanceWindow;
+    EncStats m_analyzeAll[MAX_LAYERS];
+    EncStats m_analyzeI[MAX_LAYERS];
+    EncStats m_analyzeP[MAX_LAYERS];
+    EncStats m_analyzeB[MAX_LAYERS];
+    VPS m_vps;
+    SPS m_sps;
+    PPS m_pps;
+    NALList m_nalList;
+    ScalingList m_scalingList;  // quantization matrix information
+    Window m_conformanceWindow;
 
-    bool               m_bZeroLatency;     // x265_encoder_encode() returns NALs for the input picture, zero lag
-    bool               m_aborted;          // fatal error detected
-    bool               m_reconfigure;      // Encoder reconfigure in progress
-    bool               m_reconfigureRc;
-    bool               m_reconfigureZone;
+    bool m_bZeroLatency;  // x265_encoder_encode() returns NALs for the input picture, zero lag
+    bool m_aborted;       // fatal error detected
+    bool m_reconfigure;   // Encoder reconfigure in progress
+    bool m_reconfigureRc;
+    bool m_reconfigureZone;
 
-    int                m_saveCtuDistortionLevel;
+    int m_saveCtuDistortionLevel;
 
-    /* Begin intra refresh when one not in progress or else begin one as soon as the current 
+    /* Begin intra refresh when one not in progress or else begin one as soon as the current
      * one is done. Requires bIntraRefresh to be set.*/
-    int                m_bQueuedIntraRefresh;
+    int m_bQueuedIntraRefresh;
 
     /* For optimising slice QP */
-    Lock               m_sliceQpLock;
-    int                m_iFrameNum;   
-    int                m_iPPSQpMinus26;
-    int64_t            m_iBitsCostSum[QP_MAX_MAX + 1];
-    Lock               m_sliceRefIdxLock;
-    RefIdxLastGOP      m_refIdxLastGOP;
+    Lock m_sliceQpLock;
+    int m_iFrameNum;
+    int m_iPPSQpMinus26;
+    int64_t m_iBitsCostSum[QP_MAX_MAX + 1];
+    Lock m_sliceRefIdxLock;
+    RefIdxLastGOP m_refIdxLastGOP;
 
-    Lock               m_rpsInSpsLock;
-    int                m_rpsInSpsCount;
+    Lock m_rpsInSpsLock;
+    int m_rpsInSpsCount;
     /* For HDR*/
-    double             m_cB;
-    double             m_cR;
+    double m_cB;
+    double m_cR;
 
-    int                m_bToneMap; // Enables tone-mapping
-    int                m_enableNal;
+    int m_bToneMap;  // Enables tone-mapping
+    int m_enableNal;
 
 #ifdef ENABLE_HDR10_PLUS
-    const hdr10plus_api     *m_hdr10plus_api;
-    uint8_t                 **m_cim;
-    int                     m_numCimInfo;
+    const hdr10plus_api* m_hdr10plus_api;
+    uint8_t** m_cim;
+    int m_numCimInfo;
 #endif
 
 #ifdef SVT_HEVC
-    SvtAppContext*          m_svtAppData;
+    SvtAppContext* m_svtAppData;
 #endif
 
-    x265_sei_payload        m_prevTonemapPayload;
+    x265_sei_payload m_prevTonemapPayload;
 
-    int                     m_zoneIndex;
+    int m_zoneIndex;
 
     /* Collect frame level feature data */
-    uint64_t*               m_rdCost;
-    uint64_t*               m_variance;
-    uint32_t*               m_trainingCount;
-    int32_t                 m_startPoint;
-    Lock                    m_dynamicRefineLock;
+    uint64_t* m_rdCost;
+    uint64_t* m_variance;
+    uint32_t* m_trainingCount;
+    int32_t m_startPoint;
+    Lock m_dynamicRefineLock;
 
-    bool                    m_saveCTUSize;
-
+    bool m_saveCTUSize;
 
     ThreadSafeInteger* zoneReadCount;
     ThreadSafeInteger* zoneWriteCount;
@@ -294,8 +284,9 @@ public:
     ~Encoder()
     {
 #ifdef ENABLE_HDR10_PLUS
-        if (m_prevTonemapPayload.payload != NULL)
+        if (m_prevTonemapPayload.payload != NULL) {
             X265_FREE(m_prevTonemapPayload.payload);
+        }
 #endif
     };
 
@@ -303,7 +294,7 @@ public:
     void stopJobs();
     void destroy();
 
-    int encode(const x265_picture* pic, x265_picture *pic_out);
+    int encode(const x265_picture* pic, x265_picture* pic_out);
 
     int reconfigureParam(x265_param* encParam, x265_param* param);
 
@@ -311,13 +302,13 @@ public:
 
     void copyCtuInfo(x265_ctu_info_t** frameCtuInfo, int poc);
 
-    int copySlicetypePocAndSceneCut(int *slicetype, int *poc, int *sceneCut, int sLayer);
+    int copySlicetypePocAndSceneCut(int* slicetype, int* poc, int* sceneCut, int sLayer);
 
     int getRefFrameList(PicYuv** l0, PicYuv** l1, int sliceType, int poc, int* pocL0, int* pocL1);
 
-    int setAnalysisDataAfterZScan(x265_analysis_data *analysis_data, Frame* curFrame);
+    int setAnalysisDataAfterZScan(x265_analysis_data* analysis_data, Frame* curFrame);
 
-    int setAnalysisData(x265_analysis_data *analysis_data, int poc, uint32_t cuBytes);
+    int setAnalysisData(x265_analysis_data* analysis_data, int poc, uint32_t cuBytes);
 
     void getStreamHeaders(NALList& list, Entropy& sbacCoder, Bitstream& bs);
 
@@ -329,11 +320,11 @@ public:
 
     void printReconfigureParams();
 
-    char* statsString(EncStats&, char* , size_t bufferSize);
+    char* statsString(EncStats&, char*, size_t bufferSize);
 
-    void configure(x265_param *param);
+    void configure(x265_param* param);
 
-    void configureZone(x265_param *p, x265_param *zone);
+    void configureZone(x265_param* p, x265_param* zone);
 
     void updateVbvPlan(RateControl* rc);
 
@@ -349,13 +340,13 @@ public:
 
     int getPuShape(puOrientation* puOrient, int partSize, int numCTU);
 
-    void writeAnalysisFile(x265_analysis_data* analysis, FrameData &curEncData);
+    void writeAnalysisFile(x265_analysis_data* analysis, FrameData& curEncData);
 
-    void writeAnalysisFileRefine(x265_analysis_data* analysis, FrameData &curEncData);
+    void writeAnalysisFileRefine(x265_analysis_data* analysis, FrameData& curEncData);
 
-    void copyDistortionData(x265_analysis_data* analysis, FrameData &curEncData);
+    void copyDistortionData(x265_analysis_data* analysis, FrameData& curEncData);
 
-    void finishFrameStats(Frame* pic, FrameEncoder *curEncoder, x265_frame_stats* frameStats, int inPoc, int layer);
+    void finishFrameStats(Frame* pic, FrameEncoder* curEncoder, x265_frame_stats* frameStats, int inPoc, int layer);
 
     int validateAnalysisData(x265_analysis_validate* param, int readWriteFlag);
 
@@ -363,18 +354,18 @@ public:
 
     void calcRefreshInterval(Frame* frameEnc);
 
-    uint64_t computeSSD(pixel *fenc, pixel *rec, intptr_t stride, uint32_t width, uint32_t height, x265_param *param);
+    uint64_t computeSSD(pixel* fenc, pixel* rec, intptr_t stride, uint32_t width, uint32_t height, x265_param* param);
 
-    double ComputePSNR(x265_picture *firstPic, x265_picture *secPic, x265_param *param);
+    double ComputePSNR(x265_picture* firstPic, x265_picture* secPic, x265_param* param);
 
-    void copyPicture(x265_picture *dest, const x265_picture *src);
+    void copyPicture(x265_picture* dest, const x265_picture* src);
 
     void initRefIdx();
-    void analyseRefIdx(int *numRefIdx);
+    void analyseRefIdx(int* numRefIdx);
     void updateRefIdx();
     bool computeSPSRPSIndex();
 
-    void copyUserSEIMessages(Frame *frame, const x265_picture* pic_in);
+    void copyUserSEIMessages(Frame* frame, const x265_picture* pic_in);
 
     void configureDolbyVisionParams(x265_param* p);
 
@@ -384,11 +375,10 @@ public:
     bool generateMcstfRef(Frame* frameEnc, FrameEncoder* currEncoder);
 
 protected:
-
-    void initVPS(VPS *vps);
-    void initSPS(SPS *sps);
-    void initPPS(PPS *pps);
+    void initVPS(VPS* vps);
+    void initSPS(SPS* sps);
+    void initPPS(PPS* pps);
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_ENCODER_H
+#endif  // ifndef X265_ENCODER_H

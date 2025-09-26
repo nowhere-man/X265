@@ -31,16 +31,13 @@
 #include <iostream>
 
 namespace X265_NS {
-class RAWOutput : public OutputFile
-{
+class RAWOutput : public OutputFile {
 protected:
-
     FILE* ofs;
 
     bool b_fail;
 
 public:
-
     RAWOutput(const char* fname, InputFileInfo&);
 
     bool isFail() const { return b_fail; }
@@ -59,6 +56,6 @@ public:
 
     void closeFile(int64_t largest_pts, int64_t second_largest_pts);
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_HEVC_RAW_H
+#endif  // ifndef X265_HEVC_RAW_H

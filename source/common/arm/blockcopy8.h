@@ -120,4 +120,4 @@ int x265_count_nonzero_4_neon(const int16_t* quantCoeff);
 int x265_count_nonzero_8_neon(const int16_t* quantCoeff);
 int x265_count_nonzero_16_neon(const int16_t* quantCoeff);
 int x265_count_nonzero_32_neon(const int16_t* quantCoeff);
-#endif // ifndef X265_I386_PIXEL_ARM_H
+#endif  // ifndef X265_I386_PIXEL_ARM_H

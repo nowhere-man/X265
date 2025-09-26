@@ -26,21 +26,16 @@
 
 #include <arm_neon.h>
 
-namespace
-{
+namespace {
 #if !HIGH_BIT_DEPTH
-template<int size>
-uint64_t pixel_var_neon_dotprod(const uint8_t *pix, intptr_t i_stride)
+template <int size> uint64_t pixel_var_neon_dotprod(const uint8_t *pix, intptr_t i_stride)
 {
-    if (size >= 16)
-    {
-        uint32x4_t sum[2] = { vdupq_n_u32(0), vdupq_n_u32(0) };
-        uint32x4_t sqr[2] = { vdupq_n_u32(0), vdupq_n_u32(0) };
+    if (size >= 16) {
+        uint32x4_t sum[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
+        uint32x4_t sqr[2] = {vdupq_n_u32(0), vdupq_n_u32(0)};
 
-        for (int h = 0; h < size; h += 2)
-        {
-            for (int w = 0; w + 16 <= size; w += 16)
-            {
+        for (int h = 0; h < size; h += 2) {
+            for (int w = 0; w + 16 <= size; w += 16) {
                 uint8x16_t s[2];
                 load_u8x16xn<2>(pix + w, i_stride, s);
 
@@ -59,13 +54,11 @@ uint64_t pixel_var_neon_dotprod(const uint8_t *pix, intptr_t i_stride)
 
         return vaddvq_u32(sum[0]) + (vaddlvq_u32(sqr[0]) << 32);
     }
-    if (size == 8)
-    {
+    if (size == 8) {
         uint16x8_t sum = vdupq_n_u16(0);
         uint32x2_t sqr = vdup_n_u32(0);
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint8x8_t s = vld1_u8(pix);
 
             sum = vaddw_u8(sum, s);
@@ -80,8 +73,7 @@ uint64_t pixel_var_neon_dotprod(const uint8_t *pix, intptr_t i_stride)
         uint16x8_t sum = vdupq_n_u16(0);
         uint32x2_t sqr = vdup_n_u32(0);
 
-        for (int h = 0; h < size; h += 2)
-        {
+        for (int h = 0; h < size; h += 2) {
             uint8x8_t s = load_u8x4x2(pix, i_stride);
 
             sum = vaddw_u8(sum, s);
@@ -93,23 +85,20 @@ uint64_t pixel_var_neon_dotprod(const uint8_t *pix, intptr_t i_stride)
         return vaddvq_u16(sum) + (vaddlv_u32(sqr) << 32);
     }
 }
-#endif // !HIGH_BIT_DEPTH
-}
+#endif  // !HIGH_BIT_DEPTH
+}  // namespace
 
-namespace X265_NS
-{
+namespace X265_NS {
 #if HIGH_BIT_DEPTH
-void setupPixelPrimitives_neon_dotprod(EncoderPrimitives &)
-{
-}
-#else // !HIGH_BIT_DEPTH
+void setupPixelPrimitives_neon_dotprod(EncoderPrimitives &) { }
+#else   // !HIGH_BIT_DEPTH
 void setupPixelPrimitives_neon_dotprod(EncoderPrimitives &p)
 {
-    p.cu[BLOCK_4x4].var   = pixel_var_neon_dotprod<4>;
-    p.cu[BLOCK_8x8].var   = pixel_var_neon_dotprod<8>;
+    p.cu[BLOCK_4x4].var = pixel_var_neon_dotprod<4>;
+    p.cu[BLOCK_8x8].var = pixel_var_neon_dotprod<8>;
     p.cu[BLOCK_16x16].var = pixel_var_neon_dotprod<16>;
     p.cu[BLOCK_32x32].var = pixel_var_neon_dotprod<32>;
     p.cu[BLOCK_64x64].var = pixel_var_neon_dotprod<64>;
 }
-#endif // HIGH_BIT_DEPTH
-}
+#endif  // HIGH_BIT_DEPTH
+}  // namespace X265_NS

@@ -26,8 +26,7 @@
 
 /* declare enum list of users CPU events */
 #define CPU_EVENT(x) x,
-enum PPACpuEventEnum
-{
+enum PPACpuEventEnum {
 #include "../cpuEvents.h"
     PPACpuGroupNums
 };
@@ -37,7 +36,7 @@ enum PPACpuEventEnum
 
 void initializePPA();
 
-#define PPA_INIT()               initializePPA()
-#define PPAScopeEvent(e)         ppa::ProfileScope ppaScope_(e)
+#define PPA_INIT() initializePPA()
+#define PPAScopeEvent(e) ppa::ProfileScope ppaScope_(e)
 
 #endif /* PPA_H */

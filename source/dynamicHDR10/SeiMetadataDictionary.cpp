@@ -20,7 +20,7 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at license @ x265.com.
-**/
+ **/
 
 #include "SeiMetadataDictionary.h"
 
@@ -35,28 +35,16 @@ const std::string BezierCurveNames::NumberOfAnchors = std::string("NumberOfAncho
 const std::string BezierCurveNames::KneePointX = std::string("KneePointX");
 const std::string BezierCurveNames::KneePointY = std::string("KneePointY");
 const std::string BezierCurveNames::AnchorsTag = std::string("Anchors");
-const std::string BezierCurveNames::Anchors[] = {std::string("Anchor0"),
-                                                 std::string("Anchor1"),
-                                                 std::string("Anchor2"),
-                                                 std::string("Anchor3"),
-                                                 std::string("Anchor4"),
-                                                 std::string("Anchor5"),
-                                                 std::string("Anchor6"),
-                                                 std::string("Anchor7"),
-                                                 std::string("Anchor8"),
-                                                 std::string("Anchor9"),
-                                                 std::string("Anchor10"),
-                                                 std::string("Anchor11"),
-                                                 std::string("Anchor12"),
-                                                 std::string("Anchor13")};
-
+const std::string BezierCurveNames::Anchors[] = {std::string("Anchor0"),  std::string("Anchor1"), std::string("Anchor2"),  std::string("Anchor3"),
+                                                 std::string("Anchor4"),  std::string("Anchor5"), std::string("Anchor6"),  std::string("Anchor7"),
+                                                 std::string("Anchor8"),  std::string("Anchor9"), std::string("Anchor10"), std::string("Anchor11"),
+                                                 std::string("Anchor12"), std::string("Anchor13")};
 
 const std::string EllipseSelectionNames::WindowUpperLeftCornerX = std::string("WindowUpperLeftCornerX");
 const std::string EllipseSelectionNames::WindowUpperLeftCornerY = std::string("WindowUpperLeftCornerY");
 const std::string EllipseSelectionNames::WindowLowerRightCornerX = std::string("WindowLowerRightCornerX");
 const std::string EllipseSelectionNames::WindowLowerRightCornerY = std::string("WindowLowerRightCornerY");
 const std::string EllipseSelectionNames::WindowData = std::string("WindowData");
-
 
 const std::string EllipseNames::TagName = std::string("EllipseData");
 const std::string EllipseNames::RotationAngle = std::string("RotationAngle");
@@ -67,44 +55,23 @@ const std::string EllipseNames::SemiMajorAxisExternalEllipse = std::string("Semi
 const std::string EllipseNames::SemiMinorAxisExternalEllipse = std::string("SemiminorAxisExternalEllipse");
 const std::string EllipseNames::SemiMajorAxisInternalEllipse = std::string("SemimajorAxisInternalEllipse");
 
-
 const std::string PercentileNames::TagName = std::string("PercentileLuminance");
 const std::string PercentileNames::NumberOfPercentiles = std::string("NumberOfPercentiles");
 const std::string PercentileNames::DistributionIndex = std::string("DistributionIndex");
 const std::string PercentileNames::DistributionValues = std::string("DistributionValues");
-const std::string PercentileNames::PercentilePercentageValue[] = {std::string("PercentilePercentage0"),
-                                                                  std::string("PercentilePercentage1"),
-                                                                  std::string("PercentilePercentage2"),
-                                                                  std::string("PercentilePercentage3"),
-                                                                  std::string("PercentilePercentage4"),
-                                                                  std::string("PercentilePercentage5"),
-                                                                  std::string("PercentilePercentage6"),
-                                                                  std::string("PercentilePercentage7"),
-                                                                  std::string("PercentilePercentage8"),
-                                                                  std::string("PercentilePercentage9"),
-                                                                  std::string("PercentilePercentage10"),
-                                                                  std::string("PercentilePercentage11"),
-                                                                  std::string("PercentilePercentage12"),
-                                                                  std::string("PercentilePercentage13"),
-                                                                  std::string("PercentilePercentage14")};
+const std::string PercentileNames::PercentilePercentageValue[] = {
+    std::string("PercentilePercentage0"),  std::string("PercentilePercentage1"),  std::string("PercentilePercentage2"),
+    std::string("PercentilePercentage3"),  std::string("PercentilePercentage4"),  std::string("PercentilePercentage5"),
+    std::string("PercentilePercentage6"),  std::string("PercentilePercentage7"),  std::string("PercentilePercentage8"),
+    std::string("PercentilePercentage9"),  std::string("PercentilePercentage10"), std::string("PercentilePercentage11"),
+    std::string("PercentilePercentage12"), std::string("PercentilePercentage13"), std::string("PercentilePercentage14")};
 
-const std::string PercentileNames::PercentileLuminanceValue[] = {std::string("PercentileLuminance0"),
-                                                                  std::string("PercentileLuminance1"),
-                                                                  std::string("PercentileLuminance2"),
-                                                                  std::string("PercentileLuminance3"),
-                                                                  std::string("PercentileLuminance4"),
-                                                                  std::string("PercentileLuminance5"),
-                                                                  std::string("PercentileLuminance6"),
-                                                                  std::string("PercentileLuminance7"),
-                                                                  std::string("PercentileLuminance8"),
-                                                                  std::string("PercentileLuminance9"),
-                                                                  std::string("PercentileLuminance10"),
-                                                                  std::string("PercentileLuminance11"),
-                                                                  std::string("PercentileLuminance12"),
-                                                                  std::string("PercentileLuminance13"),
-                                                                  std::string("PercentileLuminance14")};
-
-
+const std::string PercentileNames::PercentileLuminanceValue[] = {
+    std::string("PercentileLuminance0"),  std::string("PercentileLuminance1"),  std::string("PercentileLuminance2"),
+    std::string("PercentileLuminance3"),  std::string("PercentileLuminance4"),  std::string("PercentileLuminance5"),
+    std::string("PercentileLuminance6"),  std::string("PercentileLuminance7"),  std::string("PercentileLuminance8"),
+    std::string("PercentileLuminance9"),  std::string("PercentileLuminance10"), std::string("PercentileLuminance11"),
+    std::string("PercentileLuminance12"), std::string("PercentileLuminance13"), std::string("PercentileLuminance14")};
 
 const std::string LuminanceNames::TagName = std::string("LuminanceParameters");
 const std::string LuminanceNames::LlcTagName = std::string("LuminanceDistributions");
@@ -113,6 +80,3 @@ const std::string LuminanceNames::MaxSCL = std::string("MaxScl");
 const std::string LuminanceNames::MaxSCL0 = std::string("MaxScl0");
 const std::string LuminanceNames::MaxSCL1 = std::string("MaxScl1");
 const std::string LuminanceNames::MaxSCL2 = std::string("MaxScl2");
-
-
-

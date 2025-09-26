@@ -34,12 +34,10 @@
 namespace X265_NS {
 // private x265 namespace
 
-class MotionEstimate : public BitCost
-{
+class MotionEstimate : public BitCost {
 protected:
-
     intptr_t blockOffset;
-    
+
     int ctuAddr;
     int absPartIdx;  // part index of PU, including CU offset within CTU
 
@@ -58,10 +56,9 @@ protected:
     pixelcmp_t satd;
     pixelcmp_t chromaSatd;
 
-    MotionEstimate& operator =(const MotionEstimate&);
+    MotionEstimate& operator=(const MotionEstimate&);
 
 public:
-
     static const int COST_MAX = 1 << 28;
 
     uint32_t* integral[INTEGRAL_PLANE_NUM];
@@ -77,14 +74,16 @@ public:
     void init(int csp);
 
     /* Methods called at slice setup */
-    void setSourcePU(pixel *fencY, intptr_t stride, intptr_t offset, int pwidth, int pheight, const int searchMethod, const int subpelRefine);
-    void setSourcePU(pixel *fencY, intptr_t stride, intptr_t offset, int pwidth, int pheight, const int searchMethod, const int searchL0, const int searchL1, const int subpelRefine);
-    void setSourcePU(const Yuv& srcFencYuv, int ctuAddr, int cuPartIdx, int puPartIdx, int pwidth, int pheight, const int searchMethod, const int subpelRefine, bool bChroma);
+    void setSourcePU(pixel* fencY, intptr_t stride, intptr_t offset, int pwidth, int pheight, const int searchMethod, const int subpelRefine);
+    void setSourcePU(pixel* fencY, intptr_t stride, intptr_t offset, int pwidth, int pheight, const int searchMethod, const int searchL0,
+                     const int searchL1, const int subpelRefine);
+    void setSourcePU(const Yuv& srcFencYuv, int ctuAddr, int cuPartIdx, int puPartIdx, int pwidth, int pheight, const int searchMethod,
+                     const int subpelRefine, bool bChroma);
 
     /* buf*() and motionEstimate() methods all use cached fenc pixels and thus
      * require setSourcePU() to be called prior. */
 
-    inline int bufSAD(const pixel* fref, intptr_t stride)  { return sad(fencPUYuv.m_buf[0], FENC_STRIDE, fref, stride); }
+    inline int bufSAD(const pixel* fref, intptr_t stride) { return sad(fencPUYuv.m_buf[0], FENC_STRIDE, fref, stride); }
 
     inline int bufSATD(const pixel* fref, intptr_t stride) { return satd(fencPUYuv.m_buf[0], FENC_STRIDE, fref, stride); }
 
@@ -95,23 +94,15 @@ public:
     }
 
     void refineMV(ReferencePlanes* ref, const MV& mvmin, const MV& mvmax, const MV& qmvp, MV& outQMv);
-    int motionEstimate(ReferencePlanes* ref, const MV & mvmin, const MV & mvmax, const MV & qmvp, int numCandidates, const MV * mvc, int merange, MV & outQMv, uint32_t maxSlices, bool m_vertRestriction, pixel *srcReferencePlane = 0);
+    int motionEstimate(ReferencePlanes* ref, const MV& mvmin, const MV& mvmax, const MV& qmvp, int numCandidates, const MV* mvc, int merange,
+                       MV& outQMv, uint32_t maxSlices, bool m_vertRestriction, pixel* srcReferencePlane = 0);
 
-    int subpelCompare(ReferencePlanes* ref, const MV &qmv, pixelcmp_t);
+    int subpelCompare(ReferencePlanes* ref, const MV& qmv, pixelcmp_t);
 
 protected:
-
-    inline void StarPatternSearch(ReferencePlanes *ref,
-                                  const MV &       mvmin,
-                                  const MV &       mvmax,
-                                  MV &             bmv,
-                                  int &            bcost,
-                                  int &            bPointNr,
-                                  int &            bDistance,
-                                  int              earlyExitIters,
-                                  int              merange,
-                                  int              hme);
+    inline void StarPatternSearch(ReferencePlanes* ref, const MV& mvmin, const MV& mvmax, MV& bmv, int& bcost, int& bPointNr, int& bDistance,
+                                  int earlyExitIters, int merange, int hme);
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_MOTIONESTIMATE_H
+#endif  // ifndef X265_MOTIONESTIMATE_H

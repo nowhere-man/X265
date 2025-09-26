@@ -27,21 +27,16 @@
 
 #include <arm_neon.h>
 
-namespace
-{
+namespace {
 #if HIGH_BIT_DEPTH
-template<int size>
-uint64_t pixel_var_sve(const uint16_t *pix, intptr_t i_stride)
+template <int size> uint64_t pixel_var_sve(const uint16_t *pix, intptr_t i_stride)
 {
-    if (size > 16)
-    {
-        uint64x2_t sum[2] = { vdupq_n_u64(0), vdupq_n_u64(0) };
-        uint64x2_t sqr[2] = { vdupq_n_u64(0), vdupq_n_u64(0) };
+    if (size > 16) {
+        uint64x2_t sum[2] = {vdupq_n_u64(0), vdupq_n_u64(0)};
+        uint64x2_t sqr[2] = {vdupq_n_u64(0), vdupq_n_u64(0)};
 
-        for (int h = 0; h < size; ++h)
-        {
-            for (int w = 0; w + 16 <= size; w += 16)
-            {
+        for (int h = 0; h < size; ++h) {
+            for (int w = 0; w + 16 <= size; w += 16) {
                 uint16x8_t s[2];
                 load_u16x8xn<2>(pix + w, 8, s);
 
@@ -60,13 +55,11 @@ uint64_t pixel_var_sve(const uint16_t *pix, intptr_t i_stride)
 
         return vaddvq_u64(sum[0]) + (vaddvq_u64(sqr[0]) << 32);
     }
-    if (size == 16)
-    {
-        uint16x8_t sum[2] = { vdupq_n_u16(0), vdupq_n_u16(0) };
-        uint64x2_t sqr[2] = { vdupq_n_u64(0), vdupq_n_u64(0) };
+    if (size == 16) {
+        uint16x8_t sum[2] = {vdupq_n_u16(0), vdupq_n_u16(0)};
+        uint64x2_t sqr[2] = {vdupq_n_u64(0), vdupq_n_u64(0)};
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint16x8_t s[2];
             load_u16x8xn<2>(pix, 8, s);
 
@@ -85,13 +78,11 @@ uint64_t pixel_var_sve(const uint16_t *pix, intptr_t i_stride)
 
         return vaddvq_u32(sum_u32) + (vaddvq_u64(sqr[0]) << 32);
     }
-    if (size == 8)
-    {
+    if (size == 8) {
         uint16x8_t sum = vdupq_n_u16(0);
         uint64x2_t sqr = vdupq_n_u64(0);
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint16x8_t s = vld1q_u16(pix);
 
             sum = vaddq_u16(sum, s);
@@ -106,8 +97,7 @@ uint64_t pixel_var_sve(const uint16_t *pix, intptr_t i_stride)
         uint16x4_t sum = vdup_n_u16(0);
         uint32x4_t sqr = vdupq_n_u32(0);
 
-        for (int h = 0; h < size; ++h)
-        {
+        for (int h = 0; h < size; ++h) {
             uint16x4_t s = vld1_u16(pix);
 
             sum = vadd_u16(sum, s);
@@ -119,23 +109,20 @@ uint64_t pixel_var_sve(const uint16_t *pix, intptr_t i_stride)
         return vaddv_u16(sum) + (vaddlvq_u32(sqr) << 32);
     }
 }
-#endif // HIGH_BIT_DEPTH
-}
+#endif  // HIGH_BIT_DEPTH
+}  // namespace
 
-namespace X265_NS
-{
+namespace X265_NS {
 #if HIGH_BIT_DEPTH
 void setupPixelPrimitives_sve(EncoderPrimitives &p)
 {
-    p.cu[BLOCK_4x4].var   = pixel_var_sve<4>;
-    p.cu[BLOCK_8x8].var   = pixel_var_sve<8>;
+    p.cu[BLOCK_4x4].var = pixel_var_sve<4>;
+    p.cu[BLOCK_8x8].var = pixel_var_sve<8>;
     p.cu[BLOCK_16x16].var = pixel_var_sve<16>;
     p.cu[BLOCK_32x32].var = pixel_var_sve<32>;
     p.cu[BLOCK_64x64].var = pixel_var_sve<64>;
 }
-#else // !HIGH_BIT_DEPTH
-void setupPixelPrimitives_sve(EncoderPrimitives &)
-{
-}
-#endif // HIGH_BIT_DEPTH
-}
+#else   // !HIGH_BIT_DEPTH
+void setupPixelPrimitives_sve(EncoderPrimitives &) { }
+#endif  // HIGH_BIT_DEPTH
+}  // namespace X265_NS

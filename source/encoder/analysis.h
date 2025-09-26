@@ -1,27 +1,27 @@
 /*****************************************************************************
-* Copyright (C) 2013-2020 MulticoreWare, Inc
-*
-* Authors: Deepthi Nandakumar <deepthi@multicorewareinc.com>
-*          Steve Borho <steve@borho.org>
-*          Min Chen <chenm003@163.com>
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
-*
-* This program is also available under a commercial proprietary license.
-* For more information, contact us at license @ x265.com.
-*****************************************************************************/
+ * Copyright (C) 2013-2020 MulticoreWare, Inc
+ *
+ * Authors: Deepthi Nandakumar <deepthi@multicorewareinc.com>
+ *          Steve Borho <steve@borho.org>
+ *          Min Chen <chenm003@163.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ *
+ * This program is also available under a commercial proprietary license.
+ * For more information, contact us at license @ x265.com.
+ *****************************************************************************/
 
 #ifndef X265_ANALYSIS_H
 #define X265_ANALYSIS_H
@@ -41,8 +41,7 @@ namespace X265_NS {
 
 class Entropy;
 
-struct SplitData
-{
+struct SplitData {
     uint32_t splitRefs;
     uint32_t mvCost[2];
     uint64_t sa8dCost;
@@ -50,16 +49,14 @@ struct SplitData
     void initSplitCUData()
     {
         splitRefs = 0;
-        mvCost[0] = 0; // L0
-        mvCost[1] = 0; // L1
-        sa8dCost  = 0;
+        mvCost[0] = 0;  // L0
+        mvCost[1] = 0;  // L1
+        sa8dCost = 0;
     }
 };
 
-class Analysis : public Search
-{
+class Analysis : public Search {
 public:
-
     enum {
         PRED_MERGE,
         PRED_SKIP,
@@ -86,42 +83,38 @@ public:
         MAX_PRED_TYPES
     };
 
-    struct ModeDepth
-    {
-        Mode           pred[MAX_PRED_TYPES];
-        Mode*          bestMode;
-        Yuv            fencYuv;
-        CUDataMemPool  cuMemPool;
+    struct ModeDepth {
+        Mode pred[MAX_PRED_TYPES];
+        Mode* bestMode;
+        Yuv fencYuv;
+        CUDataMemPool cuMemPool;
     };
 
-    class PMODE : public BondedTaskGroup
-    {
+    class PMODE : public BondedTaskGroup {
     public:
-
-        Analysis&     master;
+        Analysis& master;
         const CUGeom& cuGeom;
-        int           modes[MAX_PRED_TYPES];
+        int modes[MAX_PRED_TYPES];
 
-        PMODE(Analysis& m, const CUGeom& g) : master(m), cuGeom(g) {}
+        PMODE(Analysis& m, const CUGeom& g) : master(m), cuGeom(g) { }
 
         void processTasks(int workerThreadId);
 
     protected:
-
         PMODE operator=(const PMODE&);
     };
 
     void processPmode(PMODE& pmode, Analysis& slave);
 
     ModeDepth m_modeDepth[NUM_CU_DEPTH];
-    bool      m_bTryLossless;
-    bool      m_bChromaSa8d;
-    bool      m_bHD;
+    bool m_bTryLossless;
+    bool m_bChromaSa8d;
+    bool m_bHD;
 
-    bool      m_modeFlag[2];
-    bool      m_checkMergeAndSkipOnly[2];
+    bool m_modeFlag[2];
+    bool m_checkMergeAndSkipOnly[2];
 
-    IBC       m_ibc;
+    IBC m_ibc;
     Analysis();
 
     bool create(ThreadLocalData* tld);
@@ -132,26 +125,25 @@ public:
 
 protected:
     /* Analysis data for save/load mode, writes/reads data based on absPartIdx */
-    x265_analysis_inter_data*  m_reuseInterDataCTU;
-    int32_t*                   m_reuseRef;
-    uint8_t*                   m_reuseDepth;
-    uint8_t*                   m_reuseModes;
-    uint8_t*                   m_reusePartSize;
-    uint8_t*                   m_reuseMergeFlag;
-    x265_analysis_MV*          m_reuseMv[2];
-    uint8_t*             m_reuseMvpIdx[2];
+    x265_analysis_inter_data* m_reuseInterDataCTU;
+    int32_t* m_reuseRef;
+    uint8_t* m_reuseDepth;
+    uint8_t* m_reuseModes;
+    uint8_t* m_reusePartSize;
+    uint8_t* m_reuseMergeFlag;
+    x265_analysis_MV* m_reuseMv[2];
+    uint8_t* m_reuseMvpIdx[2];
 
-    uint32_t             m_splitRefIdx[4];
-    uint64_t*            cacheCost;
+    uint32_t m_splitRefIdx[4];
+    uint64_t* cacheCost;
 
-    uint8_t                 m_evaluateInter;
-    int32_t                 m_refineLevel;
+    uint8_t m_evaluateInter;
+    int32_t m_refineLevel;
 
-    uint8_t*                m_additionalCtuInfo;
-    int*                    m_prevCtuInfoChange;
+    uint8_t* m_additionalCtuInfo;
+    int* m_prevCtuInfoChange;
 
-    struct TrainingData
-    {
+    struct TrainingData {
         uint32_t cuVariance;
         uint8_t predMode;
         uint8_t partSize;
@@ -204,7 +196,8 @@ protected:
     void checkInter_rd5_6(Mode& interMode, const CUGeom& cuGeom, PartSize partSize, uint32_t refmask[2], MV* iMVCandList = NULL);
 
     void checkRDCostIntraBCMerge2Nx2N(Mode& merge, const CUGeom& cuGeom);
-    void checkIntraBC_rd5_6(Mode& intraBCMode, const CUGeom& cuGeom, PartSize ePartSize, bool testOnlyPred, bool bUse1DSearchFor8x8, IBC& ibc, MV* iMVCandList = NULL);
+    void checkIntraBC_rd5_6(Mode& intraBCMode, const CUGeom& cuGeom, PartSize ePartSize, bool testOnlyPred, bool bUse1DSearchFor8x8, IBC& ibc,
+                            MV* iMVCandList = NULL);
 #endif
 
     /* encode current bestMode losslessly, pick best RD cost */
@@ -237,24 +230,23 @@ protected:
     inline void checkBestMode(Mode& mode, uint32_t depth)
     {
         ModeDepth& md = m_modeDepth[depth];
-        if (md.bestMode)
-        {
-            if (mode.rdCost < md.bestMode->rdCost)
+        if (md.bestMode) {
+            if (mode.rdCost < md.bestMode->rdCost) {
                 md.bestMode = &mode;
-        }
-        else
+            }
+        } else {
             md.bestMode = &mode;
+        }
     }
     int findSameContentRefCount(const CUData& parentCTU, const CUGeom& cuGeom);
 };
 
-struct ThreadLocalData
-{
+struct ThreadLocalData {
     Analysis analysis;
 
     void destroy() { analysis.destroy(); }
 };
 
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_ANALYSIS_H
+#endif  // ifndef X265_ANALYSIS_H

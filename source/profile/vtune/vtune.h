@@ -29,8 +29,7 @@
 namespace X265_NS {
 
 #define CPU_EVENT(x) x,
-enum VTuneTasksEnum
-{
+enum VTuneTasksEnum {
 #include "../cpuEvents.h"
     NUM_VTUNE_TASKS
 };
@@ -39,15 +38,14 @@ enum VTuneTasksEnum
 extern __itt_domain* domain;
 extern __itt_string_handle* taskHandle[NUM_VTUNE_TASKS];
 
-struct VTuneScopeEvent
-{
+struct VTuneScopeEvent {
     VTuneScopeEvent(int e) { __itt_task_begin(domain, __itt_null, __itt_null, taskHandle[e]); }
-    ~VTuneScopeEvent()     { __itt_task_end(domain); }
+    ~VTuneScopeEvent() { __itt_task_end(domain); }
 };
 
 void vtuneInit();
-void vtuneSetThreadName(const char *name, int id);
+void vtuneSetThreadName(const char* name, int id);
 
-}
+}  // namespace X265_NS
 
 #endif

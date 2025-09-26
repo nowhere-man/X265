@@ -32,6 +32,6 @@ namespace X265_NS {
 void setupFilterPrimitives_neon_dotprod(EncoderPrimitives &p);
 }
 
-#endif // defined(HAVE_NEON_DOTPROD)
+#endif  // defined(HAVE_NEON_DOTPROD)
 
-#endif // X265_COMMON_AARCH64_FILTER_NEON_DOTPROD_H
+#endif  // X265_COMMON_AARCH64_FILTER_NEON_DOTPROD_H

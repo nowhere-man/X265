@@ -31,67 +31,96 @@ namespace X265_NS {
 // private x265 namespace
 
 #if _MSC_VER
-#pragma warning(disable: 4201) // non-standard extension used (nameless struct/union)
+#pragma warning(disable : 4201)  // non-standard extension used (nameless struct/union)
 #endif
 
-struct MV
-{
+struct MV {
 public:
-
     union {
-        struct { int32_t x, y; };
+        struct {
+            int32_t x, y;
+        };
 
         int64_t word;
     };
 
-    MV()                                       {}
-    MV(int64_t w) : word(w)                    {}
-    MV(int32_t _x, int32_t _y) : x(_x), y(_y)  {}
+    MV() { }
+    MV(int64_t w) : word(w) { }
+    MV(int32_t _x, int32_t _y) : x(_x), y(_y) { }
 
-    MV& operator =(uint64_t w)                 { word = w; return *this; }
+    MV& operator=(uint64_t w)
+    {
+        word = w;
+        return *this;
+    }
 
-    MV& operator +=(const MV& other)           { x += other.x; y += other.y; return *this; }
+    MV& operator+=(const MV& other)
+    {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
 
-    MV& operator -=(const MV& other)           { x -= other.x; y -= other.y; return *this; }
+    MV& operator-=(const MV& other)
+    {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
 
-    MV& operator >>=(int i)                    { x >>= i; y >>= i; return *this; }
+    MV& operator>>=(int i)
+    {
+        x >>= i;
+        y >>= i;
+        return *this;
+    }
 
 #if USING_FTRAPV
     /* avoid signed left-shifts when -ftrapv is enabled */
-    MV& operator <<=(int i)                    { x *= (1 << i); y *= (1 << i); return *this; }
-    MV operator <<(int i) const                { return MV(x * (1 << i), y * (1 << i)); }
+    MV& operator<<=(int i)
+    {
+        x *= (1 << i);
+        y *= (1 << i);
+        return *this;
+    }
+    MV operator<<(int i) const { return MV(x * (1 << i), y * (1 << i)); }
 #else
-    MV& operator <<=(int i)                    { x <<= i; y <<= i; return *this; }
-    MV operator <<(int i) const                { return MV(x << i, y << i); }
+    MV& operator<<=(int i)
+    {
+        x <<= i;
+        y <<= i;
+        return *this;
+    }
+    MV operator<<(int i) const { return MV(x << i, y << i); }
 #endif
 
-    MV operator >>(int i) const                { return MV(x >> i, y >> i); }
+    MV operator>>(int i) const { return MV(x >> i, y >> i); }
 
-    MV operator *(int32_t i) const             { return MV(x * i, y * i); }
+    MV operator*(int32_t i) const { return MV(x * i, y * i); }
 
-    MV operator -(const MV& other) const       { return MV(x - other.x, y - other.y); }
+    MV operator-(const MV& other) const { return MV(x - other.x, y - other.y); }
 
-    MV operator +(const MV& other) const       { return MV(x + other.x, y + other.y); }
+    MV operator+(const MV& other) const { return MV(x + other.x, y + other.y); }
 
-    bool operator ==(const MV& other) const    { return word == other.word; }
+    bool operator==(const MV& other) const { return word == other.word; }
 
-    bool operator !=(const MV& other) const    { return word != other.word; }
+    bool operator!=(const MV& other) const { return word != other.word; }
 
-    bool operator !() const                    { return !word; }
+    bool operator!() const { return !word; }
 
     // Scale down a QPEL mv to FPEL mv, rounding up by one HPEL offset
-    MV roundToFPel() const                     { return MV((x + 2) >> 2, (y + 2) >> 2); }
+    MV roundToFPel() const { return MV((x + 2) >> 2, (y + 2) >> 2); }
 
     // Scale up an FPEL mv to QPEL by shifting up two bits
-    MV toQPel() const                          { return *this << 2; }
+    MV toQPel() const { return *this << 2; }
 
-    bool inline notZero() const                { return this->word != 0; }
+    bool inline notZero() const { return this->word != 0; }
 
-    bool inline isSubpel() const               { return (this->word & 0x0000000300000003ll) != 0; }
+    bool inline isSubpel() const { return (this->word & 0x0000000300000003ll) != 0; }
 
-    MV mvmin(const MV& m) const                { return MV(x > m.x ? m.x : x, y > m.y ? m.y : y); }
+    MV mvmin(const MV& m) const { return MV(x > m.x ? m.x : x, y > m.y ? m.y : y); }
 
-    MV mvmax(const MV& m) const                { return MV(x < m.x ? m.x : x, y < m.y ? m.y : y); }
+    MV mvmax(const MV& m) const { return MV(x < m.x ? m.x : x, y < m.y ? m.y : y); }
 
     MV clipped(const MV& _min, const MV& _max) const
     {
@@ -101,13 +130,14 @@ public:
     }
 
     // returns true if MV is within range (inclusive)
-    bool checkRange(const MV& _min, const MV& _max) const
+    bool checkRange(const MV& _min, const MV& _max) const { return x >= _min.x && x <= _max.x && y >= _min.y && y <= _max.y; }
+
+    void set(int32_t _x, int32_t _y)
     {
-        return x >= _min.x && x <= _max.x && y >= _min.y && y <= _max.y;
+        x = _x;
+        y = _y;
     }
-
-    void set(int32_t _x, int32_t _y) { x = _x; y = _y; }
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_MV_H
+#endif  // ifndef X265_MV_H

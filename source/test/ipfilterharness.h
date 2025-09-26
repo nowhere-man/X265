@@ -30,10 +30,8 @@
 #include "testharness.h"
 #include "primitives.h"
 
-class IPFilterHarness : public TestHarness
-{
+class IPFilterHarness : public TestHarness {
 protected:
-
     // Assuming max_height = max_width = max_srcStride = max_dstStride = 100
     enum { TEST_BUF_SIZE = 200 * 200 };
     enum { ITERS = 100 };
@@ -44,10 +42,10 @@ protected:
     ALIGN_VAR_64(int16_t, short_buff[TEST_BUF_SIZE]);
     ALIGN_VAR_64(int16_t, IPF_vec_output_s[TEST_BUF_SIZE]);
     ALIGN_VAR_64(int16_t, IPF_C_output_s[TEST_BUF_SIZE]);
-    ALIGN_VAR_64(pixel,   IPF_vec_output_p[TEST_BUF_SIZE]);
-    ALIGN_VAR_64(pixel,   IPF_C_output_p[TEST_BUF_SIZE]);
+    ALIGN_VAR_64(pixel, IPF_vec_output_p[TEST_BUF_SIZE]);
+    ALIGN_VAR_64(pixel, IPF_C_output_p[TEST_BUF_SIZE]);
 
-    ALIGN_VAR_64(pixel,   pixel_test_buff[TEST_CASES][TEST_BUF_SIZE]);
+    ALIGN_VAR_64(pixel, pixel_test_buff[TEST_CASES][TEST_BUF_SIZE]);
     ALIGN_VAR_64(int16_t, short_test_buff[TEST_CASES][TEST_BUF_SIZE]);
 
     bool check_IPFilterChroma_primitive(filter_pp_t ref, filter_pp_t opt);
@@ -67,14 +65,13 @@ protected:
     bool check_IPFilterChromaP2S_aligned_primitive(filter_p2s_t ref, filter_p2s_t opt);
 
 public:
-
     IPFilterHarness();
 
-    const char *getName() const { return "interp"; }
+    const char* getName() const { return "interp"; }
 
     bool testCorrectness(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 
     void measureSpeed(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 };
 
-#endif // ifndef _FILTERHARNESS_H_1
+#endif  // ifndef _FILTERHARNESS_H_1

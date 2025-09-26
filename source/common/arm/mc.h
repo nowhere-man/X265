@@ -24,4 +24,4 @@
 #ifndef X265_MC_ARM_H
 #define X265_MC_ARM_H
 
-#endif // ifndef X265_MC_ARM_H
+#endif  // ifndef X265_MC_ARM_H

@@ -47,14 +47,14 @@ extern const uint32_t g_rasterToZscan[MAX_NUM_PARTITIONS];
 // conversion of partition index to picture pel position
 extern const uint8_t g_zscanToPelX[MAX_NUM_PARTITIONS];
 extern const uint8_t g_zscanToPelY[MAX_NUM_PARTITIONS];
-extern const uint8_t g_log2Size[MAX_CU_SIZE + 1]; // from size to log2(size)
+extern const uint8_t g_log2Size[MAX_CU_SIZE + 1];  // from size to log2(size)
 
 // global variable (CTU width/height, max. CU depth)
 extern uint32_t g_maxLog2CUSize;
 extern uint32_t g_maxCUSize;
 extern uint32_t g_maxCUDepth;
-extern uint32_t g_unitSizeDepth; // Depth at which 4x4 unit occurs from max CU size
-extern uint32_t g_maxSlices; // number of Slices
+extern uint32_t g_unitSizeDepth;  // Depth at which 4x4 unit occurs from max CU size
+extern uint32_t g_maxSlices;      // number of Slices
 
 extern const int16_t g_t4[4][4];
 extern const int16_t g_t8[8][8];
@@ -63,12 +63,12 @@ extern const int16_t g_t32[32][32];
 
 // Subpel interpolation defines and constants
 
-#define NTAPS_LUMA        8                            // Number of taps for luma
-#define NTAPS_CHROMA      4                            // Number of taps for chroma
-#define IF_INTERNAL_PREC 14                            // Number of bits for internal precision
-#define IF_FILTER_PREC    6                            // Log2 of sum of filter taps
-#define IF_INTERNAL_OFFS (1 << (IF_INTERNAL_PREC - 1)) // Offset used internally
-#define SLFASE_CONSTANT  0x5f4e4a53
+#define NTAPS_LUMA 8                                    // Number of taps for luma
+#define NTAPS_CHROMA 4                                  // Number of taps for chroma
+#define IF_INTERNAL_PREC 14                             // Number of bits for internal precision
+#define IF_FILTER_PREC 6                                // Log2 of sum of filter taps
+#define IF_INTERNAL_OFFS (1 << (IF_INTERNAL_PREC - 1))  // Offset used internally
+#define SLFASE_CONSTANT 0x5f4e4a53
 
 extern const int16_t g_lumaFilter[4][NTAPS_LUMA];      // Luma filter taps
 extern const int16_t g_chromaFilter[8][NTAPS_CHROMA];  // Chroma filter taps
@@ -80,9 +80,11 @@ extern const int16_t g_chromaFilter[8][NTAPS_CHROMA];  // Chroma filter taps
 extern const uint16_t* const g_scanOrder[NUM_SCAN_TYPE][NUM_SCAN_SIZE];
 extern const uint16_t* const g_scanOrderCG[NUM_SCAN_TYPE][NUM_SCAN_SIZE];
 extern const uint16_t g_scan8x8diag[8 * 8];
-ALIGN_VAR_16(extern const uint16_t, g_scan4x4[NUM_SCAN_TYPE + 1][4 * 4]);  // +1 for safe buffer area for codeCoeffNxN assembly optimize, there have up to 15 bytes beyond bound read
+ALIGN_VAR_16(
+    extern const uint16_t,
+    g_scan4x4[NUM_SCAN_TYPE + 1][4 * 4]);  // +1 for safe buffer area for codeCoeffNxN assembly optimize, there have up to 15 bytes beyond bound read
 extern const uint8_t g_lastCoeffTable[32];
-extern const uint8_t g_goRiceRange[5]; // maximum value coded with Rice codes
+extern const uint8_t g_goRiceRange[5];  // maximum value coded with Rice codes
 
 // CABAC tables
 extern const uint8_t g_lpsTable[64][4];
@@ -100,6 +102,6 @@ extern const double g_YUVtoRGB_BT2020[3][3];
 #define CBCR_OFFSET 512
 extern const double g_ST2084_PQTable[MAX_HDR_LEGAL_RANGE - MIN_HDR_LEGAL_RANGE + 1];
 
-}
+}  // namespace X265_NS
 
 #endif

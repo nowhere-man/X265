@@ -30,17 +30,15 @@ namespace ppa {
 typedef unsigned short EventID;
 typedef unsigned char GroupID;
 
-class Base
-{
+class Base {
 public:
-
-    virtual ~Base() {}
+    virtual ~Base() { }
 
     virtual bool isEventFiltered(EventID eventId) const = 0;
     virtual bool configEventById(EventID eventId, bool filtered) const = 0;
-    virtual int  configGroupById(GroupID groupId, bool filtered) const = 0;
+    virtual int configGroupById(GroupID groupId, bool filtered) const = 0;
     virtual void configAllEvents(bool filtered) const = 0;
-    virtual EventID  registerEventByName(const char *pEventName) = 0;
+    virtual EventID registerEventByName(const char *pEventName) = 0;
     virtual GroupID registerGroupByName(const char *pGroupName) = 0;
     virtual EventID registerEventInGroup(const char *pEventName, GroupID groupId) = 0;
     virtual void triggerStartEvent(EventID eventId) = 0;
@@ -51,20 +49,31 @@ public:
     virtual EventID getEventId(int index) const = 0;
 
 protected:
-
     virtual void init(const char **pNames, int eventCount) = 0;
 };
 
 extern ppa::Base *ppabase;
 
-struct ProfileScope
-{
+struct ProfileScope {
     ppa::EventID id;
 
-    ProfileScope(int e) { if (ppabase) { id = ppabase->getEventId(e); ppabase->triggerStartEvent(id); } else id = 0; }
-    ~ProfileScope()     { if (ppabase) ppabase->triggerEndEvent(id); }
+    ProfileScope(int e)
+    {
+        if (ppabase) {
+            id = ppabase->getEventId(e);
+            ppabase->triggerStartEvent(id);
+        } else {
+            id = 0;
+        }
+    }
+    ~ProfileScope()
+    {
+        if (ppabase) {
+            ppabase->triggerEndEvent(id);
+        }
+    }
 };
 
-}
+}  // namespace ppa
 
-#endif //_PPA_API_H_
+#endif  //_PPA_API_H_

@@ -41,46 +41,34 @@
  * remainder of the vector is unused - this approach is still beneficial when
  * compared to a Neon-only implementation. */
 
-static inline int32x4_t x265_vld1sh_s32(const int16_t *ptr)
-{
-    return svget_neonq_s32(svld1sh_s32(svptrue_pat_b32(SV_VL4), ptr));
-}
+static inline int32x4_t x265_vld1sh_s32(const int16_t *ptr) { return svget_neonq_s32(svld1sh_s32(svptrue_pat_b32(SV_VL4), ptr)); }
 
 static inline int64x2_t x265_sdotq_s16(int64x2_t acc, int16x8_t x, int16x8_t y)
 {
-    return svget_neonq_s64(svdot_s64(svset_neonq_s64(svundef_s64(), acc),
-                                     svset_neonq_s16(svundef_s16(), x),
-                                     svset_neonq_s16(svundef_s16(), y)));
+    return svget_neonq_s64(svdot_s64(svset_neonq_s64(svundef_s64(), acc), svset_neonq_s16(svundef_s16(), x), svset_neonq_s16(svundef_s16(), y)));
 }
 
-#define x265_sdotq_lane_s16(sum, s0, f, lane)                               \
-        svget_neonq_s64(svdot_lane_s64(svset_neonq_s64(svundef_s64(), sum), \
-                                       svset_neonq_s16(svundef_s16(), s0),  \
-                                       svset_neonq_s16(svundef_s16(), f), lane))
+#define x265_sdotq_lane_s16(sum, s0, f, lane) \
+    svget_neonq_s64(svdot_lane_s64(svset_neonq_s64(svundef_s64(), sum), svset_neonq_s16(svundef_s16(), s0), svset_neonq_s16(svundef_s16(), f), lane))
 
 static inline uint64x2_t x265_udotq_u16(uint64x2_t acc, uint16x8_t x, uint16x8_t y)
 {
-    return svget_neonq_u64(svdot_u64(svset_neonq_u64(svundef_u64(), acc),
-                                     svset_neonq_u16(svundef_u16(), x),
-                                     svset_neonq_u16(svundef_u16(), y)));
+    return svget_neonq_u64(svdot_u64(svset_neonq_u64(svundef_u64(), acc), svset_neonq_u16(svundef_u16(), x), svset_neonq_u16(svundef_u16(), y)));
 }
 
 static inline uint16x8_t x265_tblq_u16(uint16x8_t x, uint16x8_t idx)
 {
-    return svget_neonq_u16(svtbl_u16(svset_neonq_u16(svundef_u16(), x),
-                                     svset_neonq_u16(svundef_u16(), idx)));
+    return svget_neonq_u16(svtbl_u16(svset_neonq_u16(svundef_u16(), x), svset_neonq_u16(svundef_u16(), idx)));
 }
 
-static inline int8x16_t x265_sve_mask(const int x, const int endX,
-                                      const int8x16_t in)
+static inline int8x16_t x265_sve_mask(const int x, const int endX, const int8x16_t in)
 {
     // Use predicate to shift "unused lanes" outside of range [-2, 2]
     svbool_t svpred = svwhilelt_b8(x, endX);
-    svint8_t edge_type = svsel_s8(svpred, svset_neonq_s8(svundef_s8(), in),
-                                  svdup_n_s8(-3));
+    svint8_t edge_type = svsel_s8(svpred, svset_neonq_s8(svundef_s8(), in), svdup_n_s8(-3));
     return svget_neonq_s8(edge_type);
 }
 
-#endif // defined(HAVE_SVE) && HAVE_SVE_BRIDGE
+#endif  // defined(HAVE_SVE) && HAVE_SVE_BRIDGE
 
-#endif // X265_COMMON_AARCH64_NEON_SVE_BRIDGE_H
+#endif  // X265_COMMON_AARCH64_NEON_SVE_BRIDGE_H

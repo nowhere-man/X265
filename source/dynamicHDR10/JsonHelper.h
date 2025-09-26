@@ -20,7 +20,7 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at license @ x265.com.
-**/
+ **/
 
 #ifndef JSON_H
 #define JSON_H
@@ -33,21 +33,21 @@ using namespace json11;
 typedef Json::object JsonObject;
 typedef Json::array JsonArray;
 
-class JsonHelper
-{
+class JsonHelper {
 public:
     static JsonObject readJson(string path);
     static JsonArray readJsonArray(const string &path);
     static string dump(JsonArray json);
     static string dump(JsonObject json, int extraTab = 0);
 
-    static bool writeJson(JsonObject json , string path);
+    static bool writeJson(JsonObject json, string path);
     static bool writeJson(JsonArray json, string path);
     static JsonObject add(string key, string value, JsonObject &json);
+
 private:
     static void printTabs(string &out, int tabCounter);
     JsonObject mJson;
     static bool validatePathExtension(string &path);
 };
 
-#endif // JSON_H
+#endif  // JSON_H

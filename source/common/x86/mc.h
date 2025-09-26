@@ -24,9 +24,9 @@
 #ifndef X265_MC_H
 #define X265_MC_H
 
-#define LOWRES(cpu) \
-    void PFX(frame_init_lowres_core_ ## cpu)(const pixel* src0, pixel* dst0, pixel* dsth, pixel* dstv, pixel* dstc, \
-                                             intptr_t src_stride, intptr_t dst_stride, int width, int height);
+#define LOWRES(cpu)                                                                                                                    \
+    void PFX(frame_init_lowres_core_##cpu)(const pixel* src0, pixel* dst0, pixel* dsth, pixel* dstv, pixel* dstc, intptr_t src_stride, \
+                                           intptr_t dst_stride, int width, int height);
 LOWRES(mmx2)
 LOWRES(sse2)
 LOWRES(ssse3)
@@ -37,7 +37,7 @@ LOWRES(xop)
 #undef LOWRES
 
 #define SUBSAMPLELUMA(cpu) \
-    void PFX(frame_subsample_luma_ ## cpu)(const pixel* src0, pixel* dst0, intptr_t src_stride, intptr_t dst_stride, int width, int height);
+    void PFX(frame_subsample_luma_##cpu)(const pixel* src0, pixel* dst0, intptr_t src_stride, intptr_t dst_stride, int width, int height);
 SUBSAMPLELUMA(mmx2)
 SUBSAMPLELUMA(sse2)
 SUBSAMPLELUMA(ssse3)
@@ -47,9 +47,9 @@ SUBSAMPLELUMA(xop)
 
 #undef SUBSAMPLELUMA
 
-#define PROPAGATE_COST(cpu) \
-    void PFX(mbtree_propagate_cost_ ## cpu)(int* dst, const uint16_t* propagateIn, const int32_t* intraCosts, \
-                                              const uint16_t* interCosts, const int32_t* invQscales, const double* fpsFactor, int len);
+#define PROPAGATE_COST(cpu)                                                                                                             \
+    void PFX(mbtree_propagate_cost_##cpu)(int* dst, const uint16_t* propagateIn, const int32_t* intraCosts, const uint16_t* interCosts, \
+                                          const int32_t* invQscales, const double* fpsFactor, int len);
 
 PROPAGATE_COST(sse2)
 PROPAGATE_COST(avx)
@@ -57,20 +57,18 @@ PROPAGATE_COST(avx2)
 
 #undef PROPAGATE_COST
 
-#define FIX8UNPACK(cpu) \
-    void PFX(cutree_fix8_unpack_ ## cpu)(double *dst, uint16_t *src, int count);
+#define FIX8UNPACK(cpu) void PFX(cutree_fix8_unpack_##cpu)(double* dst, uint16_t* src, int count);
 
 FIX8UNPACK(ssse3)
 FIX8UNPACK(avx2)
 
 #undef FIX8UNPACK
 
-#define FIX8PACK(cpu) \
-    void PFX(cutree_fix8_pack_## cpu)(uint16_t *dst, double *src, int count);
+#define FIX8PACK(cpu) void PFX(cutree_fix8_pack_##cpu)(uint16_t * dst, double* src, int count);
 
 FIX8PACK(ssse3)
 FIX8PACK(avx2)
 
 #undef FIX8PACK
 
-#endif // ifndef X265_MC_H
+#endif  // ifndef X265_MC_H

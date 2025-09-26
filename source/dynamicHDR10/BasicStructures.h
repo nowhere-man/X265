@@ -20,16 +20,14 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at license @ x265.com.
-**/
+ **/
 
 #ifndef BASICSTRUCTURES_H
 #define BASICSTRUCTURES_H
 
 #include <vector>
 
-
-struct LuminanceParameters
-{
+struct LuminanceParameters {
     float averageLuminance = 0.0;
     float maxRLuminance = 0.0;
     float maxGLuminance = 0.0;
@@ -38,16 +36,14 @@ struct LuminanceParameters
     std::vector<unsigned int> percentiles;
 };
 
-struct BezierCurveData
-{
+struct BezierCurveData {
     int order = 0;
     int sPx = 0;
     int sPy = 0;
     std::vector<int> coeff;
 };
 
-struct PercentileLuminance{
-
+struct PercentileLuminance {
     float averageLuminance = 0.0;
     float maxRLuminance = 0.0;
     float maxGLuminance = 0.0;
@@ -56,4 +52,4 @@ struct PercentileLuminance{
     std::vector<unsigned int> percentiles;
 };
 
-#endif // BASICSTRUCTURES_H
+#endif  // BASICSTRUCTURES_H

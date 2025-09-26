@@ -32,6 +32,6 @@ namespace X265_NS {
 void setupFilterPrimitives_sve(EncoderPrimitives &p);
 }
 
-#endif // defined(HAVE_SVE)
+#endif  // defined(HAVE_SVE)
 
-#endif // X265_FILTER_PRIM_SVE_H
+#endif  // X265_FILTER_PRIM_SVE_H

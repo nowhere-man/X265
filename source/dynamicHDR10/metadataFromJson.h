@@ -20,27 +20,21 @@
  *
  * This program is also available under a commercial proprietary license.
  * For more information, contact us at license @ x265.com.
-**/
+ **/
 
 #ifndef METADATAFROMJSON_H
 #define METADATAFROMJSON_H
 
-#include<stdint.h>
-#include<cstring>
+#include <stdint.h>
+#include <cstring>
 #include "JsonHelper.h"
 
-class metadataFromJson
-{
-
+class metadataFromJson {
 public:
     metadataFromJson();
     ~metadataFromJson();
 
-	enum JsonType{
-		LEGACY,
-		LLC
-	};
-		
+    enum JsonType { LEGACY, LLC };
 
     /**
      * @brief frameMetadataFromJson: Generates a sigle frame metadata array from Json file with all
@@ -51,10 +45,8 @@ public:
      *          array. Note: if pointer is set it will be deleted.
      * @return True if succesful
      */
-    bool frameMetadataFromJson(const char* filePath,
-                                int frame,
-                                uint8_t *&metadata);
-	
+    bool frameMetadataFromJson(const char *filePath, int frame, uint8_t *&metadata);
+
     /**
      * @brief movieMetadataFromJson: Generates metadata array from Json file with all metadata
      *          information from movie.
@@ -63,31 +55,27 @@ public:
      *          array. Note: if pointer is set it will be deleted.
      * @return int: number of frames in the movie, -1 if the process fails to obtain the metadata.
      */
-    int movieMetadataFromJson(const char* filePath,
-                                uint8_t **&metadata);
+    int movieMetadataFromJson(const char *filePath, uint8_t **&metadata);
 
     /**
-    * @brief extendedInfoFrameMetadataFromJson: Generates Extended InfoFrame metadata array from Json file
-    *           with all metadata information from movie.
-    * @param filePath: path to Json file containing movie metadata information.
-    * @param metadata (output): receives an empty pointer that will be set to point to metadata
-    *          array. Note: if pointer is set it will be deleted.
-    * @return int: number of frames in the movie, -1 if the process fails to obtain the metadata.
-    */
-    bool extendedInfoFrameMetadataFromJson(const char* filePath,
-                                            int frame,
-                                            uint8_t *&metadata);
+     * @brief extendedInfoFrameMetadataFromJson: Generates Extended InfoFrame metadata array from Json file
+     *           with all metadata information from movie.
+     * @param filePath: path to Json file containing movie metadata information.
+     * @param metadata (output): receives an empty pointer that will be set to point to metadata
+     *          array. Note: if pointer is set it will be deleted.
+     * @return int: number of frames in the movie, -1 if the process fails to obtain the metadata.
+     */
+    bool extendedInfoFrameMetadataFromJson(const char *filePath, int frame, uint8_t *&metadata);
 
     /**
-    * @brief movieMetadataFromJson: Generates Extended InfoFrame metadata array from Json file with all metadata
-    *          information from movie.
-    * @param filePath: path to Json file containing movie Extended InfoFrame metadata information.
-    * @param metadata (output): receives an empty pointer that will be set to point to metadata
-    *          array. Note: if pointer is set it will be deleted.
-    * @return int: number of frames in the movie, -1 if the process fails to obtain the metadata.
-    */
-    int movieExtendedInfoFrameMetadataFromJson(const char* filePath,
-        uint8_t **&metadata);
+     * @brief movieMetadataFromJson: Generates Extended InfoFrame metadata array from Json file with all metadata
+     *          information from movie.
+     * @param filePath: path to Json file containing movie Extended InfoFrame metadata information.
+     * @param metadata (output): receives an empty pointer that will be set to point to metadata
+     *          array. Note: if pointer is set it will be deleted.
+     * @return int: number of frames in the movie, -1 if the process fails to obtain the metadata.
+     */
+    int movieExtendedInfoFrameMetadataFromJson(const char *filePath, uint8_t **&metadata);
 
     /**
 
@@ -96,14 +84,12 @@ public:
     * @param numberOfFrames: number of frames in the metadata array.
     * @return
     */
-    void clear(uint8_t **&metadata,
-                const int numberOfFrames);
+    void clear(uint8_t **&metadata, const int numberOfFrames);
 
 private:
-
     class DynamicMetaIO;
     DynamicMetaIO *mPimpl;
     void fillMetadataArray(const JsonArray &fileData, int frame, const JsonType jsonType, uint8_t *&metadata);
 };
 
-#endif // METADATAFROMJSON_H
+#endif  // METADATAFROMJSON_H

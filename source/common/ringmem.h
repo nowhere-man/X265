@@ -34,57 +34,57 @@
 
 namespace X265_NS {
 
-#define MAX_SHR_NAME_LEN                         256
+#define MAX_SHR_NAME_LEN 256
 
-    class RingMem {
-    public:
-        RingMem();
-        ~RingMem();
+class RingMem {
+public:
+    RingMem();
+    ~RingMem();
 
-        bool skipRead(int32_t cnt);
+    bool skipRead(int32_t cnt);
 
-        bool skipWrite(int32_t cnt);
+    bool skipWrite(int32_t cnt);
 
-        ///< initialize
-        ///< protectRW: if use the semaphore the protect the write and read operation.
-        bool init(int32_t itemSize, int32_t itemCnt, const char *name, bool protectRW = false);
-        ///< finalize
-        void release();
+    ///< initialize
+    ///< protectRW: if use the semaphore the protect the write and read operation.
+    bool init(int32_t itemSize, int32_t itemCnt, const char *name, bool protectRW = false);
+    ///< finalize
+    void release();
 
-        typedef void(*fnRWSharedData)(void *dst, void *src, int32_t size);
+    typedef void (*fnRWSharedData)(void *dst, void *src, int32_t size);
 
-        ///< data read
-        bool readNext(void* dst, fnRWSharedData callback);
-        ///< data write
-        bool writeData(void *data, fnRWSharedData callback);
+    ///< data read
+    bool readNext(void *dst, fnRWSharedData callback);
+    ///< data write
+    bool writeData(void *data, fnRWSharedData callback);
 
-    private:        
-        bool    m_initialized;
-        bool    m_protectRW;
+private:
+    bool m_initialized;
+    bool m_protectRW;
 
-        int32_t m_itemSize;
-        int32_t m_itemCnt;
-        ///< data pool
-        void   *m_dataPool;
-        typedef struct {
-            ///< index to write
-            int32_t m_write;
-            ///< index to read
-            int32_t m_read;
-            
-        }ShrMemCtrl;
+    int32_t m_itemSize;
+    int32_t m_itemCnt;
+    ///< data pool
+    void *m_dataPool;
+    typedef struct {
+        ///< index to write
+        int32_t m_write;
+        ///< index to read
+        int32_t m_read;
 
-        ShrMemCtrl *m_shrMem;
+    } ShrMemCtrl;
+
+    ShrMemCtrl *m_shrMem;
 #ifdef _WIN32
-        void       *m_handle;
-#else // _WIN32
-        char       *m_filepath;
-#endif // _WIN32
+    void *m_handle;
+#else   // _WIN32
+    char *m_filepath;
+#endif  // _WIN32
 
-        ///< Semaphores
-        NamedSemaphore *m_writeSem;
-        NamedSemaphore *m_readSem;
-    };
+    ///< Semaphores
+    NamedSemaphore *m_writeSem;
+    NamedSemaphore *m_readSem;
 };
+};  // namespace X265_NS
 
-#endif // ifndef X265_RINGMEM_H
+#endif  // ifndef X265_RINGMEM_H

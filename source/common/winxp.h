@@ -24,16 +24,15 @@
 #ifndef X265_WINXP_H
 #define X265_WINXP_H
 
-#if defined(_WIN32) && (_WIN32_WINNT < 0x0600) // _WIN32_WINNT_VISTA
+#if defined(_WIN32) && (_WIN32_WINNT < 0x0600)  // _WIN32_WINNT_VISTA
 
 #ifdef _MSC_VER
-#include <intrin.h> // _InterlockedCompareExchange64
+#include <intrin.h>  // _InterlockedCompareExchange64
 #endif
 
 namespace X265_NS {
 /* non-native condition variable */
-typedef struct
-{
+typedef struct {
     CRITICAL_SECTION broadcastMutex;
     CRITICAL_SECTION waiterCountMutex;
     HANDLE semaphore;
@@ -49,19 +48,19 @@ BOOL WINAPI cond_wait(ConditionVariable *cond, CRITICAL_SECTION *mutex, DWORD wa
 void cond_destroy(ConditionVariable *cond);
 
 /* map missing API symbols to our structure and functions */
-#define CONDITION_VARIABLE          X265_NS::ConditionVariable
+#define CONDITION_VARIABLE X265_NS::ConditionVariable
 #define InitializeConditionVariable X265_NS::cond_init
-#define SleepConditionVariableCS    X265_NS::cond_wait
-#define WakeConditionVariable       X265_NS::cond_signal
-#define WakeAllConditionVariable    X265_NS::cond_broadcast
-#define XP_CONDITION_VAR_FREE       X265_NS::cond_destroy
+#define SleepConditionVariableCS X265_NS::cond_wait
+#define WakeConditionVariable X265_NS::cond_signal
+#define WakeAllConditionVariable X265_NS::cond_broadcast
+#define XP_CONDITION_VAR_FREE X265_NS::cond_destroy
 
-} // namespace X265_NS
+}  // namespace X265_NS
 
-#else // if defined(_WIN32) && (_WIN32_WINNT < 0x0600)
+#else  // if defined(_WIN32) && (_WIN32_WINNT < 0x0600)
 
 #define XP_CONDITION_VAR_FREE(x)
 
-#endif // _WIN32_WINNT <= _WIN32_WINNT_WINXP
+#endif  // _WIN32_WINNT <= _WIN32_WINNT_WINXP
 
-#endif // ifndef X265_WINXP_H
+#endif  // ifndef X265_WINXP_H

@@ -51,8 +51,7 @@ class Encoder;
 #define ANGULAR_MODE_ID 2
 #define AMP_ID 3
 
-struct StatisticLog
-{
+struct StatisticLog {
     uint64_t cntInter[4];
     uint64_t cntIntra[4];
     uint64_t cuInterDistribution[4][INTER_MODES];
@@ -62,43 +61,39 @@ struct StatisticLog
     uint64_t cntTotalCu[4];
     uint64_t totalCu;
 
-    StatisticLog()
-    {
-        memset(this, 0, sizeof(StatisticLog));
-    }
+    StatisticLog() { memset(this, 0, sizeof(StatisticLog)); }
 };
 
 /* manages the state of encoding one row of CTU blocks.  When
  * WPP is active, several rows will be simultaneously encoded. */
-struct CTURow
-{
-    Entropy           bufferedEntropy;  /* store CTU2 context for next row CTU0 */
-    Entropy           rowGoOnCoder;     /* store context between CTUs, code bitstream if !SAO */
-    unsigned int      sliceId;          /* store current row slice id */
+struct CTURow {
+    Entropy bufferedEntropy; /* store CTU2 context for next row CTU0 */
+    Entropy rowGoOnCoder;    /* store context between CTUs, code bitstream if !SAO */
+    unsigned int sliceId;    /* store current row slice id */
 
-    FrameStats        rowStats;
+    FrameStats rowStats;
 
     /* Threading variables */
 
     /* This lock must be acquired when reading or writing m_active or m_busy */
-    Lock              lock;
+    Lock lock;
 
     /* row is ready to run, has no neighbor dependencies. The row may have
      * external dependencies (reference frame pixels) that prevent it from being
      * processed, so it may stay with m_active=true for some time before it is
      * encoded by a worker thread. */
-    volatile bool     active;
+    volatile bool active;
 
     /* row is being processed by a worker thread.  This flag is only true when a
      * worker thread is within the context of FrameEncoder::processRow(). This
      * flag is used to detect multiple possible wavefront problems. */
-    volatile bool     busy;
+    volatile bool busy;
 
     /* count of completed CUs in this row */
     volatile uint32_t completed;
     volatile uint32_t avgQPComputed;
 
-    volatile int      reEncode;
+    volatile int reEncode;
 
     /* called at the start of each frame to initialize state */
     void init(Entropy& initContext, unsigned int sid)
@@ -115,73 +110,67 @@ struct CTURow
 };
 
 /*Film grain characteristics*/
-struct FilmGrain
-{
-    bool    m_filmGrainCharacteristicsCancelFlag;
-    bool    m_filmGrainCharacteristicsPersistenceFlag;
-    bool    m_separateColourDescriptionPresentFlag;
+struct FilmGrain {
+    bool m_filmGrainCharacteristicsCancelFlag;
+    bool m_filmGrainCharacteristicsPersistenceFlag;
+    bool m_separateColourDescriptionPresentFlag;
     uint8_t m_filmGrainModelId;
     uint8_t m_blendingModeId;
     uint8_t m_log2ScaleFactor;
 };
 
-struct ColourDescription
-{
-    bool        m_filmGrainFullRangeFlag;
-    uint8_t     m_filmGrainBitDepthLumaMinus8;
-    uint8_t     m_filmGrainBitDepthChromaMinus8;
-    uint8_t     m_filmGrainColourPrimaries;
-    uint8_t     m_filmGrainTransferCharacteristics;
-    uint8_t     m_filmGrainMatrixCoeffs;
+struct ColourDescription {
+    bool m_filmGrainFullRangeFlag;
+    uint8_t m_filmGrainBitDepthLumaMinus8;
+    uint8_t m_filmGrainBitDepthChromaMinus8;
+    uint8_t m_filmGrainColourPrimaries;
+    uint8_t m_filmGrainTransferCharacteristics;
+    uint8_t m_filmGrainMatrixCoeffs;
 };
 
-struct FGPresent
-{
-    uint8_t     m_blendingModeId;
-    uint8_t     m_log2ScaleFactor;
-    bool        m_presentFlag[3];
+struct FGPresent {
+    uint8_t m_blendingModeId;
+    uint8_t m_log2ScaleFactor;
+    bool m_presentFlag[3];
 };
 
-struct AomFilmGrain
-{
-    int32_t     m_apply_grain;
-    int32_t     m_update_grain;
-    int32_t     m_scaling_points_y[14][2];
-    int32_t     m_num_y_points;
-    int32_t     m_scaling_points_cb[10][2];
-    int32_t     m_num_cb_points;
-    int32_t     m_scaling_points_cr[10][2];
-    int32_t     m_num_cr_points;
-    int32_t     m_scaling_shift;
-    int32_t     m_ar_coeff_lag;
-    int32_t     m_ar_coeffs_y[24];
-    int32_t     m_ar_coeffs_cb[25];
-    int32_t     m_ar_coeffs_cr[25];
-    int32_t     m_ar_coeff_shift;
-    int32_t     m_cb_mult;
-    int32_t     m_cb_luma_mult;
-    int32_t     m_cb_offset;
-    int32_t     m_cr_mult;
-    int32_t     m_cr_luma_mult;
-    int32_t     m_cr_offset;
-    int32_t     m_overlap_flag;
-    int32_t     m_clip_to_restricted_range;
-    int32_t     m_bitDepth;
-    int32_t     m_chroma_scaling_from_luma;
-    int32_t     m_grain_scale_shift;
-    uint16_t    m_grain_seed;
+struct AomFilmGrain {
+    int32_t m_apply_grain;
+    int32_t m_update_grain;
+    int32_t m_scaling_points_y[14][2];
+    int32_t m_num_y_points;
+    int32_t m_scaling_points_cb[10][2];
+    int32_t m_num_cb_points;
+    int32_t m_scaling_points_cr[10][2];
+    int32_t m_num_cr_points;
+    int32_t m_scaling_shift;
+    int32_t m_ar_coeff_lag;
+    int32_t m_ar_coeffs_y[24];
+    int32_t m_ar_coeffs_cb[25];
+    int32_t m_ar_coeffs_cr[25];
+    int32_t m_ar_coeff_shift;
+    int32_t m_cb_mult;
+    int32_t m_cb_luma_mult;
+    int32_t m_cb_offset;
+    int32_t m_cr_mult;
+    int32_t m_cr_luma_mult;
+    int32_t m_cr_offset;
+    int32_t m_overlap_flag;
+    int32_t m_clip_to_restricted_range;
+    int32_t m_bitDepth;
+    int32_t m_chroma_scaling_from_luma;
+    int32_t m_grain_scale_shift;
+    uint16_t m_grain_seed;
 };
 
 // Manages the wave-front processing of a single encoding frame
-class FrameEncoder : public WaveFront, public Thread
-{
+class FrameEncoder : public WaveFront, public Thread {
 public:
-
     FrameEncoder();
 
-    virtual ~FrameEncoder() {}
+    virtual ~FrameEncoder() { }
 
-    virtual bool init(Encoder *top, int numRows, int numCols);
+    virtual bool init(Encoder* top, int numRows, int numCols);
 
     void destroy();
 
@@ -189,101 +178,97 @@ public:
     bool startCompressFrame(Frame* curFrame[MAX_LAYERS]);
 
     /* blocks until worker thread is done, returns access unit */
-    Frame **getEncodedPicture(NALList& list);
+    Frame** getEncodedPicture(NALList& list);
 
     void initDecodedPictureHashSEI(int row, int cuAddr, int height, int layer);
 
-    Event                    m_enable;
-    Event                    m_done;
-    Event                    m_completionEvent;
-    int                      m_localTldIdx;
-    bool                     m_reconfigure; /* reconfigure in progress */
-    volatile bool            m_threadActive;
-    volatile bool            *m_bAllRowsStop;
-    volatile int             m_completionCount;
-    volatile int             *m_vbvResetTriggerRow;
-    volatile int             m_sliceCnt;
+    Event m_enable;
+    Event m_done;
+    Event m_completionEvent;
+    int m_localTldIdx;
+    bool m_reconfigure; /* reconfigure in progress */
+    volatile bool m_threadActive;
+    volatile bool* m_bAllRowsStop;
+    volatile int m_completionCount;
+    volatile int* m_vbvResetTriggerRow;
+    volatile int m_sliceCnt;
 
-    uint32_t                 m_numRows;
-    uint32_t                 m_numCols;
-    uint32_t                 m_filterRowDelay;
-    uint32_t                 m_filterRowDelayCus;
-    uint32_t                 m_refLagRows;
-    bool                     m_bUseSao;
+    uint32_t m_numRows;
+    uint32_t m_numCols;
+    uint32_t m_filterRowDelay;
+    uint32_t m_filterRowDelayCus;
+    uint32_t m_refLagRows;
+    bool m_bUseSao;
 
-    CTURow*                  m_rows;
-    uint16_t                 m_sliceAddrBits;
-    uint32_t                 m_sliceGroupSize;
-    uint32_t*                m_sliceBaseRow;    
-    uint32_t*                m_sliceMaxBlockRow;
-    int64_t                  m_rowSliceTotalBits[2];
-    RateControlEntry         m_rce;
-    SEIDecodedPictureHash    m_seiReconPictureDigest;
+    CTURow* m_rows;
+    uint16_t m_sliceAddrBits;
+    uint32_t m_sliceGroupSize;
+    uint32_t* m_sliceBaseRow;
+    uint32_t* m_sliceMaxBlockRow;
+    int64_t m_rowSliceTotalBits[2];
+    RateControlEntry m_rce;
+    SEIDecodedPictureHash m_seiReconPictureDigest;
 
-    uint64_t                 m_SSDY[MAX_LAYERS];
-    uint64_t                 m_SSDU[MAX_LAYERS];
-    uint64_t                 m_SSDV[MAX_LAYERS];
-    double                   m_ssim[MAX_LAYERS];
-    uint64_t                 m_accessUnitBits[MAX_LAYERS];
-    uint32_t                 m_ssimCnt[MAX_LAYERS];
+    uint64_t m_SSDY[MAX_LAYERS];
+    uint64_t m_SSDU[MAX_LAYERS];
+    uint64_t m_SSDV[MAX_LAYERS];
+    double m_ssim[MAX_LAYERS];
+    uint64_t m_accessUnitBits[MAX_LAYERS];
+    uint32_t m_ssimCnt[MAX_LAYERS];
 
-    volatile int             m_activeWorkerCount;        // count of workers currently encoding or filtering CTUs
-    volatile int             m_totalActiveWorkerCount;   // sum of m_activeWorkerCount sampled at end of each CTU
-    volatile int             m_activeWorkerCountSamples; // count of times m_activeWorkerCount was sampled (think vbv restarts)
-    volatile int             m_countRowBlocks;           // count of workers forced to abandon a row because of top dependency
-    int64_t                  m_startCompressTime[MAX_LAYERS];        // timestamp when frame encoder is given a frame
-    int64_t                  m_row0WaitTime[MAX_LAYERS];             // timestamp when row 0 is allowed to start
-    int64_t                  m_allRowsAvailableTime[MAX_LAYERS];     // timestamp when all reference dependencies are resolved
-    int64_t                  m_endCompressTime[MAX_LAYERS];          // timestamp after all CTUs are compressed
-    int64_t                  m_endFrameTime[MAX_LAYERS];             // timestamp after RCEnd, NR updates, etc
-    int64_t                  m_stallStartTime[MAX_LAYERS];           // timestamp when worker count becomes 0
-    int64_t                  m_prevOutputTime[MAX_LAYERS];           // timestamp when prev frame was retrieved by API thread
-    int64_t                  m_slicetypeWaitTime[MAX_LAYERS];        // total elapsed time waiting for decided frame
-    int64_t                  m_totalWorkerElapsedTime[MAX_LAYERS];   // total elapsed time spent by worker threads processing CTUs
-    int64_t                  m_totalNoWorkerTime[MAX_LAYERS];        // total elapsed time without any active worker threads
+    volatile int m_activeWorkerCount;              // count of workers currently encoding or filtering CTUs
+    volatile int m_totalActiveWorkerCount;         // sum of m_activeWorkerCount sampled at end of each CTU
+    volatile int m_activeWorkerCountSamples;       // count of times m_activeWorkerCount was sampled (think vbv restarts)
+    volatile int m_countRowBlocks;                 // count of workers forced to abandon a row because of top dependency
+    int64_t m_startCompressTime[MAX_LAYERS];       // timestamp when frame encoder is given a frame
+    int64_t m_row0WaitTime[MAX_LAYERS];            // timestamp when row 0 is allowed to start
+    int64_t m_allRowsAvailableTime[MAX_LAYERS];    // timestamp when all reference dependencies are resolved
+    int64_t m_endCompressTime[MAX_LAYERS];         // timestamp after all CTUs are compressed
+    int64_t m_endFrameTime[MAX_LAYERS];            // timestamp after RCEnd, NR updates, etc
+    int64_t m_stallStartTime[MAX_LAYERS];          // timestamp when worker count becomes 0
+    int64_t m_prevOutputTime[MAX_LAYERS];          // timestamp when prev frame was retrieved by API thread
+    int64_t m_slicetypeWaitTime[MAX_LAYERS];       // total elapsed time waiting for decided frame
+    int64_t m_totalWorkerElapsedTime[MAX_LAYERS];  // total elapsed time spent by worker threads processing CTUs
+    int64_t m_totalNoWorkerTime[MAX_LAYERS];       // total elapsed time without any active worker threads
 #if DETAILED_CU_STATS
-    CUStats                  m_cuStats;
+    CUStats m_cuStats;
 #endif
 
-    Encoder*                 m_top;
-    x265_param*              m_param;
-    Frame*                   m_frame[MAX_LAYERS];
-    Frame**                  m_retFrameBuffer;
-    NoiseReduction*          m_nr;
-    ThreadLocalData*         m_tld; /* for --no-wpp */
-    Bitstream*               m_outStreams;
-    Bitstream*               m_backupStreams;
-    uint32_t*                m_substreamSizes;
+    Encoder* m_top;
+    x265_param* m_param;
+    Frame* m_frame[MAX_LAYERS];
+    Frame** m_retFrameBuffer;
+    NoiseReduction* m_nr;
+    ThreadLocalData* m_tld; /* for --no-wpp */
+    Bitstream* m_outStreams;
+    Bitstream* m_backupStreams;
+    uint32_t* m_substreamSizes;
 
-    CUGeom*                  m_cuGeoms;
-    uint32_t*                m_ctuGeomMap;
+    CUGeom* m_cuGeoms;
+    uint32_t* m_ctuGeomMap;
 
-    Bitstream                m_bs;
-    MotionReference          m_mref[2][MAX_NUM_REF + 1];
-    Entropy                  m_entropyCoder;
-    Entropy                  m_initSliceContext;
-    FrameFilter              m_frameFilter;
-    NALList                  m_nalList;
+    Bitstream m_bs;
+    MotionReference m_mref[2][MAX_NUM_REF + 1];
+    Entropy m_entropyCoder;
+    Entropy m_initSliceContext;
+    FrameFilter m_frameFilter;
+    NALList m_nalList;
 
-    int                      m_sLayerId;
+    int m_sLayerId;
 
-    class WeightAnalysis : public BondedTaskGroup
-    {
+    class WeightAnalysis : public BondedTaskGroup {
     public:
-
         FrameEncoder& master;
 
-        WeightAnalysis(FrameEncoder& fe) : master(fe) {}
+        WeightAnalysis(FrameEncoder& fe) : master(fe) { }
 
         void processTasks(int workerThreadId);
 
     protected:
-
         WeightAnalysis operator=(const WeightAnalysis&);
     };
 
 protected:
-
     bool initializeGeoms();
 
     /* analyze / compress frame, can be run in parallel within reference constraints */
@@ -293,28 +278,28 @@ protected:
     void encodeSlice(uint32_t sliceAddr, int layer);
 
     void threadMain();
-    int  collectCTUStatistics(const CUData& ctu, FrameStats* frameLog);
+    int collectCTUStatistics(const CUData& ctu, FrameStats* frameLog);
     void noiseReductionUpdate();
     void writeTrailingSEIMessages(int layer);
-    bool writeToneMapInfo(x265_sei_payload *payload);
+    bool writeToneMapInfo(x265_sei_payload* payload);
 
     /* Called by WaveFront::findJob() */
     virtual void processRow(int row, int threadId, int layer);
     virtual void processRowEncoder(int row, ThreadLocalData& tld, int layer);
 
     void enqueueRowEncoder(int row) { WaveFront::enqueueRow(row * 2 + 0); }
-    void enqueueRowFilter(int row)  { WaveFront::enqueueRow(row * 2 + 1); }
-    void enableRowEncoder(int row)  { WaveFront::enableRow(row * 2 + 0); }
-    void enableRowFilter(int row)   { WaveFront::enableRow(row * 2 + 1); }
+    void enqueueRowFilter(int row) { WaveFront::enqueueRow(row * 2 + 1); }
+    void enableRowEncoder(int row) { WaveFront::enableRow(row * 2 + 0); }
+    void enableRowFilter(int row) { WaveFront::enableRow(row * 2 + 1); }
 #if ENABLE_LIBVMAF
     void vmafFrameLevelScore();
 #endif
     void collectDynDataFrame(int layer);
     void computeAvgTrainingData(int layer);
-    void collectDynDataRow(CUData& ctu, FrameStats* rowStats);    
+    void collectDynDataRow(CUData& ctu, FrameStats* rowStats);
     void readModel(FilmGrainCharacteristics* m_filmGrain, FILE* filmgrain);
     void readAomModel(AomFilmGrainCharacteristics* m_aomFilmGrain, FILE* Aomfilmgrain);
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_FRAMEENCODER_H
+#endif  // ifndef X265_FRAMEENCODER_H

@@ -31,9 +31,9 @@ namespace X265_NS {
 // encoder private namespace
 
 struct VPS;
-void determineLevel(const x265_param &param, VPS& vps);
+void determineLevel(const x265_param& param, VPS& vps);
 bool enforceLevel(x265_param& param, VPS& vps);
 
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_LEVEL_H
+#endif  // ifndef X265_LEVEL_H

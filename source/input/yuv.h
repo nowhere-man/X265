@@ -33,15 +33,13 @@
 namespace X265_NS {
 // private x265 namespace
 
-class YUVInput : public InputFile, public Thread
-{
+class YUVInput : public InputFile, public Thread {
 protected:
-
     int width;
 
     int height;
 
-    int colorSpace; //< source Color Space Parameter
+    int colorSpace;  //< source Color Space Parameter
 
     uint32_t depth;
 
@@ -55,30 +53,29 @@ protected:
 
     ThreadSafeInteger writeCount;
     char* buf[QUEUE_SIZE];
-    FILE *ifs;
+    FILE* ifs;
     int guessFrameCount();
     void threadMain();
 
     bool populateFrameQueue();
 
 public:
-
     YUVInput(InputFileInfo& info, bool alpha, int format);
 
     virtual ~YUVInput();
     void release();
-    bool isEof() const                            { return ifs && feof(ifs); }
-    bool isFail()                                 { return !(ifs && !ferror(ifs) && threadActive); }
+    bool isEof() const { return ifs && feof(ifs); }
+    bool isFail() { return !(ifs && !ferror(ifs) && threadActive); }
     void startReader();
 
     bool readPicture(x265_picture&);
 
-    const char *getName() const                   { return "yuv"; }
+    const char* getName() const { return "yuv"; }
 
-    int getWidth() const                          { return width; }
+    int getWidth() const { return width; }
 
-    int getHeight() const                         { return height; }
+    int getHeight() const { return height; }
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_YUV_H
+#endif  // ifndef X265_YUV_H

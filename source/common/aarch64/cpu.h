@@ -36,8 +36,7 @@ static inline bool have_feature(const char *feature)
 {
     int64_t feature_present = 0;
     size_t size = sizeof(feature_present);
-    if (sysctlbyname(feature, &feature_present, &size, NULL, 0) != 0)
-    {
+    if (sysctlbyname(feature, &feature_present, &size, NULL, 0) != 0) {
         return false;
     }
     return feature_present;
@@ -51,12 +50,14 @@ static inline int aarch64_get_cpu_flags()
     flags |= X265_CPU_NEON;
 #endif
 #if HAVE_NEON_DOTPROD
-    if (have_feature("hw.optional.arm.FEAT_DotProd"))
+    if (have_feature("hw.optional.arm.FEAT_DotProd")) {
         flags |= X265_CPU_NEON_DOTPROD;
+    }
 #endif
 #if HAVE_NEON_I8MM
-    if (have_feature("hw.optional.arm.FEAT_I8MM"))
+    if (have_feature("hw.optional.arm.FEAT_I8MM")) {
         flags |= X265_CPU_NEON_I8MM;
+    }
 #endif
 
     return flags;
@@ -73,17 +74,16 @@ static inline int aarch64_get_cpu_flags()
 // https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-isprocessorfeaturepresent#parameters
 #if HAVE_NEON
     flags |= X265_CPU_NEON;
-#endif // HAVE_NEON
+#endif  // HAVE_NEON
 #if HAVE_NEON_DOTPROD
 // Support for PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE was added in Windows SDK
 // 20348, supported by Windows 11 and Windows Server 2022.
 #if defined(PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE)
-    if (IsProcessorFeaturePresent(PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE))
-    {
+    if (IsProcessorFeaturePresent(PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE)) {
         flags |= X265_CPU_NEON_DOTPROD;
     }
-#endif // defined(PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE)
-#endif // HAVE_NEON_DOTPROD
+#endif  // defined(PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE)
+#endif  // HAVE_NEON_DOTPROD
 #if HAVE_NEON_I8MM
 // Support for PF_ARM_SVE_I8MM_INSTRUCTIONS_AVAILABLE was added in Windows SDK
 // 26100.
@@ -91,8 +91,7 @@ static inline int aarch64_get_cpu_flags()
     // There's no PF_* flag yet that indicates whether Neon I8MM is available
     // or not. But if SVE_I8MM is available, that also implies that Neon I8MM
     // is available.
-    if (IsProcessorFeaturePresent(PF_ARM_SVE_I8MM_INSTRUCTIONS_AVAILABLE))
-    {
+    if (IsProcessorFeaturePresent(PF_ARM_SVE_I8MM_INSTRUCTIONS_AVAILABLE)) {
         flags |= X265_CPU_NEON_I8MM;
     }
 #endif  // defined(PF_ARM_SVE_I8MM_INSTRUCTIONS_AVAILABLE)
@@ -100,8 +99,7 @@ static inline int aarch64_get_cpu_flags()
 #if HAVE_SVE
 // Support for PF_ARM_SVE_INSTRUCTIONS_AVAILABLE was added in Windows SDK 26100.
 #if defined(PF_ARM_SVE_INSTRUCTIONS_AVAILABLE)
-    if (IsProcessorFeaturePresent(PF_ARM_SVE_INSTRUCTIONS_AVAILABLE))
-    {
+    if (IsProcessorFeaturePresent(PF_ARM_SVE_INSTRUCTIONS_AVAILABLE)) {
         flags |= X265_CPU_SVE;
     }
 #endif  // defined(PF_ARM_SVE_INSTRUCTIONS_AVAILABLE)
@@ -110,16 +108,14 @@ static inline int aarch64_get_cpu_flags()
 // Support for PF_ARM_SVE2_INSTRUCTIONS_AVAILABLE was added in Windows SDK
 // 26100.
 #if defined(PF_ARM_SVE2_INSTRUCTIONS_AVAILABLE)
-    if (IsProcessorFeaturePresent(PF_ARM_SVE2_INSTRUCTIONS_AVAILABLE))
-    {
+    if (IsProcessorFeaturePresent(PF_ARM_SVE2_INSTRUCTIONS_AVAILABLE)) {
         flags |= X265_CPU_SVE2;
     }
 #endif  // defined(PF_ARM_SVE2_INSTRUCTIONS_AVAILABLE)
 #endif  // HAVE_SVE2
 #if HAVE_SVE2_BITPERM
 #if defined(PF_ARM_SVE_BITPERM_INSTRUCTIONS_AVAILABLE)
-    if (IsProcessorFeaturePresent(PF_ARM_SVE_BITPERM_INSTRUCTIONS_AVAILABLE))
-    {
+    if (IsProcessorFeaturePresent(PF_ARM_SVE_BITPERM_INSTRUCTIONS_AVAILABLE)) {
         flags |= X265_CPU_SVE2_BITPERM;
     }
 #endif  // defined(PF_ARM_SVE_BITPERM_INSTRUCTIONS_AVAILABLE)
@@ -152,52 +148,71 @@ static inline int aarch64_get_cpu_flags()
     flags |= X265_CPU_NEON;
 #endif
 #if HAVE_NEON_DOTPROD
-    if (hwcap & X265_AARCH64_HWCAP_ASIMDDP) flags |= X265_CPU_NEON_DOTPROD;
+    if (hwcap & X265_AARCH64_HWCAP_ASIMDDP) {
+        flags |= X265_CPU_NEON_DOTPROD;
+    }
 #endif
 #if HAVE_NEON_I8MM
-    if (hwcap2 & X265_AARCH64_HWCAP2_I8MM) flags |= X265_CPU_NEON_I8MM;
+    if (hwcap2 & X265_AARCH64_HWCAP2_I8MM) {
+        flags |= X265_CPU_NEON_I8MM;
+    }
 #endif
 #if HAVE_SVE
-    if (hwcap & X265_AARCH64_HWCAP_SVE) flags |= X265_CPU_SVE;
+    if (hwcap & X265_AARCH64_HWCAP_SVE) {
+        flags |= X265_CPU_SVE;
+    }
 #endif
 #if HAVE_SVE2
-    if (hwcap2 & X265_AARCH64_HWCAP2_SVE2) flags |= X265_CPU_SVE2;
+    if (hwcap2 & X265_AARCH64_HWCAP2_SVE2) {
+        flags |= X265_CPU_SVE2;
+    }
 #endif
 #if HAVE_SVE2_BITPERM
-    if (hwcap2 & X265_AARCH64_HWCAP2_SVEBITPERM) flags |= X265_CPU_SVE2_BITPERM;
+    if (hwcap2 & X265_AARCH64_HWCAP2_SVEBITPERM) {
+        flags |= X265_CPU_SVE2_BITPERM;
+    }
 #endif
 
     return flags;
 }
 
-#else // defined(__APPLE__)
-#error                                                                 \
-    "Run-time CPU feature detection selected, but no detection method" \
+#else  // defined(__APPLE__)
+#error "Run-time CPU feature detection selected, but no detection method" \
     "available for your platform. Rerun cmake configure with"          \
     "-DAARCH64_RUNTIME_CPU_DETECT=OFF."
-#endif // defined(__APPLE__)
+#endif  // defined(__APPLE__)
 
 static inline int aarch64_cpu_detect()
 {
     int flags = aarch64_get_cpu_flags();
 
     // Restrict flags: FEAT_I8MM assumes that FEAT_DotProd is available.
-    if (!(flags & X265_CPU_NEON_DOTPROD)) flags &= ~X265_CPU_NEON_I8MM;
+    if (!(flags & X265_CPU_NEON_DOTPROD)) {
+        flags &= ~X265_CPU_NEON_I8MM;
+    }
 
     // Restrict flags: SVE assumes that FEAT_{DotProd,I8MM} are available.
-    if (!(flags & X265_CPU_NEON_DOTPROD)) flags &= ~X265_CPU_SVE;
-    if (!(flags & X265_CPU_NEON_I8MM)) flags &= ~X265_CPU_SVE;
+    if (!(flags & X265_CPU_NEON_DOTPROD)) {
+        flags &= ~X265_CPU_SVE;
+    }
+    if (!(flags & X265_CPU_NEON_I8MM)) {
+        flags &= ~X265_CPU_SVE;
+    }
 
     // Restrict flags: SVE2 assumes that FEAT_SVE is available.
-    if (!(flags & X265_CPU_SVE)) flags &= ~X265_CPU_SVE2;
+    if (!(flags & X265_CPU_SVE)) {
+        flags &= ~X265_CPU_SVE2;
+    }
 
     // Restrict flags: SVE2_BitPerm assumes that FEAT_SVE2 is available.
-    if (!(flags & X265_CPU_SVE2)) flags &= ~X265_CPU_SVE2_BITPERM;
+    if (!(flags & X265_CPU_SVE2)) {
+        flags &= ~X265_CPU_SVE2_BITPERM;
+    }
 
     return flags;
 }
 
-#else // if AARCH64_RUNTIME_CPU_DETECT
+#else  // if AARCH64_RUNTIME_CPU_DETECT
 
 static inline int aarch64_cpu_detect()
 {
@@ -224,6 +239,6 @@ static inline int aarch64_cpu_detect()
     return flags;
 }
 
-#endif // if AARCH64_RUNTIME_CPU_DETECT
+#endif  // if AARCH64_RUNTIME_CPU_DETECT
 
-#endif // ifndef X265_COMMON_AARCH64_CPU_H
+#endif  // ifndef X265_COMMON_AARCH64_CPU_H

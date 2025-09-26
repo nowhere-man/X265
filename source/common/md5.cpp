@@ -29,23 +29,21 @@ namespace X265_NS {
 // private x265 namespace
 
 #ifndef ARCH_BIG_ENDIAN
-#define byteReverse(buf, len)   /* Nothing */
+#define byteReverse(buf, len) /* Nothing */
 #else
 static void byteReverse(uint8_t_t *buf, unsigned int nSize)
 {
     int i;
     uint32_t tmp;
 
-    for (i = 0; i < nSize; i++)
-    {
-        tmp = ((unsigned int)buf[3] << 8 | buf[2]) << 16 |
-            ((unsigned int)buf[1] << 8 | buf[0]);
-        *(uint32_t*)buf = tmp;
+    for (i = 0; i < nSize; i++) {
+        tmp = ((unsigned int)buf[3] << 8 | buf[2]) << 16 | ((unsigned int)buf[1] << 8 | buf[0]);
+        *(uint32_t *)buf = tmp;
         buf += 4;
     }
 }
 
-#endif // ifndef ARCH_BIG_ENDIAN
+#endif  // ifndef ARCH_BIG_ENDIAN
 
 void MD5Transform(uint32_t *buf, uint32_t *in);
 
@@ -75,37 +73,35 @@ void MD5Update(MD5Context *ctx, uint8_t *buf, uint32_t len)
     /* Update bitcount */
 
     t = ctx->bits[0];
-    if ((ctx->bits[0] = t + ((uint32_t)len << 3)) < t)
+    if ((ctx->bits[0] = t + ((uint32_t)len << 3)) < t) {
         ctx->bits[1]++; /* Carry from low to high */
+    }
     ctx->bits[1] += len >> 29;
 
-    t = (t >> 3) & 0x3F;        /* Bytes already in shsInfo->data */
+    t = (t >> 3) & 0x3F; /* Bytes already in shsInfo->data */
 
     /* Handle any leading odd-sized chunks */
 
-    if (t)
-    {
-        uint8_t *p = (uint8_t*)ctx->in + t;
+    if (t) {
+        uint8_t *p = (uint8_t *)ctx->in + t;
 
         t = 64 - t;
-        if (len < t)
-        {
+        if (len < t) {
             memcpy(p, buf, len);
             return;
         }
         memcpy(p, buf, t);
         byteReverse(ctx->in, 16);
-        MD5Transform(ctx->buf, (uint32_t*)ctx->in);
+        MD5Transform(ctx->buf, (uint32_t *)ctx->in);
         buf += t;
         len -= t;
     }
     /* Process data in 64-byte chunks */
 
-    while (len >= 64)
-    {
+    while (len >= 64) {
         memcpy(ctx->in, buf, 64);
         byteReverse(ctx->in, 16);
-        MD5Transform(ctx->buf, (uint32_t*)ctx->in);
+        MD5Transform(ctx->buf, (uint32_t *)ctx->in);
         buf += 64;
         len -= 64;
     }
@@ -122,7 +118,7 @@ void MD5Update(MD5Context *ctx, uint8_t *buf, uint32_t len)
 void MD5Final(MD5Context *ctx, uint8_t *digest)
 {
     uint32_t count;
-    uint8_t  *p;
+    uint8_t *p;
 
     /* Compute number of bytes mod 64 */
     count = (ctx->bits[0] >> 3) & 0x3F;
@@ -136,18 +132,15 @@ void MD5Final(MD5Context *ctx, uint8_t *digest)
     count = 64 - 1 - count;
 
     /* Pad out to 56 mod 64 */
-    if (count < 8)
-    {
+    if (count < 8) {
         /* Two lots of padding:  Pad the first block to 64 bytes */
         memset(p, 0, count);
         byteReverse(ctx->in, 16);
-        MD5Transform(ctx->buf, (uint32_t*)ctx->in);
+        MD5Transform(ctx->buf, (uint32_t *)ctx->in);
 
         /* Now fill the next block with 56 bytes */
         memset(ctx->in, 0, 56);
-    }
-    else
-    {
+    } else {
         /* Pad block to 56 bytes */
         memset(p, 0, count - 8);
     }
@@ -155,15 +148,15 @@ void MD5Final(MD5Context *ctx, uint8_t *digest)
 
     /* Append length in bits and transform */
     // CHECK_ME: Always use 32-bits operator
-    uint32_t *table = (uint32_t*)&ctx->in;
+    uint32_t *table = (uint32_t *)&ctx->in;
     table[14] = ctx->bits[0];
     table[15] = ctx->bits[1];
 
-    MD5Transform(ctx->buf, (uint32_t*)ctx->in);
-    byteReverse((uint8_t*)ctx->buf, 4);
+    MD5Transform(ctx->buf, (uint32_t *)ctx->in);
+    byteReverse((uint8_t *)ctx->buf, 4);
     memcpy(digest, ctx->buf, 16);
 
-    memset(ctx, 0, sizeof(*ctx));        /* In case it's sensitive */
+    memset(ctx, 0, sizeof(*ctx)); /* In case it's sensitive */
 }
 
 /* The four core functions - F1 is optimized somewhat */
@@ -175,8 +168,7 @@ void MD5Final(MD5Context *ctx, uint8_t *digest)
 #define F4(x, y, z) (y ^ (x | ~z))
 
 /* This is the central step in the MD5 algorithm. */
-#define MD5STEP(f, w, x, y, z, data, s) \
-    (w += f(x, y, z) + data,  w = w << s | w >> (32 - s),  w += x)
+#define MD5STEP(f, w, x, y, z, data, s) (w += f(x, y, z) + data, w = w << s | w >> (32 - s), w += x)
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to
@@ -265,4 +257,4 @@ void MD5Transform(uint32_t *buf, uint32_t *in)
     buf[2] += c;
     buf[3] += d;
 }
-}
+}  // namespace X265_NS

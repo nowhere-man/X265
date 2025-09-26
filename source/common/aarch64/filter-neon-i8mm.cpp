@@ -31,25 +31,20 @@
 #include <arm_neon.h>
 
 namespace {
-static const uint8_t dotprod_permute_tbl[48] = {
-    0, 1,  2,  3, 1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5, 6,
-    4, 5,  6,  7, 5,  6,  7,  8,  6,  7,  8,  9,  7,  8,  9, 10,
-    8, 9, 10, 11, 9, 10, 11, 12, 10, 11, 12, 13, 11, 12, 13, 14
-};
+static const uint8_t dotprod_permute_tbl[48] = {0, 1, 2, 3, 1, 2, 3, 4,  2, 3, 4,  5,  3, 4,  5,  6,  4,  5,  6,  7,  5,  6,  7,  8,
+                                                6, 7, 8, 9, 7, 8, 9, 10, 8, 9, 10, 11, 9, 10, 11, 12, 10, 11, 12, 13, 11, 12, 13, 14};
 
 static const uint8_t matmul_permute_tbl[2][32] = {
     // Permute for luma filter 1.
-    { 0,  1,  2,  3,  4,  5,  6,  7,  2,  3,  4,  5,  6,  7,  8,  9,
-      4,  5,  6,  7,  8,  9, 10, 11,  6,  7,  8,  9, 10, 11, 12, 13 },
+    {0, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 7, 8,  9, 4, 5, 6, 7, 8,  9, 10, 11, 6, 7, 8,  9, 10, 11, 12, 13},
     // Permute for luma filter 2 and 3.
-    { 1,  2,  3,  4,  5,  6,  7,  8,  3,  4,  5,  6,  7,  8,  9, 10,
-      5,  6,  7,  8,  9, 10, 11, 12,  7,  8,  9, 10, 11, 12, 13, 14 }
+    {1, 2, 3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8, 9, 10, 5, 6, 7, 8, 9, 10, 11, 12, 7, 8, 9, 10, 11, 12, 13, 14}
 };
 
 static const int8_t matmul_luma_filter[3][16] = {
-    { -1, 4, -10, 58, 17, -5, 1, 0, 0, -1, 4, -10, 58, 17, -5, 1 },
-    { 4, -11, 40, 40, -11, 4, -1, 0, 0, 4, -11, 40, 40, -11, 4, -1 },
-    { 1, -5, 17, 58, -10, 4, -1, 0, 0, 1, -5, 17, 58, -10, 4, -1 }
+    {-1,   4, -10, 58,  17, -5,  1, 0, 0, -1,   4, -10, 58,  17, -5,  1},
+    { 4, -11,  40, 40, -11,  4, -1, 0, 0,  4, -11,  40, 40, -11,  4, -1},
+    { 1,  -5,  17, 58, -10,  4, -1, 0, 0,  1,  -5,  17, 58, -10,  4, -1}
 };
 
 static const uint8_t dot_prod_merge_block_tbl[48] = {
@@ -58,19 +53,14 @@ static const uint8_t dot_prod_merge_block_tbl[48] = {
     // Shift left and insert two new columns in transposed 4x4 block.
     2, 3, 16, 17, 6, 7, 20, 21, 10, 11, 24, 25, 14, 15, 28, 29,
     // Shift left and insert three new columns in transposed 4x4 block.
-    3, 16, 17, 18, 7, 20, 21, 22, 11, 24, 25, 26, 15, 28, 29, 30
-};
+    3, 16, 17, 18, 7, 20, 21, 22, 11, 24, 25, 26, 15, 28, 29, 30};
 
 // This is to use with vtbl2q_s32_s16.
 // Extract the middle two bytes from each 32-bit element in a vector, using these byte
 // indices.
-static const uint8_t vert_shr_tbl[16] = {
-    1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30
-};
+static const uint8_t vert_shr_tbl[16] = {1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30};
 
-template<bool coeff2>
-uint8x8_t inline filter8_8_pp_matmul(uint8x16_t samples, const int8x16_t filter,
-                                     const uint8x16x2_t tbl)
+template <bool coeff2> uint8x8_t inline filter8_8_pp_matmul(uint8x16_t samples, const int8x16_t filter, const uint8x16x2_t tbl)
 {
     // Permute input samples for 8x2 by 2x8 matrix multiply.
     uint8x16_t perm_s0 = vqtbl1q_u8(samples, tbl.val[0]);
@@ -82,21 +72,17 @@ uint8x8_t inline filter8_8_pp_matmul(uint8x16_t samples, const int8x16_t filter,
     // Narrow and combine.
     int16x8_t matmul = vcombine_s16(vmovn_s32(matmul_lo), vmovn_s32(matmul_hi));
 
-    if (coeff2)
-    {
+    if (coeff2) {
         // Substract the source elements corresponding to filter tap value -1,
         // which weren't included in the initial matrix multiplication.
-        matmul = vreinterpretq_s16_u16(vsubw_u8(vreinterpretq_u16_s16(matmul),
-                                                vget_low_u8(samples)));
+        matmul = vreinterpretq_s16_u16(vsubw_u8(vreinterpretq_u16_s16(matmul), vget_low_u8(samples)));
     }
 
     return vqrshrun_n_s16(matmul, IF_FILTER_PREC);
 }
 
-template<bool coeff2>
-int16x8_t inline filter8_8_ps_matmul(uint8x16_t samples, const int8x16_t filter,
-                                     const int16x8_t constant,
-                                     const uint8x16x2_t tbl)
+template <bool coeff2>
+int16x8_t inline filter8_8_ps_matmul(uint8x16_t samples, const int8x16_t filter, const int16x8_t constant, const uint8x16x2_t tbl)
 {
     // Permute input samples for 8x2 by 2x8 matrix multiply.
     uint8x16_t perm_s0 = vqtbl1q_u8(samples, tbl.val[0]);
@@ -110,21 +96,17 @@ int16x8_t inline filter8_8_ps_matmul(uint8x16_t samples, const int8x16_t filter,
 
     int16x8_t offset_matmul = constant;
 
-    if (coeff2)
-    {
+    if (coeff2) {
         // Substract the source elements corresponding to filter tap value -1,
         // which weren't included in the initial matrix multiplication.
-        offset_matmul = vreinterpretq_s16_u16(
-            vsubw_u8(vreinterpretq_u16_s16(offset_matmul), vget_low_u8(samples)));
+        offset_matmul = vreinterpretq_s16_u16(vsubw_u8(vreinterpretq_u16_s16(offset_matmul), vget_low_u8(samples)));
     }
 
     return vaddq_s16(matmul, offset_matmul);
 }
 
-template<bool coeff2>
-int16x4_t inline filter8_4_ps_matmul(uint8x16_t samples, const int8x16_t filter,
-                                     const int16x8_t constant,
-                                     const uint8x16x2_t tbl)
+template <bool coeff2>
+int16x4_t inline filter8_4_ps_matmul(uint8x16_t samples, const int8x16_t filter, const int16x8_t constant, const uint8x16x2_t tbl)
 {
     // Permute input samples for 8x2 by 2x8 matrix multiply.
     uint8x16_t perm = vqtbl1q_u8(samples, tbl.val[0]);
@@ -133,19 +115,16 @@ int16x4_t inline filter8_4_ps_matmul(uint8x16_t samples, const int8x16_t filter,
 
     int16x8_t offset_matmul = constant;
 
-    if (coeff2)
-    {
+    if (coeff2) {
         // Substract the source elements corresponding to filter tap value -1,
         // which weren't included in the initial matrix multiplication.
-        offset_matmul = vreinterpretq_s16_u16(
-            vsubw_u8(vreinterpretq_u16_s16(offset_matmul), vget_low_u8(samples)));
+        offset_matmul = vreinterpretq_s16_u16(vsubw_u8(vreinterpretq_u16_s16(offset_matmul), vget_low_u8(samples)));
     }
 
     return vadd_s16(vmovn_s32(matmul), vget_low_s16(offset_matmul));
 }
 
-uint8x8_t inline filter4_8_pp(uint8x16_t samples, const int8x8_t filter,
-                              const uint8x16x2_t tbl)
+uint8x8_t inline filter4_8_pp(uint8x16_t samples, const int8x8_t filter, const uint8x16x2_t tbl)
 {
     // Permute input samples for dot product.
     // { 0,  1,  2,  3,  1,  2,  3,  4,  2,  3,  4,  5,  3,  4,  5,  6 }
@@ -157,8 +136,7 @@ uint8x8_t inline filter4_8_pp(uint8x16_t samples, const int8x8_t filter,
     int32x4_t dotprod_hi = vusdotq_lane_s32(vdupq_n_s32(0), perm_s1, filter, 0);
 
     // Narrow and combine.
-    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo),
-                                     vmovn_s32(dotprod_hi));
+    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
     return vqrshrun_n_s16(dotprod, IF_FILTER_PREC);
 }
 
@@ -179,14 +157,12 @@ void inline transpose_concat_4x4(const uint8x8_t *s, uint8x16_t &d)
     uint8x16_t s01 = vzipq_u8(s0q, s1q).val[0];
     uint8x16_t s23 = vzipq_u8(s2q, s3q).val[0];
 
-    uint16x8_t s0123 =
-        vzipq_u16(vreinterpretq_u16_u8(s01), vreinterpretq_u16_u8(s23)).val[0];
+    uint16x8_t s0123 = vzipq_u16(vreinterpretq_u16_u8(s01), vreinterpretq_u16_u8(s23)).val[0];
 
     d = vreinterpretq_u8_u16(s0123);
 }
 
-void inline transpose_concat_8x4(const uint8x8_t *s, uint8x16_t &d0,
-                                 uint8x16_t &d1)
+void inline transpose_concat_8x4(const uint8x8_t *s, uint8x16_t &d0, uint8x16_t &d1)
 {
     // Transpose 8-bit elements and concatenate result rows as follows:
     // s0: 00, 01, 02, 03, 04, 05, 06, 07
@@ -204,16 +180,13 @@ void inline transpose_concat_8x4(const uint8x8_t *s, uint8x16_t &d0,
     uint8x16_t s01 = vzipq_u8(s0q, s1q).val[0];
     uint8x16_t s23 = vzipq_u8(s2q, s3q).val[0];
 
-    uint16x8x2_t s0123 =
-        vzipq_u16(vreinterpretq_u16_u8(s01), vreinterpretq_u16_u8(s23));
+    uint16x8x2_t s0123 = vzipq_u16(vreinterpretq_u16_u8(s01), vreinterpretq_u16_u8(s23));
 
     d0 = vreinterpretq_u8_u16(s0123.val[0]);
     d1 = vreinterpretq_u8_u16(s0123.val[1]);
 }
 
-int16x4_t inline filter8_4_ps_partial(const uint8x16_t s0, const uint8x16_t s1,
-                                      const int16x8_t constant,
-                                      const int8x8_t filter)
+int16x4_t inline filter8_4_ps_partial(const uint8x16_t s0, const uint8x16_t s1, const int16x8_t constant, const int8x8_t filter)
 
 {
     int32x4_t dotprod = vusdotq_lane_s32(vdupq_n_s32(0), s0, filter, 0);
@@ -221,9 +194,7 @@ int16x4_t inline filter8_4_ps_partial(const uint8x16_t s0, const uint8x16_t s1,
     return vadd_s16(vmovn_s32(dotprod), vget_low_s16(constant));
 }
 
-int16x8_t inline filter8_8_ps_partial(const uint8x16_t s0, const uint8x16_t s1,
-                                      const uint8x16_t s2, const uint8x16_t s3,
-                                      const int16x8_t constant,
+int16x8_t inline filter8_8_ps_partial(const uint8x16_t s0, const uint8x16_t s1, const uint8x16_t s2, const uint8x16_t s3, const int16x8_t constant,
                                       const int8x8_t filter)
 {
     int32x4_t dotprod_lo = vusdotq_lane_s32(vdupq_n_s32(0), s0, filter, 0);
@@ -232,14 +203,11 @@ int16x8_t inline filter8_8_ps_partial(const uint8x16_t s0, const uint8x16_t s1,
     dotpro_hi = vusdotq_lane_s32(dotpro_hi, s3, filter, 1);
 
     // Narrow and combine.
-    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo),
-                                     vmovn_s32(dotpro_hi));
+    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotpro_hi));
     return vaddq_s16(dotprod, constant);
 }
 
-uint8x8_t inline filter8_8_pp_partial(const uint8x16_t s0, const uint8x16_t s1,
-                                      const uint8x16_t s2, const uint8x16_t s3,
-                                      const int8x8_t filter)
+uint8x8_t inline filter8_8_pp_partial(const uint8x16_t s0, const uint8x16_t s1, const uint8x16_t s2, const uint8x16_t s3, const int8x8_t filter)
 {
     int32x4_t dotprod_lo = vusdotq_lane_s32(vdupq_n_s32(0), s0, filter, 0);
     dotprod_lo = vusdotq_lane_s32(dotprod_lo, s2, filter, 1);
@@ -247,16 +215,14 @@ uint8x8_t inline filter8_8_pp_partial(const uint8x16_t s0, const uint8x16_t s1,
     dotprod_hi = vusdotq_lane_s32(dotprod_hi, s3, filter, 1);
 
     // Narrow and combine.
-    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo),
-                                     vmovn_s32(dotprod_hi));
+    int16x8_t dotprod = vcombine_s16(vmovn_s32(dotprod_lo), vmovn_s32(dotprod_hi));
     return vqrshrun_n_s16(dotprod, IF_FILTER_PREC);
 }
-} // Unnamed namespace.
+}  // Unnamed namespace.
 
 namespace X265_NS {
-template<bool coeff2, int width, int height>
-void inline interp8_horiz_pp_matmul(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
-                                    intptr_t dstStride, int coeffIdx)
+template <bool coeff2, int width, int height>
+void inline interp8_horiz_pp_matmul(const uint8_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 8;
     const uint8x16x2_t tbl = vld1q_u8_x2(matmul_permute_tbl[coeffIdx >> 1]);
@@ -264,13 +230,10 @@ void inline interp8_horiz_pp_matmul(const uint8_t *src, intptr_t srcStride, uint
 
     src -= N_TAPS / 2 - 1;
 
-    for (int row = 0; row < height; row += 4)
-    {
+    for (int row = 0; row < height; row += 4) {
         int col = 0;
-        if (width >= 32)
-        {
-            for (; (col + 16) <= width; col += 16)
-            {
+        if (width >= 32) {
+            for (; (col + 16) <= width; col += 16) {
                 uint8x16_t s_lo[4], s_hi[4];
                 load_u8x16xn<4>(src + col + 0, srcStride, s_lo);
                 load_u8x16xn<4>(src + col + 8, srcStride, s_hi);
@@ -290,11 +253,8 @@ void inline interp8_horiz_pp_matmul(const uint8_t *src, intptr_t srcStride, uint
                 store_u8x8xn<4>(dst + col + 0, dstStride, d_lo);
                 store_u8x8xn<4>(dst + col + 8, dstStride, d_hi);
             }
-        }
-        else
-        {
-            for (; col + 8 <= width; col += 8)
-            {
+        } else {
+            for (; col + 8 <= width; col += 8) {
                 uint8x16_t s[4];
                 load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -307,8 +267,7 @@ void inline interp8_horiz_pp_matmul(const uint8_t *src, intptr_t srcStride, uint
                 store_u8x8xn<4>(dst + col, dstStride, d);
             }
         }
-        for (; col < width; col += 4)
-        {
+        for (; col < width; col += 4) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -326,25 +285,18 @@ void inline interp8_horiz_pp_matmul(const uint8_t *src, intptr_t srcStride, uint
     }
 }
 
-template<int width, int height>
-void interp8_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
-                           intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp8_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx)
 {
-    switch (coeffIdx)
-    {
+    switch (coeffIdx) {
     case 2:
-        return interp8_horiz_pp_matmul<true, width, height>(src, srcStride, dst,
-                                                            dstStride, coeffIdx);
+        return interp8_horiz_pp_matmul<true, width, height>(src, srcStride, dst, dstStride, coeffIdx);
     default:
-        return interp8_horiz_pp_matmul<false, width, height>(src, srcStride, dst,
-                                                             dstStride, coeffIdx);
+        return interp8_horiz_pp_matmul<false, width, height>(src, srcStride, dst, dstStride, coeffIdx);
     }
 }
 
-template<bool coeff2, int width, int height>
-void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
-                                    int16_t *dst, intptr_t dstStride,
-                                    int coeffIdx, int isRowExt)
+template <bool coeff2, int width, int height>
+void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride, int16_t *dst, intptr_t dstStride, int coeffIdx, int isRowExt)
 {
     const int offset = (unsigned)-IF_INTERNAL_OFFS;
     const int N_TAPS = 8;
@@ -354,19 +306,15 @@ void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
     int blkheight = height;
 
     src -= N_TAPS / 2 - 1;
-    if (isRowExt)
-    {
+    if (isRowExt) {
         src -= (N_TAPS / 2 - 1) * srcStride;
         blkheight += N_TAPS - 1;
     }
 
-    for (int row = 0; row + 4 <= blkheight; row += 4)
-    {
+    for (int row = 0; row + 4 <= blkheight; row += 4) {
         int col = 0;
-        if (width >= 32)
-        {
-            for (; col + 16 <= width; col += 16)
-            {
+        if (width >= 32) {
+            for (; col + 16 <= width; col += 16) {
                 uint8x16_t s_lo[4], s_hi[4];
                 load_u8x16xn<4>(src + col + 0, srcStride, s_lo);
                 load_u8x16xn<4>(src + col + 8, srcStride, s_hi);
@@ -386,11 +334,8 @@ void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
                 store_s16x8xn<4>(dst + col + 0, dstStride, d_lo);
                 store_s16x8xn<4>(dst + col + 8, dstStride, d_hi);
             }
-        }
-        else
-        {
-            for (; col + 8 <= width; col += 8)
-            {
+        } else {
+            for (; col + 8 <= width; col += 8) {
                 uint8x16_t s[4];
                 load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -403,8 +348,7 @@ void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
                 store_s16x8xn<4>(dst + col, dstStride, d);
             }
         }
-        for (; col < width; col += 4)
-        {
+        for (; col < width; col += 4) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -421,12 +365,10 @@ void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
         dst += 4 * dstStride;
     }
 
-    if (isRowExt)
-    {
+    if (isRowExt) {
         // process final 3 rows
         int col = 0;
-        for (; (col + 8) <= width; col += 8)
-        {
+        for (; (col + 8) <= width; col += 8) {
             uint8x16_t s[3];
             load_u8x16xn<3>(src + col, srcStride, s);
 
@@ -438,8 +380,7 @@ void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
             store_s16x8xn<3>(dst + col, dstStride, d);
         }
 
-        for (; col < width; col += 4)
-        {
+        for (; col < width; col += 4) {
             uint8x16_t s[3];
             load_u8x16xn<3>(src + col, srcStride, s);
 
@@ -453,26 +394,18 @@ void inline interp8_horiz_ps_matmul(const uint8_t *src, intptr_t srcStride,
     }
 }
 
-template<int width, int height>
-void interp8_horiz_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
-                           intptr_t dstStride, int coeffIdx, int isRowExt)
+template <int width, int height>
+void interp8_horiz_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst, intptr_t dstStride, int coeffIdx, int isRowExt)
 {
-    switch (coeffIdx)
-    {
+    switch (coeffIdx) {
     case 2:
-        return interp8_horiz_ps_matmul<true, width, height>(src, srcStride, dst,
-                                                            dstStride, coeffIdx,
-                                                            isRowExt);
+        return interp8_horiz_ps_matmul<true, width, height>(src, srcStride, dst, dstStride, coeffIdx, isRowExt);
     default:
-        return interp8_horiz_ps_matmul<false, width, height>(src, srcStride, dst,
-                                                             dstStride, coeffIdx,
-                                                             isRowExt);
+        return interp8_horiz_ps_matmul<false, width, height>(src, srcStride, dst, dstStride, coeffIdx, isRowExt);
     }
 }
 
-template<int width, int height>
-void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
-                           intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 4;
 
@@ -482,11 +415,9 @@ void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
     const int16x4_t filter_16 = vld1_s16(g_chromaFilter[coeffIdx]);
     const int8x8_t filter = vmovn_s16(vcombine_s16(filter_16, vdup_n_s16(0)));
 
-    for (int row = 0; row + 4 <= height; row += 4)
-    {
+    for (int row = 0; row + 4 <= height; row += 4) {
         int col = 0;
-        for (; col + 16 <= width; col += 16)
-        {
+        for (; col + 16 <= width; col += 16) {
             uint8x16_t s0[4], s1[4];
             load_u8x16xn<4>(src + col + 0, srcStride, s0);
             load_u8x16xn<4>(src + col + 8, srcStride, s1);
@@ -512,8 +443,7 @@ void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
             store_u8x16xn<4>(dst + col, dstStride, d);
         }
 
-        for (; col + 8 <= width; col += 8)
-        {
+        for (; col + 8 <= width; col += 8) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -527,8 +457,7 @@ void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
         }
 
         // Block sizes 12xH, 6xH, 4xH, 2xH.
-        if (width % 8 != 0)
-        {
+        if (width % 8 != 0) {
             uint8x16_t s[4];
             load_u8x16xn<4>(src + col, srcStride, s);
 
@@ -547,8 +476,7 @@ void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
     }
 
     // Block sizes 8x6, 8x2, 4x2.
-    if (height & 2)
-    {
+    if (height & 2) {
         uint8x16_t s[4];
         load_u8x16xn<2>(src, srcStride, s);
 
@@ -561,9 +489,7 @@ void interp4_horiz_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
     }
 }
 
-template<int width, int height>
-void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
-                          intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int offset = (unsigned)-IF_INTERNAL_OFFS;
 
@@ -575,8 +501,7 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
 
     const int16x8_t c = vdupq_n_s16(offset);
 
-    if (width % 8 != 0)
-    {
+    if (width % 8 != 0) {
         uint8x8_t s[11];
         uint8x16x2_t samples_tbl;
         uint8x16_t s_lo[8];
@@ -584,8 +509,7 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
         const uint8_t *src_ptr = src;
         int16_t *dst_ptr = dst;
 
-        if (width == 12)
-        {
+        if (width == 12) {
             load_u8x8xn<7>(src_ptr, srcStride, s);
 
             s[7] = vdup_n_u8(0);
@@ -602,33 +526,28 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
 
             src_ptr += 7 * srcStride;
 
-            for (int row = 0; row < height; row += 4)
-            {
+            for (int row = 0; row < height; row += 4) {
                 load_u8x8xn<4>(src_ptr, srcStride, s + 7);
 
                 transpose_concat_8x4(s + 7, s_lo[7], s_hi[7]);
 
                 // Merge new data into block from previous iteration.
-                samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
                 s_lo[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_lo[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_lo[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
-                samples_tbl.val[0] = s_hi[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_hi[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_hi[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_hi[7];  // rows 7, 8, 9, 10
                 s_hi[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_hi[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_hi[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
 
                 int16x8_t d[4];
-                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4],
-                                            c, filter);
-                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5],
-                                            c, filter);
-                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6],
-                                            c, filter);
-                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7],
-                                            c, filter);
+                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4], c, filter);
+                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5], c, filter);
+                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6], c, filter);
+                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7], c, filter);
 
                 store_s16x8xn<4>(dst_ptr, dstStride, d);
 
@@ -665,15 +584,14 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
 
         src_ptr += 7 * srcStride;
 
-        for (int row = 0; row < height; row += 4)
-        {
+        for (int row = 0; row < height; row += 4) {
             load_u8x8xn<4>(src_ptr, srcStride, s + 7);
 
             transpose_concat_4x4(s + 7, s_lo[7]);
 
             // Merge new data into block from previous iteration.
-            samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-            samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+            samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+            samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
             s_lo[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
             s_lo[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
             s_lo[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
@@ -694,11 +612,8 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
             src_ptr += 4 * srcStride;
             dst_ptr += 4 * dstStride;
         }
-    }
-    else
-    {
-        for (int col = 0; col < width; col += 8)
-        {
+    } else {
+        for (int col = 0; col < width; col += 8) {
             const uint8_t *src_ptr = src + col;
             int16_t *dst_ptr = dst + col;
             uint8x8_t s[11];
@@ -718,33 +633,28 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
 
             src_ptr += 7 * srcStride;
 
-            for (int row = 0; row < height; row += 4)
-            {
+            for (int row = 0; row < height; row += 4) {
                 load_u8x8xn<4>(src_ptr, srcStride, s + 7);
 
                 transpose_concat_8x4(s + 7, s_lo[7], s_hi[7]);
 
                 // Merge new data into block from previous iteration.
-                samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
                 s_lo[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_lo[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_lo[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
-                samples_tbl.val[0] = s_hi[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_hi[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_hi[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_hi[7];  // rows 7, 8, 9, 10
                 s_hi[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_hi[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_hi[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
 
                 int16x8_t d[4];
-                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4],
-                                            c, filter);
-                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5],
-                                            c, filter);
-                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6],
-                                            c, filter);
-                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7],
-                                            c, filter);
+                d[0] = filter8_8_ps_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4], c, filter);
+                d[1] = filter8_8_ps_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5], c, filter);
+                d[2] = filter8_8_ps_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6], c, filter);
+                d[3] = filter8_8_ps_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7], c, filter);
 
                 store_s16x8xn<4>(dst_ptr, dstStride, d);
 
@@ -764,9 +674,7 @@ void interp8_vert_ps_i8mm(const uint8_t *src, intptr_t srcStride, int16_t *dst,
     }
 }
 
-template<int width, int height>
-void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
-                          intptr_t dstStride, int coeffIdx)
+template <int width, int height> void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 8;
 
@@ -775,8 +683,7 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
     const uint8x16x3_t merge_block_tbl = vld1q_u8_x3(dot_prod_merge_block_tbl);
     const int8x8_t filter = vmovn_s16(vld1q_s16(g_lumaFilter[coeffIdx]));
 
-    if (width % 8 != 0)
-    {
+    if (width % 8 != 0) {
         uint8x8_t s[11];
         uint8x16x2_t samples_tbl;
         uint8x16_t s_lo[8];
@@ -784,8 +691,7 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
         const uint8_t *src_ptr = src;
         uint8_t *dst_ptr = dst;
 
-        if (width == 12)
-        {
+        if (width == 12) {
             load_u8x8xn<7>(src_ptr, srcStride, s);
 
             s[7] = vdup_n_u8(0);
@@ -802,33 +708,28 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
 
             src_ptr += 7 * srcStride;
 
-            for (int row = 0; row < height; row += 4)
-            {
+            for (int row = 0; row < height; row += 4) {
                 load_u8x8xn<4>(src_ptr, srcStride, s + 7);
 
                 transpose_concat_8x4(s + 7, s_lo[7], s_hi[7]);
 
                 // Merge new data into block from previous iteration.
-                samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
                 s_lo[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_lo[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_lo[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
-                samples_tbl.val[0] = s_hi[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_hi[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_hi[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_hi[7];  // rows 7, 8, 9, 10
                 s_hi[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_hi[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_hi[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
 
                 uint8x8_t d[4];
-                d[0] = filter8_8_pp_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4],
-                                            filter);
-                d[1] = filter8_8_pp_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5],
-                                            filter);
-                d[2] = filter8_8_pp_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6],
-                                            filter);
-                d[3] = filter8_8_pp_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7],
-                                            filter);
+                d[0] = filter8_8_pp_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4], filter);
+                d[1] = filter8_8_pp_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5], filter);
+                d[2] = filter8_8_pp_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6], filter);
+                d[3] = filter8_8_pp_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7], filter);
 
                 store_u8x8xn<4>(dst_ptr, dstStride, d);
 
@@ -865,24 +766,21 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
 
         src_ptr += 7 * srcStride;
 
-        for (int row = 0; row < height; row += 4)
-        {
+        for (int row = 0; row < height; row += 4) {
             load_u8x8xn<4>(src_ptr, srcStride, s + 7);
 
             transpose_concat_4x4(s + 7, s_lo[7]);
 
             // Merge new data into block from previous iteration.
-            samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-            samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+            samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+            samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
             s_lo[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
             s_lo[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
             s_lo[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
 
             uint8x8_t d[2];
-            d[0] = filter8_8_pp_partial(s_lo[0], s_lo[1], s_lo[4], s_lo[5],
-                                        filter);
-            d[1] = filter8_8_pp_partial(s_lo[2], s_lo[3], s_lo[6], s_lo[7],
-                                        filter);
+            d[0] = filter8_8_pp_partial(s_lo[0], s_lo[1], s_lo[4], s_lo[5], filter);
+            d[1] = filter8_8_pp_partial(s_lo[2], s_lo[3], s_lo[6], s_lo[7], filter);
 
             store_u8x4_strided_xN<4>(dst_ptr, dstStride, d);
 
@@ -894,11 +792,8 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
             src_ptr += 4 * srcStride;
             dst_ptr += 4 * dstStride;
         }
-    }
-    else
-    {
-        for (int col = 0; col < width; col += 8)
-        {
+    } else {
+        for (int col = 0; col < width; col += 8) {
             const uint8_t *src_ptr = src + col;
             uint8_t *dst_ptr = dst + col;
             uint8x8_t s[11];
@@ -918,33 +813,28 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
 
             src_ptr += 7 * srcStride;
 
-            for (int row = 0; row < height; row += 4)
-            {
+            for (int row = 0; row < height; row += 4) {
                 load_u8x8xn<4>(src_ptr, srcStride, s + 7);
 
                 transpose_concat_8x4(s + 7, s_lo[7], s_hi[7]);
 
                 // Merge new data into block from previous iteration.
-                samples_tbl.val[0] = s_lo[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_lo[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_lo[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_lo[7];  // rows 7, 8, 9, 10
                 s_lo[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_lo[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_lo[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
-                samples_tbl.val[0] = s_hi[3]; // rows 3, 4, 5, 6
-                samples_tbl.val[1] = s_hi[7]; // rows 7, 8, 9, 10
+                samples_tbl.val[0] = s_hi[3];  // rows 3, 4, 5, 6
+                samples_tbl.val[1] = s_hi[7];  // rows 7, 8, 9, 10
                 s_hi[4] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[0]);
                 s_hi[5] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[1]);
                 s_hi[6] = vqtbl2q_u8(samples_tbl, merge_block_tbl.val[2]);
 
                 uint8x8_t d[4];
-                d[0] = filter8_8_pp_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4],
-                                            filter);
-                d[1] = filter8_8_pp_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5],
-                                            filter);
-                d[2] = filter8_8_pp_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6],
-                                            filter);
-                d[3] = filter8_8_pp_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7],
-                                            filter);
+                d[0] = filter8_8_pp_partial(s_lo[0], s_hi[0], s_lo[4], s_hi[4], filter);
+                d[1] = filter8_8_pp_partial(s_lo[1], s_hi[1], s_lo[5], s_hi[5], filter);
+                d[2] = filter8_8_pp_partial(s_lo[2], s_hi[2], s_lo[6], s_hi[6], filter);
+                d[3] = filter8_8_pp_partial(s_lo[3], s_hi[3], s_lo[7], s_hi[7], filter);
 
                 store_u8x8xn<4>(dst_ptr, dstStride, d);
 
@@ -964,9 +854,8 @@ void interp8_vert_pp_i8mm(const uint8_t *src, intptr_t srcStride, uint8_t *dst,
     }
 }
 
-template<bool coeff2, int coeffIdy, int width, int height>
-void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
-                        intptr_t dstStride, int coeffIdx)
+template <bool coeff2, int coeffIdy, int width, int height>
+void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst, intptr_t dstStride, int coeffIdx)
 {
     const int N_TAPS = 8;
     const int v_shift = IF_FILTER_PREC + IF_INTERNAL_PREC - X265_DEPTH;
@@ -976,15 +865,13 @@ void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
     const int8x16_t h_filter = vld1q_s8(matmul_luma_filter[coeffIdx - 1]);
     const int16x8_t v_filter = vld1q_s16(X265_NS::g_lumaFilter[coeffIdy]);
     const int16x8_t h_offset = vdupq_n_s16((int16_t)-IF_INTERNAL_OFFS);
-    const int32x4_t v_offset = vdupq_n_s32((1 << (v_shift - 1)) +
-                                           (IF_INTERNAL_OFFS << IF_FILTER_PREC));
+    const int32x4_t v_offset = vdupq_n_s32((1 << (v_shift - 1)) + (IF_INTERNAL_OFFS << IF_FILTER_PREC));
     const uint8x16_t shr_tbl = vld1q_u8(vert_shr_tbl);
 
     src -= (N_TAPS / 2 - 1) * srcStride + (N_TAPS / 2 - 1);
 
     int col = 0;
-    for (; col + 16 <= width; col += 16)
-    {
+    for (; col + 16 <= width; col += 16) {
         const pixel *s = src;
         pixel *d = dst;
 
@@ -1028,8 +915,7 @@ void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
 
         s += 7 * srcStride;
 
-        for (int row = 0; row < height; row += 4)
-        {
+        for (int row = 0; row < height; row += 4) {
             uint8x8_t res_lo[4], res_hi[4];
             int32x4_t sum_lo[8], sum_hi[8];
 
@@ -1037,57 +923,49 @@ void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
             v_s0[7] = filter8_8_ps_matmul<coeff2>(h_s0[7], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s0 + 0, v_filter, v_offset, sum_lo[0], sum_hi[0]);
             v_s0[0] = v_s0[4];
-            res_lo[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[0], sum_hi[0], shr_tbl),
-                                      v_shift_offset);
+            res_lo[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[0], sum_hi[0], shr_tbl), v_shift_offset);
 
             h_s1[7] = vld1q_u8(s + 0 * srcStride + 8);
             v_s1[7] = filter8_8_ps_matmul<coeff2>(h_s1[7], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s1 + 0, v_filter, v_offset, sum_lo[1], sum_hi[1]);
             v_s1[0] = v_s1[4];
-            res_hi[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[1], sum_hi[1], shr_tbl),
-                                      v_shift_offset);
+            res_hi[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[1], sum_hi[1], shr_tbl), v_shift_offset);
 
             h_s0[8] = vld1q_u8(s + 1 * srcStride + 0);
             v_s0[8] = filter8_8_ps_matmul<coeff2>(h_s0[8], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s0 + 1, v_filter, v_offset, sum_lo[2], sum_hi[2]);
             v_s0[1] = v_s0[5];
-            res_lo[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[2], sum_hi[2], shr_tbl),
-                                      v_shift_offset);
+            res_lo[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[2], sum_hi[2], shr_tbl), v_shift_offset);
 
             h_s1[8] = vld1q_u8(s + 1 * srcStride + 8);
             v_s1[8] = filter8_8_ps_matmul<coeff2>(h_s1[8], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s1 + 1, v_filter, v_offset, sum_lo[3], sum_hi[3]);
             v_s1[1] = v_s1[5];
-            res_hi[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[3], sum_hi[3], shr_tbl),
-                                      v_shift_offset);
+            res_hi[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[3], sum_hi[3], shr_tbl), v_shift_offset);
 
             h_s0[9] = vld1q_u8(s + 2 * srcStride + 0);
             v_s0[9] = filter8_8_ps_matmul<coeff2>(h_s0[9], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s0 + 2, v_filter, v_offset, sum_lo[4], sum_hi[4]);
             v_s0[2] = v_s0[6];
-            res_lo[2] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[4], sum_hi[4], shr_tbl),
-                                      v_shift_offset);
+            res_lo[2] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[4], sum_hi[4], shr_tbl), v_shift_offset);
 
             h_s1[9] = vld1q_u8(s + 2 * srcStride + 8);
             v_s1[9] = filter8_8_ps_matmul<coeff2>(h_s1[9], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s1 + 2, v_filter, v_offset, sum_lo[5], sum_hi[5]);
             v_s1[2] = v_s1[6];
-            res_hi[2] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[5], sum_hi[5], shr_tbl),
-                                      v_shift_offset);
+            res_hi[2] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[5], sum_hi[5], shr_tbl), v_shift_offset);
 
             h_s0[10] = vld1q_u8(s + 3 * srcStride + 0);
             v_s0[10] = filter8_8_ps_matmul<coeff2>(h_s0[10], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s0 + 3, v_filter, v_offset, sum_lo[6], sum_hi[6]);
             v_s0[3] = v_s0[7];
-            res_lo[3] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[6], sum_hi[6], shr_tbl),
-                                      v_shift_offset);
+            res_lo[3] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[6], sum_hi[6], shr_tbl), v_shift_offset);
 
             h_s1[10] = vld1q_u8(s + 3 * srcStride + 8);
             v_s1[10] = filter8_8_ps_matmul<coeff2>(h_s1[10], h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s1 + 3, v_filter, v_offset, sum_lo[7], sum_hi[7]);
             v_s1[3] = v_s1[7];
-            res_hi[3] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[7], sum_hi[7], shr_tbl),
-                                      v_shift_offset);
+            res_hi[3] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[7], sum_hi[7], shr_tbl), v_shift_offset);
 
             vst1q_u8(d + 0 * dstStride, vcombine_u8(res_lo[0], res_hi[0]));
             vst1q_u8(d + 1 * dstStride, vcombine_u8(res_lo[1], res_hi[1]));
@@ -1109,61 +987,44 @@ void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
         dst += 16;
     }
 
-    for (; col + 8 <= width; col += 8)
-    {
+    for (; col + 8 <= width; col += 8) {
         const pixel *s = src;
         pixel *d = dst;
 
         int16x8_t v_s[11];
-        v_s[0] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[1] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[2] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[3] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[4] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 4 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[5] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 5 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[6] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 6 * srcStride), h_filter,
-                                             h_offset, tbl);
+        v_s[0] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter, h_offset, tbl);
+        v_s[1] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter, h_offset, tbl);
+        v_s[2] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter, h_offset, tbl);
+        v_s[3] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter, h_offset, tbl);
+        v_s[4] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 4 * srcStride), h_filter, h_offset, tbl);
+        v_s[5] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 5 * srcStride), h_filter, h_offset, tbl);
+        v_s[6] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 6 * srcStride), h_filter, h_offset, tbl);
 
         s += 7 * srcStride;
 
-        for (int row = 0; row < height; row += 4)
-        {
+        for (int row = 0; row < height; row += 4) {
             uint8x8_t res[4];
             int32x4_t sum_lo[4], sum_hi[4];
 
-            v_s[7] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter,
-                                                 h_offset, tbl);
+            v_s[7] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s + 0, v_filter, v_offset, sum_lo[0], sum_hi[0]);
             v_s[0] = v_s[4];
-            res[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[0], sum_hi[0], shr_tbl),
-                                   v_shift_offset);
+            res[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[0], sum_hi[0], shr_tbl), v_shift_offset);
 
-            v_s[8] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter,
-                                                 h_offset, tbl);
+            v_s[8] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s + 1, v_filter, v_offset, sum_lo[1], sum_hi[1]);
             v_s[1] = v_s[5];
-            res[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[1], sum_hi[1], shr_tbl),
-                                   v_shift_offset);
+            res[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[1], sum_hi[1], shr_tbl), v_shift_offset);
 
-            v_s[9] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter,
-                                                 h_offset, tbl);
+            v_s[9] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s + 2, v_filter, v_offset, sum_lo[2], sum_hi[2]);
             v_s[2] = v_s[6];
-            res[2] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[2], sum_hi[2], shr_tbl),
-                                   v_shift_offset);
+            res[2] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[2], sum_hi[2], shr_tbl), v_shift_offset);
 
-            v_s[10] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter,
-                                                  h_offset, tbl);
+            v_s[10] = filter8_8_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x8<coeffIdy>(v_s + 3, v_filter, v_offset, sum_lo[3], sum_hi[3]);
             v_s[3] = v_s[7];
-            res[3] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[3], sum_hi[3], shr_tbl),
-                                   v_shift_offset);
+            res[3] = vqshrun_n_s16(vtbl2q_s32_s16(sum_lo[3], sum_hi[3], shr_tbl), v_shift_offset);
 
             store_u8xnxm<8, 4>(d + 0, dstStride, res);
 
@@ -1179,58 +1040,43 @@ void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
         dst += 8;
     }
 
-    if (width % 8 != 0)
-    {
+    if (width % 8 != 0) {
         const pixel *s = src;
         pixel *d = dst;
 
         int16x4_t v_s[11];
-        v_s[0] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[1] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[2] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[3] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[4] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 4 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[5] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 5 * srcStride), h_filter,
-                                             h_offset, tbl);
-        v_s[6] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 6 * srcStride), h_filter,
-                                             h_offset, tbl);
+        v_s[0] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter, h_offset, tbl);
+        v_s[1] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter, h_offset, tbl);
+        v_s[2] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter, h_offset, tbl);
+        v_s[3] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter, h_offset, tbl);
+        v_s[4] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 4 * srcStride), h_filter, h_offset, tbl);
+        v_s[5] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 5 * srcStride), h_filter, h_offset, tbl);
+        v_s[6] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 6 * srcStride), h_filter, h_offset, tbl);
 
         s += 7 * srcStride;
 
-        for (int row = 0; row < height; row += 4)
-        {
+        for (int row = 0; row < height; row += 4) {
             uint8x8_t res[2];
             int32x4_t sum[4];
 
-            v_s[7] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter,
-                                                 h_offset, tbl);
+            v_s[7] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 0 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x4<coeffIdy>(v_s + 0, v_filter, v_offset, sum[0]);
             v_s[0] = v_s[4];
 
-            v_s[8] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter,
-                                                 h_offset, tbl);
+            v_s[8] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 1 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x4<coeffIdy>(v_s + 1, v_filter, v_offset, sum[1]);
             v_s[1] = v_s[5];
 
-            v_s[9] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter,
-                                                 h_offset, tbl);
+            v_s[9] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 2 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x4<coeffIdy>(v_s + 2, v_filter, v_offset, sum[2]);
             v_s[2] = v_s[6];
 
-            v_s[10] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter,
-                                                  h_offset, tbl);
+            v_s[10] = filter8_4_ps_matmul<coeff2>(vld1q_u8(s + 3 * srcStride), h_filter, h_offset, tbl);
             filter8_s16x4<coeffIdy>(v_s + 3, v_filter, v_offset, sum[3]);
             v_s[3] = v_s[7];
 
-            res[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum[0], sum[1], shr_tbl),
-                                   v_shift_offset);
-            res[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum[2], sum[3], shr_tbl),
-                                   v_shift_offset);
+            res[0] = vqshrun_n_s16(vtbl2q_s32_s16(sum[0], sum[1], shr_tbl), v_shift_offset);
+            res[1] = vqshrun_n_s16(vtbl2q_s32_s16(sum[2], sum[3], shr_tbl), v_shift_offset);
 
             store_u8x4_strided_xN<4>(d + 0 * dstStride, dstStride, res);
 
@@ -1245,78 +1091,59 @@ void interp8_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
 }
 
 // Declaration for use in interp_hv_pp_i8mm().
-template<int N, int width, int height>
-void interp_vert_sp_neon(const int16_t *src, intptr_t srcStride, uint8_t *dst,
-                         intptr_t dstStride, int coeffIdx);
+template <int N, int width, int height>
+void interp_vert_sp_neon(const int16_t *src, intptr_t srcStride, uint8_t *dst, intptr_t dstStride, int coeffIdx);
 
-template<int width, int height>
-void interp_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst,
-                       intptr_t dstStride, int idxX, int idxY)
+template <int width, int height> void interp_hv_pp_i8mm(const pixel *src, intptr_t srcStride, pixel *dst, intptr_t dstStride, int idxX, int idxY)
 {
 // Use the merged hv paths with Clang only as performance with GCC is worse than the
 // existing approach of doing horizontal and vertical interpolation separately.
 #ifdef __clang__
-    switch (idxX)
-    {
+    switch (idxX) {
     case 2:
-        switch (idxY)
-        {
+        switch (idxY) {
         case 1:
-            return interp8_hv_pp_i8mm<true, 1, width, height>(src, srcStride, dst,
-                                                              dstStride, idxX);
+            return interp8_hv_pp_i8mm<true, 1, width, height>(src, srcStride, dst, dstStride, idxX);
         case 2:
-            return interp8_hv_pp_i8mm<true, 2, width, height>(src, srcStride, dst,
-                                                              dstStride, idxX);
+            return interp8_hv_pp_i8mm<true, 2, width, height>(src, srcStride, dst, dstStride, idxX);
         case 3:
-            return interp8_hv_pp_i8mm<true, 3, width, height>(src, srcStride, dst,
-                                                              dstStride, idxX);
+            return interp8_hv_pp_i8mm<true, 3, width, height>(src, srcStride, dst, dstStride, idxX);
         }
 
     default:
-        switch (idxY)
-        {
+        switch (idxY) {
         case 1:
-            return interp8_hv_pp_i8mm<false, 1, width, height>(src, srcStride, dst,
-                                                               dstStride, idxX);
+            return interp8_hv_pp_i8mm<false, 1, width, height>(src, srcStride, dst, dstStride, idxX);
         case 2:
-            return interp8_hv_pp_i8mm<false, 2, width, height>(src, srcStride, dst,
-                                                               dstStride, idxX);
+            return interp8_hv_pp_i8mm<false, 2, width, height>(src, srcStride, dst, dstStride, idxX);
         case 3:
-            return interp8_hv_pp_i8mm<false, 3, width, height>(src, srcStride, dst,
-                                                               dstStride, idxX);
+            return interp8_hv_pp_i8mm<false, 3, width, height>(src, srcStride, dst, dstStride, idxX);
         }
     }
 
-#else // __clang__
+#else   // __clang__
     // Implementation of luma_hvpp, using Neon I8MM implementation for the
     // horizontal part, and Armv8.0 Neon implementation for the vertical part.
     const int N = 8;
     ALIGN_VAR_32(int16_t, immed[width * (height + N - 1)]);
 
     interp8_horiz_ps_i8mm<width, height>(src, srcStride, immed, width, idxX, 1);
-    interp_vert_sp_neon<N, width, height>(immed + (N / 2 - 1) * width, width, dst,
-                                          dstStride, idxY);
-#endif // __clang__
+    interp_vert_sp_neon<N, width, height>(immed + (N / 2 - 1) * width, width, dst, dstStride, idxY);
+#endif  // __clang__
 }
 
-#define LUMA_I8MM(W, H) \
-        p.pu[LUMA_ ## W ## x ## H].luma_hpp = interp8_horiz_pp_i8mm<W, H>; \
-        p.pu[LUMA_ ## W ## x ## H].luma_hps = interp8_horiz_ps_i8mm<W, H>; \
-        p.pu[LUMA_ ## W ## x ## H].luma_vps = interp8_vert_ps_i8mm<W, H>;  \
-        p.pu[LUMA_ ## W ## x ## H].luma_vpp = interp8_vert_pp_i8mm<W, H>;  \
-        p.pu[LUMA_ ## W ## x ## H].luma_hvpp = interp_hv_pp_i8mm<W, H>;
+#define LUMA_I8MM(W, H)                                          \
+    p.pu[LUMA_##W##x##H].luma_hpp = interp8_horiz_pp_i8mm<W, H>; \
+    p.pu[LUMA_##W##x##H].luma_hps = interp8_horiz_ps_i8mm<W, H>; \
+    p.pu[LUMA_##W##x##H].luma_vps = interp8_vert_ps_i8mm<W, H>;  \
+    p.pu[LUMA_##W##x##H].luma_vpp = interp8_vert_pp_i8mm<W, H>;  \
+    p.pu[LUMA_##W##x##H].luma_hvpp = interp_hv_pp_i8mm<W, H>;
 
-#define CHROMA_420_I8MM(W, H) \
-        p.chroma[X265_CSP_I420].pu[CHROMA_420_ ## W ## x ## H].filter_hpp = \
-            interp4_horiz_pp_i8mm<W, H>;
+#define CHROMA_420_I8MM(W, H) p.chroma[X265_CSP_I420].pu[CHROMA_420_##W##x##H].filter_hpp = interp4_horiz_pp_i8mm<W, H>;
 
-#define CHROMA_422_I8MM(W, H) \
-        p.chroma[X265_CSP_I422].pu[CHROMA_422_ ## W ## x ## H].filter_hpp = \
-            interp4_horiz_pp_i8mm<W, H>;
+#define CHROMA_422_I8MM(W, H) p.chroma[X265_CSP_I422].pu[CHROMA_422_##W##x##H].filter_hpp = interp4_horiz_pp_i8mm<W, H>;
 
-#define CHROMA_444_I8MM(W, H) \
-        p.chroma[X265_CSP_I444].pu[LUMA_ ## W ## x ## H].filter_hpp = \
-            interp4_horiz_pp_i8mm<W, H>;
+#define CHROMA_444_I8MM(W, H) p.chroma[X265_CSP_I444].pu[LUMA_##W##x##H].filter_hpp = interp4_horiz_pp_i8mm<W, H>;
 
 void setupFilterPrimitives_neon_i8mm(EncoderPrimitives &p)
 {
@@ -1422,14 +1249,12 @@ void setupFilterPrimitives_neon_i8mm(EncoderPrimitives &p)
     CHROMA_444_I8MM(64, 48);
     CHROMA_444_I8MM(64, 64);
 }
-}
+}  // namespace X265_NS
 
-#else // if !HIGH_BIT_DEPTH
+#else   // if !HIGH_BIT_DEPTH
 namespace X265_NS {
-void setupFilterPrimitives_neon_i8mm(EncoderPrimitives &)
-{
-}
-}
-#endif // !HIGH_BIT_DEPTH
+void setupFilterPrimitives_neon_i8mm(EncoderPrimitives &) { }
+}  // namespace X265_NS
+#endif  // !HIGH_BIT_DEPTH
 
-#endif // defined(HAVE_NEON_I8MM)
+#endif  // defined(HAVE_NEON_I8MM)

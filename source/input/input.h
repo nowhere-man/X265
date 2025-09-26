@@ -36,8 +36,7 @@
 namespace X265_NS {
 // private x265 namespace
 
-struct InputFileInfo
-{
+struct InputFileInfo {
     /* possibly user-supplied, possibly read from file header */
     int width;
     int height;
@@ -53,18 +52,15 @@ struct InputFileInfo
 
     /* user supplied */
     int skipFrames;
-    const char *filename;
+    const char* filename;
 };
 
-class InputFile
-{
+class InputFile {
 protected:
-
-    virtual ~InputFile()  {}
+    virtual ~InputFile() { }
 
 public:
-
-    InputFile()           {}
+    InputFile() { }
 
     static InputFile* open(InputFileInfo& info, bool bForceY4m, bool alpha, int format);
 
@@ -78,12 +74,12 @@ public:
 
     virtual bool isFail() = 0;
 
-    virtual const char *getName() const = 0;
+    virtual const char* getName() const = 0;
 
     virtual int getWidth() const = 0;
 
     virtual int getHeight() const = 0;
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_INPUT_H
+#endif  // ifndef X265_INPUT_H

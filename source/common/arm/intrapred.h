@@ -28,4 +28,4 @@
 #ifndef X265_INTRAPRED_ARM_H
 #define X265_INTRAPRED_ARM_H
 
-#endif // ifndef X265_INTRAPRED_ARM_H
+#endif  // ifndef X265_INTRAPRED_ARM_H

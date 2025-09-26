@@ -34,11 +34,16 @@ FUNCDEF_TU_S2(void, idct, sse2, const int16_t* src, int16_t* dst, intptr_t dstSt
 FUNCDEF_TU_S2(void, idct, ssse3, const int16_t* src, int16_t* dst, intptr_t dstStride);
 FUNCDEF_TU_S2(void, idct, sse4, const int16_t* src, int16_t* dst, intptr_t dstStride);
 FUNCDEF_TU_S2(void, idct, avx2, const int16_t* src, int16_t* dst, intptr_t dstStride);
-FUNCDEF_TU_S2(void, nonPsyRdoQuant, avx512, int16_t *m_resiDctCoeff, int64_t *costUncoded, int64_t *totalUncodedCost, int64_t *totalRdCost, uint32_t blkPos);
-FUNCDEF_TU_S2(void, psyRdoQuant, avx512, int16_t* m_resiDctCoeff, int16_t* m_fencDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost, int64_t* totalRdCost, int64_t *psyScale, uint32_t blkPos);
-FUNCDEF_TU_S2(void, nonPsyRdoQuant, avx2, int16_t *m_resiDctCoeff, int64_t *costUncoded, int64_t *totalUncodedCost, int64_t *totalRdCost, uint32_t blkPos);
-FUNCDEF_TU_S2(void, psyRdoQuant_1p, avx2, int16_t* m_resiDctCoeff,  int64_t* costUncoded, int64_t* totalUncodedCost, int64_t* totalRdCost,  uint32_t blkPos);
-FUNCDEF_TU_S2(void, psyRdoQuant_2p, avx2, int16_t* m_resiDctCoeff, int16_t* m_fencDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost, int64_t* totalRdCost, int64_t *psyScale, uint32_t blkPos);
+FUNCDEF_TU_S2(void, nonPsyRdoQuant, avx512, int16_t* m_resiDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost, int64_t* totalRdCost,
+              uint32_t blkPos);
+FUNCDEF_TU_S2(void, psyRdoQuant, avx512, int16_t* m_resiDctCoeff, int16_t* m_fencDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost,
+              int64_t* totalRdCost, int64_t* psyScale, uint32_t blkPos);
+FUNCDEF_TU_S2(void, nonPsyRdoQuant, avx2, int16_t* m_resiDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost, int64_t* totalRdCost,
+              uint32_t blkPos);
+FUNCDEF_TU_S2(void, psyRdoQuant_1p, avx2, int16_t* m_resiDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost, int64_t* totalRdCost,
+              uint32_t blkPos);
+FUNCDEF_TU_S2(void, psyRdoQuant_2p, avx2, int16_t* m_resiDctCoeff, int16_t* m_fencDctCoeff, int64_t* costUncoded, int64_t* totalUncodedCost,
+              int64_t* totalRdCost, int64_t* psyScale, uint32_t blkPos);
 
 void PFX(dst4_ssse3)(const int16_t* src, int16_t* dst, intptr_t srcStride);
 void PFX(dst4_sse2)(const int16_t* src, int16_t* dst, intptr_t srcStride);
@@ -54,4 +59,4 @@ void PFX(idct16_avx512)(const int16_t* src, int16_t* dst, intptr_t dstStride);
 void PFX(idct32_avx512)(const int16_t* src, int16_t* dst, intptr_t dstStride);
 void PFX(dct32_avx512)(const int16_t* src, int16_t* dst, intptr_t srcStride);
 void PFX(dct16_avx512)(const int16_t* src, int16_t* dst, intptr_t srcStride);
-#endif // ifndef X265_DCT8_H
+#endif  // ifndef X265_DCT8_H

@@ -29,9 +29,7 @@
  * To save some instructions compute count and stats as negative values - since
  * output of Neon comparison instructions for a matched condition is all 1s (-1).
  */
-static inline void compute_eo_stats(const int8x16_t edge_type,
-                                    const int16_t *diff, int16x8_t *count,
-                                    int64x2_t *stats)
+static inline void compute_eo_stats(const int8x16_t edge_type, const int16_t *diff, int16x8_t *count, int64x2_t *stats)
 {
     // Create a mask for each edge type.
     int8x16_t mask0 = vreinterpretq_s8_u8(vceqq_s8(edge_type, vdupq_n_s8(-2)));
@@ -78,8 +76,7 @@ static inline void compute_eo_stats(const int8x16_t edge_type,
 /*
  * Reduce and store Edge Offset statistics (count and stats).
  */
-static inline void reduce_eo_stats(int64x2_t *vstats, int16x8_t *vcount,
-                                   int32_t *stats, int32_t *count)
+static inline void reduce_eo_stats(int64x2_t *vstats, int16x8_t *vcount, int32_t *stats, int32_t *count)
 {
     // s_eoTable maps edge types to memory in order: {2, 0, 1, 3, 4}.
     int16x8_t c01 = vpaddq_s16(vcount[2], vcount[0]);
@@ -98,22 +95,17 @@ static inline void reduce_eo_stats(int64x2_t *vstats, int16x8_t *vcount,
 }
 
 namespace X265_NS {
-void saoCuStatsE0_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
-                      int endX, int endY, int32_t *stats, int32_t *count)
+void saoCuStatsE0_sve(const int16_t *diff, const pixel *rec, intptr_t stride, int endX, int endY, int32_t *stats, int32_t *count)
 {
     // Separate buffers for each edge type, so that we can vectorise.
-    int16x8_t tmp_count[5] = { vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0),
-                               vdupq_n_s16(0), vdupq_n_s16(0) };
-    int64x2_t tmp_stats[5] = { vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0),
-                               vdupq_n_s64(0), vdupq_n_s64(0) };
+    int16x8_t tmp_count[5] = {vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0)};
+    int64x2_t tmp_stats[5] = {vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0)};
 
-    for (int y = 0; y < endY; y++)
-    {
+    for (int y = 0; y < endY; y++) {
         // Calculate negated sign_left(x) directly, to save negation when
         // reusing sign_right(x) as sign_left(x + 1).
         int8x16_t neg_sign_left = vdupq_n_s8(x265_signOf(rec[-1] - rec[0]));
-        for (int x = 0; x < endX; x += 16)
-        {
+        for (int x = 0; x < endX; x += 16) {
             int8x16_t sign_right = signOf_neon(rec + x, rec + x + 1);
 
             // neg_sign_left(x) = sign_right(x + 1), reusing one from previous
@@ -137,26 +129,19 @@ void saoCuStatsE0_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
     reduce_eo_stats(tmp_stats, tmp_count, stats, count);
 }
 
-void saoCuStatsE1_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
-                      int8_t *upBuff1, int endX, int endY, int32_t *stats,
-                      int32_t *count)
+void saoCuStatsE1_sve(const int16_t *diff, const pixel *rec, intptr_t stride, int8_t *upBuff1, int endX, int endY, int32_t *stats, int32_t *count)
 {
     // Separate buffers for each edge type, so that we can vectorise.
-    int16x8_t tmp_count[5] = { vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0),
-                               vdupq_n_s16(0), vdupq_n_s16(0) };
-    int64x2_t tmp_stats[5] = { vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0),
-                               vdupq_n_s64(0), vdupq_n_s64(0) };
+    int16x8_t tmp_count[5] = {vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0)};
+    int64x2_t tmp_stats[5] = {vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0)};
 
     // Negate upBuff1 (sign_up), so we can subtract and save repeated negations.
-    for (int x = 0; x < endX; x += 16)
-    {
+    for (int x = 0; x < endX; x += 16) {
         vst1q_s8(upBuff1 + x, vnegq_s8(vld1q_s8(upBuff1 + x)));
     }
 
-    for (int y = 0; y < endY; y++)
-    {
-        for (int x = 0; x < endX; x += 16)
-        {
+    for (int y = 0; y < endY; y++) {
+        for (int x = 0; x < endX; x += 16) {
             int8x16_t sign_up = vld1q_s8(upBuff1 + x);
             int8x16_t sign_down = signOf_neon(rec + x, rec + x + stride);
 
@@ -177,27 +162,21 @@ void saoCuStatsE1_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
     reduce_eo_stats(tmp_stats, tmp_count, stats, count);
 }
 
-void saoCuStatsE2_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
-                      int8_t *upBuff1, int8_t *upBufft, int endX, int endY,
-                      int32_t *stats, int32_t *count)
+void saoCuStatsE2_sve(const int16_t *diff, const pixel *rec, intptr_t stride, int8_t *upBuff1, int8_t *upBufft, int endX, int endY, int32_t *stats,
+                      int32_t *count)
 {
     // Separate buffers for each edge type, so that we can vectorise.
-    int16x8_t tmp_count[5] = { vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0),
-                               vdupq_n_s16(0), vdupq_n_s16(0) };
-    int64x2_t tmp_stats[5] = { vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0),
-                               vdupq_n_s64(0), vdupq_n_s64(0) };
+    int16x8_t tmp_count[5] = {vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0)};
+    int64x2_t tmp_stats[5] = {vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0)};
 
     // Negate upBuff1 (sign_up) so we can subtract and save repeated negations.
-    for (int x = 0; x < endX; x += 16)
-    {
+    for (int x = 0; x < endX; x += 16) {
         vst1q_s8(upBuff1 + x, vnegq_s8(vld1q_s8(upBuff1 + x)));
     }
 
-    for (int y = 0; y < endY; y++)
-    {
+    for (int y = 0; y < endY; y++) {
         upBufft[0] = x265_signOf(rec[-1] - rec[stride]);
-        for (int x = 0; x < endX; x += 16)
-        {
+        for (int x = 0; x < endX; x += 16) {
             int8x16_t sign_up = vld1q_s8(upBuff1 + x);
             int8x16_t sign_down = signOf_neon(rec + x, rec + x + stride + 1);
 
@@ -220,26 +199,19 @@ void saoCuStatsE2_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
     reduce_eo_stats(tmp_stats, tmp_count, stats, count);
 }
 
-void saoCuStatsE3_sve(const int16_t *diff, const pixel *rec, intptr_t stride,
-                      int8_t *upBuff1, int endX, int endY, int32_t *stats,
-                      int32_t *count)
+void saoCuStatsE3_sve(const int16_t *diff, const pixel *rec, intptr_t stride, int8_t *upBuff1, int endX, int endY, int32_t *stats, int32_t *count)
 {
     // Separate buffers for each edge type, so that we can vectorise.
-    int16x8_t tmp_count[5] = { vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0),
-                               vdupq_n_s16(0), vdupq_n_s16(0) };
-    int64x2_t tmp_stats[5] = { vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0),
-                               vdupq_n_s64(0), vdupq_n_s64(0) };
+    int16x8_t tmp_count[5] = {vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0), vdupq_n_s16(0)};
+    int64x2_t tmp_stats[5] = {vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0), vdupq_n_s64(0)};
 
     // Negate upBuff1 (sign_up) so we can subtract and save repeated negations.
-    for (int x = 0; x < endX; x += 16)
-    {
+    for (int x = 0; x < endX; x += 16) {
         vst1q_s8(upBuff1 + x, vnegq_s8(vld1q_s8(upBuff1 + x)));
     }
 
-    for (int y = 0; y < endY; y++)
-    {
-        for (int x = 0; x < endX; x += 16)
-        {
+    for (int y = 0; y < endY; y++) {
+        for (int x = 0; x < endX; x += 16) {
             int8x16_t sign_up = vld1q_s8(upBuff1 + x);
             int8x16_t sign_down = signOf_neon(rec + x, rec + x + stride - 1);
 
@@ -269,4 +241,4 @@ void setupSaoPrimitives_sve(EncoderPrimitives &p)
     p.saoCuStatsE2 = saoCuStatsE2_sve;
     p.saoCuStatsE3 = saoCuStatsE3_sve;
 }
-} // namespace X265_NS
+}  // namespace X265_NS

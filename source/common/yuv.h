@@ -35,60 +35,59 @@ class PicYuv;
 
 /* A Yuv instance holds pixels for a square CU (64x64 down to 8x8) for all three planes
  * these are typically used to hold fenc, predictions, or reconstructed blocks */
-class Yuv
-{
+class Yuv {
 public:
-    pixel*   m_buf[3];
+    pixel* m_buf[3];
 
     uint32_t m_size;
     uint32_t m_csize;
-    int      m_part;         // cached partition enum size
+    int m_part;  // cached partition enum size
 
-    int      m_csp;
-    int      m_hChromaShift;
-    int      m_vChromaShift;
-    uint32_t *m_integral[2][MAX_NUM_REF][INTEGRAL_PLANE_NUM];
+    int m_csp;
+    int m_hChromaShift;
+    int m_vChromaShift;
+    uint32_t* m_integral[2][MAX_NUM_REF][INTEGRAL_PLANE_NUM];
 
     Yuv();
 
-    bool   create(uint32_t size, int csp);
-    void   destroy();
+    bool create(uint32_t size, int csp);
+    void destroy();
 
     // Copy YUV buffer to picture buffer
-    void   copyToPicYuv(PicYuv& destPicYuv, uint32_t cuAddr, uint32_t absPartIdx) const;
+    void copyToPicYuv(PicYuv& destPicYuv, uint32_t cuAddr, uint32_t absPartIdx) const;
 
     // Copy YUV buffer from picture buffer
-    void   copyFromPicYuv(const PicYuv& srcPicYuv, uint32_t cuAddr, uint32_t absPartIdx);
+    void copyFromPicYuv(const PicYuv& srcPicYuv, uint32_t cuAddr, uint32_t absPartIdx);
 
     // Copy from same size YUV buffer
-    void   copyFromYuv(const Yuv& srcYuv);
+    void copyFromYuv(const Yuv& srcYuv);
 
     // Copy portion of srcYuv into ME prediction buffer
-    void   copyPUFromYuv(const Yuv& srcYuv, uint32_t absPartIdx, int partEnum, bool bChroma);
+    void copyPUFromYuv(const Yuv& srcYuv, uint32_t absPartIdx, int partEnum, bool bChroma);
 
     // Copy Small YUV buffer to the part of other Big YUV buffer
-    void   copyToPartYuv(Yuv& dstYuv, uint32_t absPartIdx) const;
+    void copyToPartYuv(Yuv& dstYuv, uint32_t absPartIdx) const;
 
     // Copy the part of Big YUV buffer to other Small YUV buffer
-    void   copyPartToYuv(Yuv& dstYuv, uint32_t absPartIdx) const;
+    void copyPartToYuv(Yuv& dstYuv, uint32_t absPartIdx) const;
 
     // Clip(srcYuv0 + srcYuv1) -> m_buf .. aka recon = clip(pred + residual)
-    void   addClip(const Yuv& srcYuv0, const ShortYuv& srcYuv1, uint32_t log2SizeL, int picCsp);
+    void addClip(const Yuv& srcYuv0, const ShortYuv& srcYuv1, uint32_t log2SizeL, int picCsp);
 
     // (srcYuv0 + srcYuv1)/2 for YUV partition (bidir averaging)
-    void   addAvg(const ShortYuv& srcYuv0, const ShortYuv& srcYuv1, uint32_t absPartIdx, uint32_t width, uint32_t height, bool bLuma, bool bChroma);
+    void addAvg(const ShortYuv& srcYuv0, const ShortYuv& srcYuv1, uint32_t absPartIdx, uint32_t width, uint32_t height, bool bLuma, bool bChroma);
 
     void copyPartToPartLuma(Yuv& dstYuv, uint32_t absPartIdx, uint32_t log2Size) const;
     void copyPartToPartChroma(Yuv& dstYuv, uint32_t absPartIdx, uint32_t log2SizeL) const;
 
-    pixel* getLumaAddr(uint32_t absPartIdx)                      { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
-    pixel* getCbAddr(uint32_t absPartIdx)                        { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
-    pixel* getCrAddr(uint32_t absPartIdx)                        { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
+    pixel* getLumaAddr(uint32_t absPartIdx) { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
+    pixel* getCbAddr(uint32_t absPartIdx) { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
+    pixel* getCrAddr(uint32_t absPartIdx) { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
     pixel* getChromaAddr(uint32_t chromaId, uint32_t absPartIdx) { return m_buf[chromaId] + getChromaAddrOffset(absPartIdx); }
 
-    const pixel* getLumaAddr(uint32_t absPartIdx) const                      { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
-    const pixel* getCbAddr(uint32_t absPartIdx) const                        { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
-    const pixel* getCrAddr(uint32_t absPartIdx) const                        { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
+    const pixel* getLumaAddr(uint32_t absPartIdx) const { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
+    const pixel* getCbAddr(uint32_t absPartIdx) const { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
+    const pixel* getCrAddr(uint32_t absPartIdx) const { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
     const pixel* getChromaAddr(uint32_t chromaId, uint32_t absPartIdx) const { return m_buf[chromaId] + getChromaAddrOffset(absPartIdx); }
 
     int getChromaAddrOffset(uint32_t absPartIdx) const
@@ -107,6 +106,6 @@ public:
         return blkX + blkY * width;
     }
 };
-}
+}  // namespace X265_NS
 
 #endif

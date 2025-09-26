@@ -30,10 +30,8 @@
 #include "testharness.h"
 #include "primitives.h"
 
-class MBDstHarness : public TestHarness
-{
+class MBDstHarness : public TestHarness {
 protected:
-
     enum { ITERS = 128 };
     enum { INCR = 16 };
     enum { MAX_TU_SIZE = 32 * 32 };
@@ -42,19 +40,19 @@ protected:
 
     ALIGN_VAR_32(int16_t, mbuf1[TEST_BUF_SIZE]);
     int16_t mbufdct[TEST_BUF_SIZE];
-    int     mbufidct[TEST_BUF_SIZE];
+    int mbufidct[TEST_BUF_SIZE];
 
     int16_t mshortbuf2[MAX_TU_SIZE];
     int16_t mshortbuf3[MAX_TU_SIZE];
 
-    int     mintbuf1[MAX_TU_SIZE];
-    int     mintbuf2[MAX_TU_SIZE];
-    int     mintbuf3[MAX_TU_SIZE];
-    int     mintbuf4[MAX_TU_SIZE];
+    int mintbuf1[MAX_TU_SIZE];
+    int mintbuf2[MAX_TU_SIZE];
+    int mintbuf3[MAX_TU_SIZE];
+    int mintbuf4[MAX_TU_SIZE];
     int16_t short_test_buff[TEST_CASES][TEST_BUF_SIZE];
     int16_t short_test_buff1[TEST_CASES][TEST_BUF_SIZE];
-    int     int_test_buff[TEST_CASES][TEST_BUF_SIZE];
-    int     int_idct_test_buff[TEST_CASES][TEST_BUF_SIZE];
+    int int_test_buff[TEST_CASES][TEST_BUF_SIZE];
+    int int_idct_test_buff[TEST_CASES][TEST_BUF_SIZE];
     uint32_t mubuf1[MAX_TU_SIZE];
     uint32_t mubuf2[MAX_TU_SIZE];
     uint16_t mushortbuf1[MAX_TU_SIZE];
@@ -74,14 +72,13 @@ protected:
     bool check_psyRdoQuant_primitive_avx2(psyRdoQuant_t1 ref, psyRdoQuant_t1 opt);
 
 public:
-
     MBDstHarness();
 
-    const char *getName() const { return "transforms"; }
+    const char* getName() const { return "transforms"; }
 
     bool testCorrectness(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 
     void measureSpeed(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 };
 
-#endif // ifndef _MBDSTHARNESS_H_1
+#endif  // ifndef _MBDSTHARNESS_H_1

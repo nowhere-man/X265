@@ -27,25 +27,25 @@
 namespace {
 
 #define CPU_EVENT(x) #x,
-const char *stringNames[] =
-{
+const char *stringNames[] = {
 #include "../cpuEvents.h"
 };
 #undef CPU_EVENT
 
-}
+}  // namespace
 
 namespace X265_NS {
 
-__itt_domain* domain;
-__itt_string_handle* taskHandle[NUM_VTUNE_TASKS];
+__itt_domain *domain;
+__itt_string_handle *taskHandle[NUM_VTUNE_TASKS];
 
 void vtuneInit()
 {
     domain = __itt_domain_create("x265");
     size_t length = sizeof(stringNames) / sizeof(const char *);
-    for (size_t i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++) {
         taskHandle[i] = __itt_string_handle_create(stringNames[i]);
+    }
 }
 
 void vtuneSetThreadName(const char *name, int id)
@@ -55,4 +55,4 @@ void vtuneSetThreadName(const char *name, int id)
     __itt_thread_set_name(threadname);
 }
 
-}
+}  // namespace X265_NS

@@ -27,10 +27,8 @@
 #include "testharness.h"
 #include "primitives.h"
 
-class IntraPredHarness : public TestHarness
-{
+class IntraPredHarness : public TestHarness {
 protected:
-
     enum { INPUT_SIZE = 4 * 65 * 65 * 100 };
     enum { OUTPUT_SIZE = 64 * FENC_STRIDE };
     enum { OUTPUT_SIZE_33 = 33 * OUTPUT_SIZE };
@@ -42,7 +40,7 @@ protected:
     enum { PAD_ROWS = 64 };
     enum { BUFFSIZE = STRIDE * (MAX_HEIGHT + PAD_ROWS) + INCR * ITERS };
 
-    pixel    pixel_test_buff[TEST_CASES][BUFFSIZE];
+    pixel pixel_test_buff[TEST_CASES][BUFFSIZE];
     ALIGN_VAR_16(pixel, pixel_buff[INPUT_SIZE]);
     pixel pixel_out_c[OUTPUT_SIZE];
     pixel pixel_out_vec[OUTPUT_SIZE];
@@ -56,14 +54,13 @@ protected:
     bool check_intra_filter_primitive(const intra_filter_t ref, const intra_filter_t opt);
 
 public:
-
     IntraPredHarness();
 
-    const char *getName() const { return "intrapred"; }
+    const char* getName() const { return "intrapred"; }
 
     bool testCorrectness(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 
     void measureSpeed(const EncoderPrimitives& ref, const EncoderPrimitives& opt);
 };
 
-#endif // ifndef _INTRAPREDHARNESS_H_1
+#endif  // ifndef _INTRAPREDHARNESS_H_1

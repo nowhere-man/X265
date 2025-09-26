@@ -23,19 +23,21 @@
 
 #include "threading.h"
 
-#if defined(_WIN32) && (_WIN32_WINNT < 0x0600) // _WIN32_WINNT_VISTA
+#if defined(_WIN32) && (_WIN32_WINNT < 0x0600)  // _WIN32_WINNT_VISTA
 
 namespace X265_NS {
 /* Mimic CONDITION_VARIABLE functions only supported on Vista+ */
 
 int WINAPI cond_init(ConditionVariable *cond)
-{ // InitializeConditionVariable
+{  // InitializeConditionVariable
     cond->semaphore = CreateSemaphore(NULL, 0, 0x7fffffff, NULL);
-    if (!cond->semaphore)
+    if (!cond->semaphore) {
         return -1;
+    }
     cond->waitersDone = CreateEvent(NULL, FALSE, FALSE, NULL);
-    if (!cond->waitersDone)
+    if (!cond->waitersDone) {
         return -1;
+    }
 
     InitializeCriticalSection(&cond->waiterCountMutex);
     InitializeCriticalSection(&cond->broadcastMutex);
@@ -46,39 +48,36 @@ int WINAPI cond_init(ConditionVariable *cond)
 }
 
 void WINAPI cond_broadcast(ConditionVariable *cond)
-{ // WakeAllConditionVariable
+{  // WakeAllConditionVariable
     EnterCriticalSection(&cond->broadcastMutex);
     EnterCriticalSection(&cond->waiterCountMutex);
     int haveWaiter = 0;
 
-    if (cond->waiterCount)
-    {
+    if (cond->waiterCount) {
         cond->bIsBroadcast = 1;
         haveWaiter = 1;
     }
 
-    if (haveWaiter)
-    {
+    if (haveWaiter) {
         ReleaseSemaphore(cond->semaphore, cond->waiterCount, NULL);
         LeaveCriticalSection(&cond->waiterCountMutex);
         WaitForSingleObject(cond->waitersDone, INFINITE);
         cond->bIsBroadcast = 0;
-    }
-    else
+    } else {
         LeaveCriticalSection(&cond->waiterCountMutex);
+    }
 
     LeaveCriticalSection(&cond->broadcastMutex);
 }
 
 void WINAPI cond_signal(ConditionVariable *cond)
-{ // WakeConditionVariable
+{  // WakeConditionVariable
     EnterCriticalSection(&cond->broadcastMutex);
     EnterCriticalSection(&cond->waiterCountMutex);
     int haveWaiter = cond->waiterCount;
     LeaveCriticalSection(&cond->waiterCountMutex);
 
-    if (haveWaiter)
-    {
+    if (haveWaiter) {
         ReleaseSemaphore(cond->semaphore, 1, NULL);
         WaitForSingleObject(cond->waitersDone, INFINITE);
     }
@@ -87,7 +86,7 @@ void WINAPI cond_signal(ConditionVariable *cond)
 }
 
 BOOL WINAPI cond_wait(ConditionVariable *cond, CRITICAL_SECTION *mutex, DWORD wait)
-{ // SleepConditionVariableCS
+{  // SleepConditionVariableCS
     EnterCriticalSection(&cond->broadcastMutex);
     EnterCriticalSection(&cond->waiterCountMutex);
     cond->waiterCount++;
@@ -103,8 +102,9 @@ BOOL WINAPI cond_wait(ConditionVariable *cond, CRITICAL_SECTION *mutex, DWORD wa
     int last_waiter = !cond->waiterCount || !cond->bIsBroadcast;
     LeaveCriticalSection(&cond->waiterCountMutex);
 
-    if (last_waiter)
+    if (last_waiter) {
         SetEvent(cond->waitersDone);
+    }
 
     // lock the external mutex
     EnterCriticalSection(mutex);
@@ -121,10 +121,12 @@ void cond_destroy(ConditionVariable *cond)
     DeleteCriticalSection(&cond->broadcastMutex);
     DeleteCriticalSection(&cond->waiterCountMutex);
 }
-} // namespace X265_NS
+}  // namespace X265_NS
 
 #elif defined(_MSC_VER)
 
-namespace { int _avoid_linker_warnings = 0; }
+namespace {
+int _avoid_linker_warnings = 0;
+}
 
-#endif // _WIN32_WINNT <= _WIN32_WINNT_WINXP
+#endif  // _WIN32_WINNT <= _WIN32_WINNT_WINXP

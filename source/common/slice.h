@@ -35,27 +35,18 @@ class PicList;
 class PicYuv;
 class MotionReference;
 
-enum SliceType
-{
-    B_SLICE,
-    P_SLICE,
-    I_SLICE
-};
+enum SliceType { B_SLICE, P_SLICE, I_SLICE };
 
-struct RPS
-{
-    int  numberOfPictures;
-    int  numberOfNegativePictures;
-    int  numberOfPositivePictures;
+struct RPS {
+    int numberOfPictures;
+    int numberOfNegativePictures;
+    int numberOfPositivePictures;
 
-    int  poc[MAX_NUM_REF_PICS];
-    int  deltaPOC[MAX_NUM_REF_PICS];
+    int poc[MAX_NUM_REF_PICS];
+    int deltaPOC[MAX_NUM_REF_PICS];
     bool bUsed[MAX_NUM_REF_PICS];
 
-    RPS()
-        : numberOfPictures(0)
-        , numberOfNegativePictures(0)
-        , numberOfPositivePictures(0)
+    RPS() : numberOfPictures(0), numberOfNegativePictures(0), numberOfPositivePictures(0)
     {
         memset(deltaPOC, 0, sizeof(deltaPOC));
         memset(poc, 0, sizeof(poc));
@@ -66,73 +57,68 @@ struct RPS
 };
 
 namespace Profile {
-    enum Name
-    {
-        NONE = 0,
-        MAIN = 1,
-        MAIN10 = 2,
-        MAINSTILLPICTURE = 3,
-        MAINREXT = 4,
-        HIGHTHROUGHPUTREXT = 5,
-        MULTIVIEWMAIN = 6,
-        SCALABLEMAIN = 7,
-        SCALABLEMAIN10 = 8,
-        MAINSCC = 9
-    };
+enum Name {
+    NONE = 0,
+    MAIN = 1,
+    MAIN10 = 2,
+    MAINSTILLPICTURE = 3,
+    MAINREXT = 4,
+    HIGHTHROUGHPUTREXT = 5,
+    MULTIVIEWMAIN = 6,
+    SCALABLEMAIN = 7,
+    SCALABLEMAIN10 = 8,
+    MAINSCC = 9
+};
 }
 
 namespace Level {
-    enum Tier
-    {
-        MAIN = 0,
-        HIGH = 1,
-    };
+enum Tier {
+    MAIN = 0,
+    HIGH = 1,
+};
 
-    enum Name
-    {
-        NONE = 0,
-        LEVEL1 = 30,
-        LEVEL2 = 60,
-        LEVEL2_1 = 63,
-        LEVEL3 = 90,
-        LEVEL3_1 = 93,
-        LEVEL4 = 120,
-        LEVEL4_1 = 123,
-        LEVEL5 = 150,
-        LEVEL5_1 = 153,
-        LEVEL5_2 = 156,
-        LEVEL6 = 180,
-        LEVEL6_1 = 183,
-        LEVEL6_2 = 186,
-        LEVEL6_3 = 189,
-        LEVEL7 = 210,
-        LEVEL7_1 = 213,
-        LEVEL7_2 = 216,
-        LEVEL8_5 = 255,
-    };
-}
+enum Name {
+    NONE = 0,
+    LEVEL1 = 30,
+    LEVEL2 = 60,
+    LEVEL2_1 = 63,
+    LEVEL3 = 90,
+    LEVEL3_1 = 93,
+    LEVEL4 = 120,
+    LEVEL4_1 = 123,
+    LEVEL5 = 150,
+    LEVEL5_1 = 153,
+    LEVEL5_2 = 156,
+    LEVEL6 = 180,
+    LEVEL6_1 = 183,
+    LEVEL6_2 = 186,
+    LEVEL6_3 = 189,
+    LEVEL7 = 210,
+    LEVEL7_1 = 213,
+    LEVEL7_2 = 216,
+    LEVEL8_5 = 255,
+};
+}  // namespace Level
 
-struct ProfileTierLevel
-{
-    int      profileIdc[MAX_LAYERS];
-    int      levelIdc;
+struct ProfileTierLevel {
+    int profileIdc[MAX_LAYERS];
+    int levelIdc;
     uint32_t minCrForLevel;
     uint64_t maxLumaSrForLevel;
     uint32_t bitDepthConstraint;
-    int      chromaFormatConstraint;
-    bool     tierFlag;
-    bool     progressiveSourceFlag;
-    bool     interlacedSourceFlag;
-    bool     nonPackedConstraintFlag;
-    bool     frameOnlyConstraintFlag;
-    bool     profileCompatibilityFlag[32];
-    bool     intraConstraintFlag;
-    bool     onePictureOnlyConstraintFlag;
-    bool     lowerBitRateConstraintFlag;
+    int chromaFormatConstraint;
+    bool tierFlag;
+    bool progressiveSourceFlag;
+    bool interlacedSourceFlag;
+    bool nonPackedConstraintFlag;
+    bool frameOnlyConstraintFlag;
+    bool profileCompatibilityFlag[32];
+    bool intraConstraintFlag;
+    bool onePictureOnlyConstraintFlag;
+    bool lowerBitRateConstraintFlag;
 };
 
-struct HRDInfo
-{
+struct HRDInfo {
     uint32_t bitRateScale;
     uint32_t cpbSizeScale;
     uint32_t initialCpbRemovalDelayLength;
@@ -140,100 +126,86 @@ struct HRDInfo
     uint32_t dpbOutputDelayLength;
     uint32_t bitRateValue;
     uint32_t cpbSizeValue;
-    bool     cbrFlag;
+    bool cbrFlag;
 
-    HRDInfo()
-        : bitRateScale(0)
-        , cpbSizeScale(0)
-        , initialCpbRemovalDelayLength(1)
-        , cpbRemovalDelayLength(1)
-        , dpbOutputDelayLength(1)
-        , cbrFlag(false)
+    HRDInfo() : bitRateScale(0), cpbSizeScale(0), initialCpbRemovalDelayLength(1), cpbRemovalDelayLength(1), dpbOutputDelayLength(1), cbrFlag(false)
     {
     }
 };
 
-struct TimingInfo
-{
+struct TimingInfo {
     uint32_t numUnitsInTick;
     uint32_t timeScale;
 };
 
-struct VPS
-{
-    HRDInfo          hrdParameters;
+struct VPS {
+    HRDInfo hrdParameters;
     ProfileTierLevel ptl;
-    uint32_t         maxTempSubLayers;
-    uint32_t         numReorderPics[MAX_T_LAYERS];
-    uint32_t         maxDecPicBuffering[MAX_T_LAYERS];
-    uint32_t         maxLatencyIncrease[MAX_T_LAYERS];
-    int              m_numLayers;
-    int              m_numViews;
-    bool             vps_extension_flag;
+    uint32_t maxTempSubLayers;
+    uint32_t numReorderPics[MAX_T_LAYERS];
+    uint32_t maxDecPicBuffering[MAX_T_LAYERS];
+    uint32_t maxLatencyIncrease[MAX_T_LAYERS];
+    int m_numLayers;
+    int m_numViews;
+    bool vps_extension_flag;
 
 #if (ENABLE_ALPHA || ENABLE_MULTIVIEW)
-    bool             splitting_flag;
-    int              m_scalabilityMask[MAX_VPS_NUM_SCALABILITY_TYPES];
-    int              scalabilityTypes;
-    uint8_t          m_dimensionIdLen[MAX_VPS_NUM_SCALABILITY_TYPES];
-    uint8_t          m_dimensionId[MAX_VPS_LAYER_ID_PLUS1][MAX_VPS_NUM_SCALABILITY_TYPES];
-    bool             m_nuhLayerIdPresentFlag;
-    uint8_t          m_layerIdInNuh[MAX_VPS_LAYER_ID_PLUS1];
-    uint8_t          m_layerIdInVps[MAX_VPS_LAYER_ID_PLUS1];
-    int              m_viewIdLen;
-    int              m_vpsNumLayerSetsMinus1;
-    int              m_numLayersInIdList[1023];
+    bool splitting_flag;
+    int m_scalabilityMask[MAX_VPS_NUM_SCALABILITY_TYPES];
+    int scalabilityTypes;
+    uint8_t m_dimensionIdLen[MAX_VPS_NUM_SCALABILITY_TYPES];
+    uint8_t m_dimensionId[MAX_VPS_LAYER_ID_PLUS1][MAX_VPS_NUM_SCALABILITY_TYPES];
+    bool m_nuhLayerIdPresentFlag;
+    uint8_t m_layerIdInNuh[MAX_VPS_LAYER_ID_PLUS1];
+    uint8_t m_layerIdInVps[MAX_VPS_LAYER_ID_PLUS1];
+    int m_viewIdLen;
+    int m_vpsNumLayerSetsMinus1;
+    int m_numLayersInIdList[1023];
 #endif
 
 #if ENABLE_MULTIVIEW
-    int              m_layerIdIncludedFlag;
+    int m_layerIdIncludedFlag;
 #endif
 };
 
-struct Window
-{
-    int  leftOffset;
-    int  rightOffset;
-    int  topOffset;
-    int  bottomOffset;
+struct Window {
+    int leftOffset;
+    int rightOffset;
+    int topOffset;
+    int bottomOffset;
     bool bEnabled;
 
-    Window()
-    {
-        bEnabled = false;
-    }
+    Window() { bEnabled = false; }
 };
 
-struct VUI
-{
-    int        aspectRatioIdc;
-    int        sarWidth;
-    int        sarHeight;
-    int        videoFormat;
-    int        colourPrimaries;
-    int        transferCharacteristics;
-    int        matrixCoefficients;
-    int        chromaSampleLocTypeTopField;
-    int        chromaSampleLocTypeBottomField;
+struct VUI {
+    int aspectRatioIdc;
+    int sarWidth;
+    int sarHeight;
+    int videoFormat;
+    int colourPrimaries;
+    int transferCharacteristics;
+    int matrixCoefficients;
+    int chromaSampleLocTypeTopField;
+    int chromaSampleLocTypeBottomField;
 
-    bool       aspectRatioInfoPresentFlag;
-    bool       overscanInfoPresentFlag;
-    bool       overscanAppropriateFlag;
-    bool       videoSignalTypePresentFlag;
-    bool       videoFullRangeFlag;
-    bool       colourDescriptionPresentFlag;
-    bool       chromaLocInfoPresentFlag;
-    bool       frameFieldInfoPresentFlag;
-    bool       fieldSeqFlag;
-    bool       hrdParametersPresentFlag;
+    bool aspectRatioInfoPresentFlag;
+    bool overscanInfoPresentFlag;
+    bool overscanAppropriateFlag;
+    bool videoSignalTypePresentFlag;
+    bool videoFullRangeFlag;
+    bool colourDescriptionPresentFlag;
+    bool chromaLocInfoPresentFlag;
+    bool frameFieldInfoPresentFlag;
+    bool fieldSeqFlag;
+    bool hrdParametersPresentFlag;
 
-    HRDInfo    hrdParameters;
-    Window     defaultDisplayWindow;
+    HRDInfo hrdParameters;
+    Window defaultDisplayWindow;
     TimingInfo timingInfo;
 };
 
-struct SPS
-{
+struct SPS {
     /* cached PicYuv offset arrays, shared by all instances of
      * PicYuv created by this encoder */
     intptr_t* cuOffsetY;
@@ -241,9 +213,9 @@ struct SPS
     intptr_t* buOffsetY;
     intptr_t* buOffsetC;
 
-    int      chromaFormatIdc;        // use param
-    uint32_t picWidthInLumaSamples;  // use param
-    uint32_t picHeightInLumaSamples; // use param
+    int chromaFormatIdc;              // use param
+    uint32_t picWidthInLumaSamples;   // use param
+    uint32_t picHeightInLumaSamples;  // use param
 
     uint32_t numCuInWidth;
     uint32_t numCuInHeight;
@@ -251,49 +223,46 @@ struct SPS
     uint32_t numPartitions;
     uint32_t numPartInCUSize;
 
-    int      log2MinCodingBlockSize;
-    int      log2DiffMaxMinCodingBlockSize;
-    int      log2MaxPocLsb;
+    int log2MinCodingBlockSize;
+    int log2DiffMaxMinCodingBlockSize;
+    int log2MaxPocLsb;
 
     uint32_t quadtreeTULog2MaxSize;
     uint32_t quadtreeTULog2MinSize;
 
-    uint32_t quadtreeTUMaxDepthInter; // use param
-    uint32_t quadtreeTUMaxDepthIntra; // use param
+    uint32_t quadtreeTUMaxDepthInter;  // use param
+    uint32_t quadtreeTUMaxDepthIntra;  // use param
 
     uint32_t maxAMPDepth;
 
-    uint32_t maxTempSubLayers;   // max number of Temporal Sub layers
-    uint32_t maxDecPicBuffering[MAX_T_LAYERS]; // these are dups of VPS values
+    uint32_t maxTempSubLayers;                  // max number of Temporal Sub layers
+    uint32_t maxDecPicBuffering[MAX_T_LAYERS];  // these are dups of VPS values
     uint32_t maxLatencyIncrease[MAX_T_LAYERS];
-    int      numReorderPics[MAX_T_LAYERS];
+    int numReorderPics[MAX_T_LAYERS];
 
-    RPS      spsrps[MAX_NUM_SHORT_TERM_RPS];
-    int      spsrpsNum;
-    int      numGOPBegin;
+    RPS spsrps[MAX_NUM_SHORT_TERM_RPS];
+    int spsrpsNum;
+    int numGOPBegin;
 
-    bool     bUseSAO; // use param
-    bool     bUseAMP; // use param
-    bool     bUseStrongIntraSmoothing; // use param
-    bool     bTemporalMVPEnabled;
-    bool     bEmitVUITimingInfo;
-    bool     bEmitVUIHRDInfo;
+    bool bUseSAO;                   // use param
+    bool bUseAMP;                   // use param
+    bool bUseStrongIntraSmoothing;  // use param
+    bool bTemporalMVPEnabled;
+    bool bEmitVUITimingInfo;
+    bool bEmitVUIHRDInfo;
 
-    Window   conformanceWindow;
-    VUI      vuiParameters;
-    bool     sps_extension_flag;
+    Window conformanceWindow;
+    VUI vuiParameters;
+    bool sps_extension_flag;
 
 #if ENABLE_MULTIVIEW
-    int      setSpsExtOrMaxSubLayersMinus1;
-    int      spsInferScalingListFlag;
-    int      maxViews;
-    bool     vui_parameters_present_flag;
+    int setSpsExtOrMaxSubLayersMinus1;
+    int spsInferScalingListFlag;
+    int maxViews;
+    bool vui_parameters_present_flag;
 #endif
 
-    SPS()
-    {
-        memset(this, 0, sizeof(*this));
-    }
+    SPS() { memset(this, 0, sizeof(*this)); }
 
     ~SPS()
     {
@@ -304,43 +273,41 @@ struct SPS
     }
 };
 
-struct PPS
-{
+struct PPS {
     uint32_t maxCuDQPDepth;
 
-    int      chromaQpOffset[2];      // use param
-    int      deblockingFilterBetaOffsetDiv2;
-    int      deblockingFilterTcOffsetDiv2;
+    int chromaQpOffset[2];  // use param
+    int deblockingFilterBetaOffsetDiv2;
+    int deblockingFilterTcOffsetDiv2;
 
-    bool     bUseWeightPred;         // use param
-    bool     bUseWeightedBiPred;     // use param
-    bool     bUseDQP;
-    bool     bConstrainedIntraPred;  // use param
+    bool bUseWeightPred;      // use param
+    bool bUseWeightedBiPred;  // use param
+    bool bUseDQP;
+    bool bConstrainedIntraPred;  // use param
 
-    bool     bTransquantBypassEnabled;  // Indicates presence of cu_transquant_bypass_flag in CUs.
-    bool     bTransformSkipEnabled;     // use param
-    bool     bEntropyCodingSyncEnabled; // use param
-    bool     bSignHideEnabled;          // use param
+    bool bTransquantBypassEnabled;   // Indicates presence of cu_transquant_bypass_flag in CUs.
+    bool bTransformSkipEnabled;      // use param
+    bool bEntropyCodingSyncEnabled;  // use param
+    bool bSignHideEnabled;           // use param
 
-    bool     bDeblockingFilterControlPresent;
-    bool     bPicDisableDeblockingFilter;
+    bool bDeblockingFilterControlPresent;
+    bool bPicDisableDeblockingFilter;
 
-    int      numRefIdxDefault[2];
-    bool     pps_slice_chroma_qp_offsets_present_flag;
+    int numRefIdxDefault[2];
+    bool pps_slice_chroma_qp_offsets_present_flag;
 
-    bool     pps_extension_flag;
-    int      maxViews;
+    bool pps_extension_flag;
+    int maxViews;
 
-    int      profileIdc;
+    int profileIdc;
 };
 
-struct WeightParam
-{
+struct WeightParam {
     // Explicit weighted prediction parameters parsed in slice header,
     uint32_t log2WeightDenom;
-    int      inputWeight;
-    int      inputOffset;
-    int      wtPresent;
+    int inputWeight;
+    int inputOffset;
+    int wtPresent;
 
     /* makes a non-h265 weight (i.e. fix7), into an h265 weight */
     void setFromWeightAndOffset(int w, int o, int denom, bool bNormalize)
@@ -348,8 +315,7 @@ struct WeightParam
         inputOffset = o;
         log2WeightDenom = denom;
         inputWeight = w;
-        while (bNormalize && log2WeightDenom > 0 && (inputWeight > 127))
-        {
+        while (bNormalize && log2WeightDenom > 0 && (inputWeight > 127)) {
             log2WeightDenom--;
             inputWeight >>= 1;
         }
@@ -358,61 +324,59 @@ struct WeightParam
     }
 };
 
-#define SET_WEIGHT(w, b, s, d, o) \
-    { \
-        (w).inputWeight = (s); \
+#define SET_WEIGHT(w, b, s, d, o)  \
+    {                              \
+        (w).inputWeight = (s);     \
         (w).log2WeightDenom = (d); \
-        (w).inputOffset = (o); \
-        (w).wtPresent = (b); \
+        (w).inputOffset = (o);     \
+        (w).wtPresent = (b);       \
     }
 
-class Slice
-{
+class Slice {
 public:
+    const SPS* m_sps;
+    const PPS* m_pps;
+    Frame* m_refFrameList[2][MAX_NUM_REF + 1];
+    PicYuv* m_refReconPicList[2][MAX_NUM_REF + 1];
 
-    const SPS*  m_sps;
-    const PPS*  m_pps;
-    Frame*      m_refFrameList[2][MAX_NUM_REF + 1];
-    PicYuv*     m_refReconPicList[2][MAX_NUM_REF + 1];
-
-    WeightParam m_weightPredTable[2][MAX_NUM_REF][3]; // [list][refIdx][0:Y, 1:U, 2:V]
+    WeightParam m_weightPredTable[2][MAX_NUM_REF][3];  // [list][refIdx][0:Y, 1:U, 2:V]
     MotionReference (*m_mref)[MAX_NUM_REF + 1];
-    RPS         m_rps;
+    RPS m_rps;
 
     NalUnitType m_nalUnitType;
-    SliceType   m_sliceType;
-    SliceType   m_origSliceType;
-    int         m_sliceQp;
-    int         m_chromaQpOffset[2];
-    int         m_poc;
-    int         m_lastIDR;
-    int         m_rpsIdx;
+    SliceType m_sliceType;
+    SliceType m_origSliceType;
+    int m_sliceQp;
+    int m_chromaQpOffset[2];
+    int m_poc;
+    int m_lastIDR;
+    int m_rpsIdx;
 
-    uint32_t    m_colRefIdx;       // never modified
+    uint32_t m_colRefIdx;  // never modified
 
-    int         m_numRefIdx[2];
-    int         m_refPOCList[2][MAX_NUM_REF + 1];
+    int m_numRefIdx[2];
+    int m_refPOCList[2][MAX_NUM_REF + 1];
 
-    uint32_t    m_maxNumMergeCand; // use param
-    uint32_t    m_endCUAddr;
+    uint32_t m_maxNumMergeCand;  // use param
+    uint32_t m_endCUAddr;
 
-    bool        m_bCheckLDC;       // TODO: is this necessary?
-    bool        m_sLFaseFlag;      // loop filter boundary flag
-    bool        m_colFromL0Flag;   // collocated picture from List0 or List1 flag
-    int         m_bUseSao;
+    bool m_bCheckLDC;      // TODO: is this necessary?
+    bool m_sLFaseFlag;     // loop filter boundary flag
+    bool m_colFromL0Flag;  // collocated picture from List0 or List1 flag
+    int m_bUseSao;
 
-    int         m_iPPSQpMinus26;
-    int         numRefIdxDefault[2];
-    int         m_iNumRPSInSPS;
-    const x265_param *m_param;
-    int         m_fieldNum;
-    Frame*      m_mcstfRefFrameList[2][MAX_MCSTF_TEMPORAL_WINDOW_LENGTH];
+    int m_iPPSQpMinus26;
+    int numRefIdxDefault[2];
+    int m_iNumRPSInSPS;
+    const x265_param* m_param;
+    int m_fieldNum;
+    Frame* m_mcstfRefFrameList[2][MAX_MCSTF_TEMPORAL_WINDOW_LENGTH];
 
-#if  ENABLE_SCC_EXT
-    Frame*      m_lastEncPic;
-    bool        m_useIntegerMv;
+#if ENABLE_SCC_EXT
+    Frame* m_lastEncPic;
+    bool m_useIntegerMv;
 #endif
-    bool        m_bTemporalMvp;
+    bool m_bTemporalMvp;
 
     Slice()
     {
@@ -429,7 +393,7 @@ public:
         m_rpsIdx = -1;
         m_chromaQpOffset[0] = m_chromaQpOffset[1] = 0;
         m_fieldNum = 0;
-#if  ENABLE_SCC_EXT
+#if ENABLE_SCC_EXT
         m_lastEncPic = NULL;
         m_useIntegerMv = false;
 #endif
@@ -445,24 +409,19 @@ public:
     void setRefPicList(PicList& picList, int viewId);
 #endif
 
-#if  ENABLE_SCC_EXT
+#if ENABLE_SCC_EXT
     bool isOnlyCurrentPictureAsReference() const;
 #endif
 
     bool getRapPicFlag() const
     {
-        return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_W_RADL
-            || m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP
-            || m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA;
+        return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_W_RADL || m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP ||
+               m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA;
     }
-    bool getIdrPicFlag() const
-    {
-        return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_W_RADL
-            || m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP;
-    }
-    bool isIRAP() const   { return m_nalUnitType >= 16 && m_nalUnitType <= 23; }
+    bool getIdrPicFlag() const { return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_W_RADL || m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP; }
+    bool isIRAP() const { return m_nalUnitType >= 16 && m_nalUnitType <= 23; }
 
-    bool isIntra()  const { return m_sliceType == I_SLICE; }
+    bool isIntra() const { return m_sliceType == I_SLICE; }
 
     bool isInterB() const { return m_sliceType == B_SLICE; }
 
@@ -471,6 +430,6 @@ public:
     uint32_t realEndAddress(uint32_t endCUAddr) const;
 };
 
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_SLICE_H
+#endif  // ifndef X265_SLICE_H

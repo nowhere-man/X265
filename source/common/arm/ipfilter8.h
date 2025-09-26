@@ -339,4 +339,4 @@ void x265_interp_4tap_horiz_ps_64x16_neon(const pixel* src, intptr_t srcStride, 
 void x265_interp_4tap_horiz_ps_64x32_neon(const pixel* src, intptr_t srcStride, int16_t* dst, intptr_t dstStride, int coeffIdx, int isRowExt);
 void x265_interp_4tap_horiz_ps_64x48_neon(const pixel* src, intptr_t srcStride, int16_t* dst, intptr_t dstStride, int coeffIdx, int isRowExt);
 void x265_interp_4tap_horiz_ps_64x64_neon(const pixel* src, intptr_t srcStride, int16_t* dst, intptr_t dstStride, int coeffIdx, int isRowExt);
-#endif // ifndef X265_IPFILTER8_ARM_H
+#endif  // ifndef X265_IPFILTER8_ARM_H

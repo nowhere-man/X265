@@ -35,18 +35,16 @@ class Yuv;
 
 /* A ShortYuv instance holds int16_ts for a square CU (64x64 down to 8x8) for all three planes,
  * these are typically used to hold residual or coefficients */
-class ShortYuv
-{
+class ShortYuv {
 public:
-
     int16_t* m_buf[3];
 
     uint32_t m_size;
     uint32_t m_csize;
 
-    int      m_csp;
-    int      m_hChromaShift;
-    int      m_vChromaShift;
+    int m_csp;
+    int m_hChromaShift;
+    int m_vChromaShift;
 
     ShortYuv();
 
@@ -54,14 +52,14 @@ public:
     void destroy();
     void clear();
 
-    int16_t* getLumaAddr(uint32_t absPartIdx)                       { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
-    int16_t* getCbAddr(uint32_t absPartIdx)                         { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
-    int16_t* getCrAddr(uint32_t absPartIdx)                         { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
+    int16_t* getLumaAddr(uint32_t absPartIdx) { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
+    int16_t* getCbAddr(uint32_t absPartIdx) { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
+    int16_t* getCrAddr(uint32_t absPartIdx) { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
     int16_t* getChromaAddr(uint32_t chromaId, uint32_t partUnitIdx) { return m_buf[chromaId] + getChromaAddrOffset(partUnitIdx); }
 
-    const int16_t* getLumaAddr(uint32_t absPartIdx) const                       { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
-    const int16_t* getCbAddr(uint32_t absPartIdx) const                         { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
-    const int16_t* getCrAddr(uint32_t absPartIdx) const                         { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
+    const int16_t* getLumaAddr(uint32_t absPartIdx) const { return m_buf[0] + getAddrOffset(absPartIdx, m_size); }
+    const int16_t* getCbAddr(uint32_t absPartIdx) const { return m_buf[1] + getChromaAddrOffset(absPartIdx); }
+    const int16_t* getCrAddr(uint32_t absPartIdx) const { return m_buf[2] + getChromaAddrOffset(absPartIdx); }
     const int16_t* getChromaAddr(uint32_t chromaId, uint32_t partUnitIdx) const { return m_buf[chromaId] + getChromaAddrOffset(partUnitIdx); }
 
     void subtract(const Yuv& srcYuv0, const Yuv& srcYuv1, uint32_t log2Size, int picCsp);
@@ -88,6 +86,6 @@ public:
         return blkX + blkY * width;
     }
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_SHORTYUV_H
+#endif  // ifndef X265_SHORTYUV_H

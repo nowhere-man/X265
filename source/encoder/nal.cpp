@@ -1,26 +1,26 @@
 /*****************************************************************************
-* Copyright (C) 2013-2020 MulticoreWare, Inc
-*
-* Authors: Steve Borho <steve@borho.org>
-*          Min Chen <chenm003@163.com>
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
-*
-* This program is also available under a commercial proprietary license.
-* For more information, contact us at license @ x265.com.
-*****************************************************************************/
+ * Copyright (C) 2013-2020 MulticoreWare, Inc
+ *
+ * Authors: Steve Borho <steve@borho.org>
+ *          Min Chen <chenm003@163.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ *
+ * This program is also available under a commercial proprietary license.
+ * For more information, contact us at license @ x265.com.
+ *****************************************************************************/
 
 #include "common.h"
 #include "bitstream.h"
@@ -29,15 +29,9 @@
 using namespace X265_NS;
 
 NALList::NALList()
-    : m_numNal(0)
-    , m_buffer(NULL)
-    , m_occupancy(0)
-    , m_allocSize(0)
-    , m_extraBuffer(NULL)
-    , m_extraOccupancy(0)
-    , m_extraAllocSize(0)
-    , m_annexB(true)
-{}
+    : m_numNal(0), m_buffer(NULL), m_occupancy(0), m_allocSize(0), m_extraBuffer(NULL), m_extraOccupancy(0), m_extraAllocSize(0), m_annexB(true)
+{
+}
 
 void NALList::takeContents(NALList& other)
 {
@@ -59,51 +53,45 @@ void NALList::takeContents(NALList& other)
 
 void NALList::serialize(NalUnitType nalUnitType, const Bitstream& bs, int layerId, uint8_t temporalID)
 {
-    static const char startCodePrefix[] = { 0, 0, 0, 1 };
+    static const char startCodePrefix[] = {0, 0, 0, 1};
 
     uint32_t payloadSize = bs.getNumberOfWrittenBytes();
     const uint8_t* bpayload = bs.getFIFO();
-    if (!bpayload)
+    if (!bpayload) {
         return;
+    }
 
     uint32_t nextSize = m_occupancy + sizeof(startCodePrefix) + 2 + payloadSize + (payloadSize >> 1) + m_extraOccupancy;
-    if (nextSize > m_allocSize)
-    {
-        uint8_t *temp = X265_MALLOC(uint8_t, nextSize);
-        if (temp)
-        {
+    if (nextSize > m_allocSize) {
+        uint8_t* temp = X265_MALLOC(uint8_t, nextSize);
+        if (temp) {
             memcpy(temp, m_buffer, m_occupancy);
 
             /* fixup existing payload pointers */
-            for (uint32_t i = 0; i < m_numNal; i++)
+            for (uint32_t i = 0; i < m_numNal; i++) {
                 m_nal[i].payload = temp + (m_nal[i].payload - m_buffer);
+            }
 
             X265_FREE(m_buffer);
             m_buffer = temp;
             m_allocSize = nextSize;
-        }
-        else
-        {
+        } else {
             x265_log(NULL, X265_LOG_ERROR, "Unable to realloc access unit buffer\n");
             return;
         }
     }
 
-    uint8_t *out = m_buffer + m_occupancy;
+    uint8_t* out = m_buffer + m_occupancy;
     uint32_t bytes = 0;
 
-    if (!m_annexB)
-    {
+    if (!m_annexB) {
         /* Will write size later */
         bytes += 4;
-    }
-    else if (!m_numNal || nalUnitType == NAL_UNIT_VPS || nalUnitType == NAL_UNIT_SPS || nalUnitType == NAL_UNIT_PPS || nalUnitType == NAL_UNIT_UNSPECIFIED)
-    {
+    } else if (!m_numNal || nalUnitType == NAL_UNIT_VPS || nalUnitType == NAL_UNIT_SPS || nalUnitType == NAL_UNIT_PPS ||
+               nalUnitType == NAL_UNIT_UNSPECIFIED) {
         memcpy(out, startCodePrefix, 4);
         bytes += 4;
-    }
-    else
-    {
+    } else {
         memcpy(out, startCodePrefix + 1, 3);
         bytes += 3;
     }
@@ -122,10 +110,8 @@ void NALList::serialize(NalUnitType nalUnitType, const Bitstream& bs, int layerI
      *  - 0x000000
      *  - 0x000001
      *  - 0x000002 */
-    for (uint32_t i = 0; i < payloadSize; i++)
-    {
-        if (i > 2 && !out[bytes - 2] && !out[bytes - 3] && out[bytes - 1] <= 0x03 && nalUnitType != NAL_UNIT_UNSPECIFIED)
-        {
+    for (uint32_t i = 0; i < payloadSize; i++) {
+        if (i > 2 && !out[bytes - 2] && !out[bytes - 3] && out[bytes - 1] <= 0x03 && nalUnitType != NAL_UNIT_UNSPECIFIED) {
             /* inject 0x03 to prevent emulating a start code */
             out[bytes] = out[bytes - 1];
             out[bytes - 1] = 0x03;
@@ -137,8 +123,7 @@ void NALList::serialize(NalUnitType nalUnitType, const Bitstream& bs, int layerI
 
     X265_CHECK(bytes <= 4 + 2 + payloadSize + (payloadSize >> 1), "NAL buffer overflow\n");
 
-    if (m_extraOccupancy)
-    {
+    if (m_extraOccupancy) {
         /* these bytes were escaped by serializeSubstreams */
         memcpy(out + bytes, m_extraBuffer, m_extraOccupancy);
         bytes += m_extraOccupancy;
@@ -149,11 +134,11 @@ void NALList::serialize(NalUnitType nalUnitType, const Bitstream& bs, int layerI
      * ... when the last byte of the RBSP data is equal to 0x00 (which can
      * only occur when the RBSP ends in a cabac_zero_word), a final byte equal
      * to 0x03 is appended to the end of the data.  */
-    if (!out[bytes - 1])
+    if (!out[bytes - 1]) {
         out[bytes++] = 0x03;
+    }
 
-    if (!m_annexB)
-    {
+    if (!m_annexB) {
         uint32_t dataSize = bytes - 4;
         out[0] = (uint8_t)(dataSize >> 24);
         out[1] = (uint8_t)(dataSize >> 16);
@@ -177,41 +162,34 @@ uint32_t NALList::serializeSubstreams(uint32_t* streamSizeBytes, uint32_t stream
 {
     uint32_t maxStreamSize = 0;
     uint32_t estSize = 0;
-    for (uint32_t s = 0; s < streamCount; s++)
+    for (uint32_t s = 0; s < streamCount; s++) {
         estSize += streams[s].getNumberOfWrittenBytes();
+    }
     estSize += estSize >> 1;
 
-    if (estSize > m_extraAllocSize)
-    {
-        uint8_t *temp = X265_MALLOC(uint8_t, estSize);
-        if (temp)
-        {
+    if (estSize > m_extraAllocSize) {
+        uint8_t* temp = X265_MALLOC(uint8_t, estSize);
+        if (temp) {
             X265_FREE(m_extraBuffer);
             m_extraBuffer = temp;
             m_extraAllocSize = estSize;
-        }
-        else
-        {
+        } else {
             x265_log(NULL, X265_LOG_ERROR, "Unable to realloc WPP substream concatenation buffer\n");
             return 0;
         }
     }
 
     uint32_t bytes = 0;
-    uint8_t *out = m_extraBuffer;
-    for (uint32_t s = 0; s < streamCount; s++)
-    {
+    uint8_t* out = m_extraBuffer;
+    for (uint32_t s = 0; s < streamCount; s++) {
         const Bitstream& stream = streams[s];
         uint32_t inSize = stream.getNumberOfWrittenBytes();
-        const uint8_t *inBytes = stream.getFIFO();
+        const uint8_t* inBytes = stream.getFIFO();
         uint32_t prevBufSize = bytes;
 
-        if (inBytes)
-        {
-            for (uint32_t i = 0; i < inSize; i++)
-            {
-                if (bytes >= 2 && !out[bytes - 2] && !out[bytes - 1] && inBytes[i] <= 0x03)
-                {
+        if (inBytes) {
+            for (uint32_t i = 0; i < inSize; i++) {
+                if (bytes >= 2 && !out[bytes - 2] && !out[bytes - 1] && inBytes[i] <= 0x03) {
                     /* inject 0x03 to prevent emulating a start code */
                     out[bytes++] = 3;
                 }
@@ -220,11 +198,11 @@ uint32_t NALList::serializeSubstreams(uint32_t* streamSizeBytes, uint32_t stream
             }
         }
 
-        if (s < streamCount - 1)
-        {
+        if (s < streamCount - 1) {
             streamSizeBytes[s] = bytes - prevBufSize;
-            if (streamSizeBytes[s] > maxStreamSize)
+            if (streamSizeBytes[s] > maxStreamSize) {
                 maxStreamSize = streamSizeBytes[s];
+            }
         }
     }
 

@@ -30,20 +30,17 @@ namespace X265_NS {
 
 class Frame;
 
-class PicList
-{
+class PicList {
 protected:
-
-    Frame*   m_start;
-    Frame*   m_end;
-    int      m_count;
+    Frame* m_start;
+    Frame* m_end;
+    int m_count;
 
 public:
-
     PicList()
     {
         m_start = NULL;
-        m_end   = NULL;
+        m_end = NULL;
         m_count = 0;
     }
 
@@ -88,16 +85,16 @@ public:
     void removeSubDPB(Frame& pic);
 #endif
 
-    Frame* first()        { return m_start;   }
+    Frame* first() { return m_start; }
 
-    Frame* last()         { return m_end;     }
+    Frame* last() { return m_end; }
 
-    int size()            { return m_count;   }
+    int size() { return m_count; }
 
-    bool empty() const    { return !m_count;  }
+    bool empty() const { return !m_count; }
 
     operator bool() const { return !!m_count; }
 };
-}
+}  // namespace X265_NS
 
-#endif // ifndef X265_PICLIST_H
+#endif  // ifndef X265_PICLIST_H
