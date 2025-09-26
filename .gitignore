@@ -33,3 +33,5 @@
 
 # Build directory
 .vscode/settings.json
+build/
+.cache/
