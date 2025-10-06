@@ -277,6 +277,9 @@ bool FrameEncoder::startCompressFrame(Frame* curFrame[MAX_LAYERS])
         }
     }
 
+    // 用于唤醒等待的工作线程
+    // 等待端：FrameEncoder::threadMain()函数
+    // 唤醒端：FrameEncoder::startCompressCTU函数
     m_enable.trigger();
     return true;
 }
@@ -914,6 +917,9 @@ void FrameEncoder::compressFrame(int layer)
                     m_row0WaitTime[layer] = x265_mdate();
                     enqueueRowEncoder(m_row_to_idx[row]); /* clear internal dependency, start wavefront */
                 }
+                // 尝试唤线程池中休眠的worker
+                // ThreadPool::WorkerThread主循环调用WaveFront::findJob()
+                // findJob()转而调用FrameEncoder::processRow()
                 tryWakeOne();
             }  // end of loop rowInSlice
         }  // end of loop sliceId

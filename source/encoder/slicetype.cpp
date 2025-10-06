@@ -92,12 +92,19 @@ uint32_t acEnergyVarHist(uint64_t sum_ssd, int shift)
     return ssd - ((uint64_t)sum * sum >> shift);
 }
 
+/*
+基于 Sobel 的边缘检测流程：
+1. 使用 Sobel 卷积核分别计算水平与垂直梯度；
+2. 根据梯度幅值衡量边缘强度；
+3. 可选地换算梯度方向角度；
+4. 依据阈值将结果二值化得到边缘图。
+*/
 bool computeEdge(pixel* edgePic, pixel* refPic, pixel* edgeTheta, intptr_t stride, int height, int width, bool bcalcTheta, pixel whitePixel)
 {
     intptr_t rowOne = 0, rowTwo = 0, rowThree = 0, colOne = 0, colTwo = 0, colThree = 0;
     intptr_t middle = 0, topLeft = 0, topRight = 0, bottomLeft = 0, bottomRight = 0;
 
-    const int startIndex = 1;
+    const int startIndex = 1; // 跳过边界像素，避免3x3 Sobel卷积核越界
 
     if (!edgePic || !refPic || (!edgeTheta && bcalcTheta)) {
         return false;
@@ -106,7 +113,7 @@ bool computeEdge(pixel* edgePic, pixel* refPic, pixel* edgeTheta, intptr_t strid
         float gradientMagnitude = 0;
         pixel blackPixel = 0;
 
-        // Applying Sobel filter expect for border pixels
+        // 对非边界像素应用Sobel卷积核
         height = height - startIndex;
         width = width - startIndex;
         for (int rowNum = startIndex; rowNum < height; rowNum++) {
@@ -115,7 +122,7 @@ bool computeEdge(pixel* edgePic, pixel* refPic, pixel* edgeTheta, intptr_t strid
             rowThree = rowTwo + stride;
 
             for (int colNum = startIndex; colNum < width; colNum++) {
-                /*  Horizontal and vertical gradients
+                /*  水平与垂直梯度卷积核
                     [ -3   0   3 ]        [-3   -10  -3 ]
                 gH =[ -10  0   10]   gV = [ 0    0    0 ]
                     [ -3   0   3 ]        [ 3    10   3 ] */
@@ -128,20 +135,30 @@ bool computeEdge(pixel* edgePic, pixel* refPic, pixel* edgeTheta, intptr_t strid
                 topRight = rowOne + colThree;
                 bottomLeft = rowThree + colOne;
                 bottomRight = rowThree + colThree;
+                // 将邻域像素与Sobel系数组合，近似求得 X/Y 方向导数
                 gradientH = (float)(-3 * refPic[topLeft] + 3 * refPic[topRight] - 10 * refPic[rowTwo + colOne] + 10 * refPic[rowTwo + colThree] -
                                     3 * refPic[bottomLeft] + 3 * refPic[bottomRight]);
                 gradientV = (float)(-3 * refPic[topLeft] - 10 * refPic[rowOne + colTwo] - 3 * refPic[topRight] + 3 * refPic[bottomLeft] +
                                     10 * refPic[rowThree + colTwo] + 3 * refPic[bottomRight]);
+                // 梯度幅值等于水平与垂直导数的欧氏范数
                 gradientMagnitude = sqrtf(gradientH * gradientH + gradientV * gradientV);
                 if (bcalcTheta) {
                     edgeTheta[middle] = 0;
+                    // 梯度向量(gradientH, gradientV)可看成从原点指向该点的向量
+                    // atan2(y, x)实现了平面极坐标的反变换：等价于θ=arctan(y / x)，
+                    // 但会结合x、y的符号判断象限，返回完整的 (−π, π] 区间角度。
+                    // 这里的目的是求出梯度向量的弧度角
                     radians = atan2(gradientV, gradientH);
+                    // 将弧度转换为角度值
                     theta = (float)((radians * 180) / PI);
                     if (theta < 0) {
+                        // 负角度对应对向方向，转换为正角度
                         theta = 180 + theta;
                     }
+                    // 将梯度方向转为0～180度区间，供后续非极大值抑制使用
                     edgeTheta[middle] = (pixel)theta;
                 }
+                // 将边缘强度二值化
                 edgePic[middle] = (pixel)(gradientMagnitude >= EDGE_THRESHOLD ? whitePixel : blackPixel);
             }
         }
@@ -940,20 +957,15 @@ Lookahead::Lookahead(x265_param* param, ThreadPool* pool)
     m_bAdaptiveQuant =
         m_param->rc.aqMode || m_param->bEnableWeightedPred || m_param->bEnableWeightedBiPred || m_param->bAQMotion || m_param->rc.hevcAq;
 
-    /* If we have a thread pool and are using --b-adapt 2, it is generally
-     * preferable to perform all motion searches for each lowres frame in large
-     * batched; this will create one job per --bframe per lowres frame, and
-     * these jobs are performed by workers bonded to the thread running
-     * slicetypeDecide() */
+    /* 当存在线程池且使用 --b-adapt 2 时，通常会把每个低分辨率帧的运动搜索
+     * 按批次集中执行；这样每个低分辨率帧与每个 B 帧都对应一个任务，由与
+     * slicetypeDecide() 线程绑定的工作线程来完成。 */
     m_bBatchMotionSearch = m_pool && m_param->bFrameAdaptive == X265_B_ADAPT_TRELLIS;
 
-    /* It is also beneficial to pre-calculate all possible frame cost estimates
-     * using worker threads bonded to the worker thread running
-     * slicetypeDecide(). This creates bframes * bframes jobs which take less
-     * time than the motion search batches but there are many of them. This may
-     * do much unnecessary work, some frame cost estimates are not needed, so if
-     * the thread pool is small we disable this feature after the initial burst
-     * of work */
+    /* 预先计算所有可能的帧代价也有助益，由与 slicetypeDecide()
+     * 线程绑定的工作线程来执行。虽然这些 bframes * bframes 个任务
+     * 所耗时间少于运动搜索批次，但数量众多，可能产生不必要的计算。
+     * 因而在线程池较小时，会在初始高峰之后禁用该特性。 */
     m_bBatchFrameCosts = m_bBatchMotionSearch;
 
     if (m_param->lookaheadSlices && !m_pool) {
